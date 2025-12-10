@@ -19,3 +19,4 @@ home-assistant.log
 OZW_Log.txt
 *.conf
 known_devices.yaml
+.ha_run.lock
