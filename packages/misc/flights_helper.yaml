@@ -1,0 +1,153 @@
+homeassistant:
+  customize:
+    device_tracker.next_flight_aircraft:
+      icon: mdi:airplane
+
+# Single, tiny cache for the picked flight (JSON string)
+input_text:
+  tripit_next_flight_cache:
+    name: TripIt next flight cache (JSON)
+    max: 255   # HA cap; avoid schema error
+
+# These keep the SAME entity_ids you already use
+template:
+  - sensor:
+      - name: Next Flight Number
+        unique_id: next_flight_number_from_cache
+        icon: mdi:airplane
+        state: >
+          {% set o = (states('input_text.tripit_next_flight_cache')|from_json(default={})) %}
+          {{ o.get('flight','unknown') }}
+
+      - name: Next Flight Departure (Calendar)
+        unique_id: next_flight_departure_ts_from_cache
+        device_class: timestamp
+        state: >
+          {% set o = (states('input_text.tripit_next_flight_cache')|from_json(default={})) %}
+          {{ o.get('start') if o.get('start') else none }}
+
+      - name: Next Flight Arrival (Calendar)
+        unique_id: next_flight_arrival_ts_from_cache
+        device_class: timestamp
+        state: >
+          {% set o = (states('input_text.tripit_next_flight_cache')|from_json(default={})) %}
+          {{ o.get('end') if o.get('end') else none }}
+
+      - name: Next Flight Origin
+        unique_id: next_flight_origin_from_cache
+        state: >
+          {% set o = (states('input_text.tripit_next_flight_cache')|from_json(default={})) %}
+          {{ o.get('origin','unknown') }}
+
+      - name: Next Flight Destination
+        unique_id: next_flight_destination_from_cache
+        state: >
+          {% set o = (states('input_text.tripit_next_flight_cache')|from_json(default={})) %}
+          {{ o.get('dest','unknown') }}
+
+      - name: Next Flight Minutes To Departure
+        unique_id: next_flight_minutes_to_dep_from_cache
+        unit_of_measurement: "min"
+        state_class: measurement
+        state: >
+          {% set o = (states('input_text.tripit_next_flight_cache')|from_json(default={})) %}
+          {% set s = o.get('start') %}
+          {% if s %}
+            {{ ((as_datetime(s) - now()).total_seconds()/60) | round(0) | int }}
+          {% else %}-999999{% endif %}
+
+# Fetch TripIt ICS → pick next timed flight → write JSON cache
+automation:
+  - id: tripit_fetch_next_flight_v1
+    alias: TripIt – fetch next flight from ICS
+    mode: single
+    trigger:
+      - platform: time_pattern
+        minutes: "/10"
+      - platform: homeassistant
+        event: start
+      - platform: state
+        entity_id: calendar.tripit
+    action:
+      # 1) Pull events (bypass attribute cache)
+      - action: calendar.get_events
+        data:
+          entity_id: calendar.tripit
+          start_date_time: "{{ now().isoformat() }}"
+          duration:
+            days: 21
+        response_variable: ics
+
+      # 2) Parse one "next flight"
+      - variables:
+          events: "{{ ics.get('events',[]) if ics else [] }}"
+          pat_fn: "\\b(?!(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|TO)\\b)([A-Z]{2,3})\\s?(\\d{1,4}[A-Z]?)\\b"
+          pat_route: "\\b([A-Z]{3})\\s*(?:-|–|—|→|TO)\\s*([A-Z]{3})\\b"
+          pick: >-
+            {% set timed = events | selectattr('start','search','T') | list %}
+            {% set ns = namespace(ev=None) %}
+            {% for e in timed|sort(attribute='start') %}
+              {% set txt = ((e.get('summary','') ~ ' ' ~ e.get('description','')) | upper) %}
+              {% if (txt | regex_search(pat_fn)) and ns.ev is none %}
+                {% set ns.ev = e %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.ev or {} }}
+          flight: >-
+            {% set txt = ((pick.get('summary','') ~ ' ' ~ pick.get('description','')) | upper) %}
+            {% set hit = (txt | regex_findall(pat_fn)) | first %}
+            {{ (hit[0] ~ hit[1]) | replace(' ','') if hit else 'unknown' }}
+          origin: >-
+            {% set su = (pick.get('summary','') or '') %}
+            {% set du = (pick.get('description','') or '') %}
+            {% set txt = (su ~ ' ' ~ du) | upper %}
+            {% set r = (su | upper | regex_findall(pat_route)) | first %}
+            {% if r and r|length==2 %}
+              {{ r[0] }}
+            {% else %}
+              {% set codes = (txt | regex_findall('\\b([A-Z]{3})\\b')) %}
+              {{ codes[0] if codes and (codes|length)>=2 else 'unknown' }}
+            {% endif %}
+          dest: >-
+            {% set su = (pick.get('summary','') or '') %}
+            {% set du = (pick.get('description','') or '') %}
+            {% set txt = (su ~ ' ' ~ du) | upper %}
+            {% set r = (su | upper | regex_findall(pat_route)) | first %}
+            {% if r and r|length==2 %}
+              {{ r[1] }}
+            {% else %}
+              {% set codes = (txt | regex_findall('\\b([A-Z]{3})\\b')) %}
+              {{ codes[-1] if codes and (codes|length)>=2 else 'unknown' }}
+            {% endif %}
+          payload: >-
+            {{ {
+              "flight": flight,
+              "start": pick.get('start'),
+              "end": pick.get('end'),
+              "origin": origin,
+              "dest": dest
+            } | tojson }}
+
+      # 3) Write the cache (or empty object)
+      - if:
+          - condition: template
+            value_template: "{{ pick != {} }}"
+        then:
+          - action: input_text.set_value
+            data:
+              entity_id: input_text.tripit_next_flight_cache
+              value: "{{ payload }}"
+        else:
+          - action: input_text.set_value
+            data:
+              entity_id: input_text.tripit_next_flight_cache
+              value: "{{ {} | tojson }}"
+
+      # 4) DEBUG (remove later if you want)
+      - action: persistent_notification.create
+        data:
+          title: "TripIt fetch debug"
+          message: >
+            events={{ (events|count) if events is defined else 'n/a' }},
+            picked={{ pick.get('summary','<none>') if pick is defined else '<none>' }},
+            flight={{ flight if flight is defined else '<none>' }}

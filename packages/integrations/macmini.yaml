@@ -1,0 +1,30 @@
+# /config/packages/integrations/macmini.yaml
+# ================================
+# Mac mini helper (LAN REST control)
+# - Provides ping and reboot endpoints via rest_command
+# - Includes two scripts to trigger those actions
+# ================================
+
+rest_command:
+  mac_mini_ping:
+    url: "http://192.168.10.58:8765/ping"
+    method: GET
+    timeout: 5
+  mac_mini_reboot:
+    url: "http://192.168.10.58:8765/reboot"
+    method: POST
+    headers:
+      X-Auth-Token: "08305f478cb45f9d35cf66d28c8d5f2dab1e20de6c7b0fc8"
+    timeout: 5
+
+script:
+  ping_mac_mini_reboot_server:
+    alias: Ping Mac mini reboot server
+    mode: single
+    sequence:
+      - action: rest_command.mac_mini_ping
+  reboot_mac_mini:
+    alias: Reboot Mac mini (LAN)
+    mode: single
+    sequence:
+      - action: rest_command.mac_mini_reboot

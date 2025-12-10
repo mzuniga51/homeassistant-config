@@ -1,0 +1,57 @@
+# ============================================================
+# /config/packages/dashboard_control/device_selector.yaml
+# ============================================================
+
+# --- INPUT SELECTS: Device preference per user ---
+input_select:
+  ble_device_manuel:
+    name: "Manuel - Dispositivo BLE"
+    options:
+      - iPhone
+      - iPad
+    initial: iPhone
+    icon: mdi:cellphone
+
+  ble_device_evelyn:
+    name: "Evelyn - Dispositivo BLE"
+    options:
+      - iPhone
+      - iPad
+    initial: iPhone
+    icon: mdi:cellphone
+
+  ble_device_andres:
+    name: "Andrés - Dispositivo BLE"
+    options:
+      - iPhone
+    initial: iPhone
+    icon: mdi:cellphone
+
+# --- TEMPLATE SENSORS: Returns the area based on selected device ---
+template:
+  - sensor:
+      - name: "BLE Area Manuel"
+        unique_id: ble_area_manuel_selected
+        state: >
+          {% if is_state('input_select.ble_device_manuel', 'iPad') %}
+            {{ states('sensor.ipad_manuel_area') }}
+          {% else %}
+            {{ states('sensor.iphone_manuel_ble_area') }}
+          {% endif %}
+        icon: mdi:map-marker
+
+      - name: "BLE Area Evelyn"
+        unique_id: ble_area_evelyn_selected
+        state: >
+          {% if is_state('input_select.ble_device_evelyn', 'iPad') %}
+            {{ states('sensor.ipad_evelyn_area') }}
+          {% else %}
+            {{ states('sensor.iphone_evelyn_area') }}
+          {% endif %}
+        icon: mdi:map-marker
+
+      - name: "BLE Area Andres"
+        unique_id: ble_area_andres_selected
+        state: >
+          {{ states('sensor.iphone_andres_ble_area') }}
+        icon: mdi:map-marker

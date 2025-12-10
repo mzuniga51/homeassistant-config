@@ -1,0 +1,68 @@
+# /config/packages/badges/alexa_announcements.yaml
+# /config/packages/alexa_announcements.yaml
+# Alexa meal announcements with time windows
+
+# ====== Template Sensors ======
+template:
+  - trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    binary_sensor:
+      # Breakfast window: 6:00 AM - 10:00 AM
+      - name: ventana_desayuno_6_10
+        unique_id: ventana_desayuno_6_10
+        state: >
+          {% set hour = (states('sensor.time').split(':')[0] | int(0)) %}
+          {{ 6 <= hour < 10 }}
+        attributes:
+          window: "06:00–10:00 local"
+
+      # Dinner window: 6:00 PM - 9:00 PM
+      - name: ventana_cena_18_21
+        unique_id: ventana_cena_18_21
+        state: >
+          {% set hour = (states('sensor.time').split(':')[0] | int(0)) %}
+          {{ 18 <= hour < 21 }}
+        attributes:
+          window: "18:00–21:00 local"
+
+# ====== Scripts ======
+script:
+  # ============ ALEXA BREAKFAST ANNOUNCEMENT (Cuarto Master only) ============
+  alexa_anunciar_desayuno:
+    alias: Alexa — Anunciar desayuno (master)
+    mode: parallel
+    sequence:
+      - action: notify.alexa_media
+        data:
+          message: "El desayuno está listo"
+          title: "Home Assistant"
+          target:
+            - media_player.cuarto_master
+          data:
+            type: announce
+            method: speak
+      # Keep the script ON long enough for chip animation
+      - delay: "00:00:01.5"
+
+  # ============ ALEXA DINNER ANNOUNCEMENT (All Echos) ============
+  alexa_anunciar_cena_todos:
+    alias: Alexa — Anunciar cena (todos)
+    mode: parallel
+    sequence:
+      - action: notify.alexa_media
+        data:
+          message: "La cena está lista"
+          title: "Home Assistant"
+          target:
+            - media_player.andy
+            - media_player.bano_andy
+            - media_player.cuarto_master
+            - media_player.garage
+            - media_player.maquinas
+            - media_player.musica
+          data:
+            type: announce
+            method: speak
+      # Keep the script ON long enough for chip animation
+      - delay: "00:00:01.5"

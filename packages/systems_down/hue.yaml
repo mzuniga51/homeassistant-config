@@ -1,0 +1,501 @@
+# /config/packages/systems_down/hue.yaml
+# Consolidated: Hue Unavailable Helpers + Hue Alerts
+# With configurable debounce, repeat, priority, and per-entity notifications
+
+input_boolean:
+  alert_hue_enabled:
+    name: Hue Alert
+    icon: mdi:lightbulb-group-outline
+
+  # Alert tracking - only send recovery if DOWN was sent
+  hue_bridge_alerted:
+    name: Hue Bridge Alerted
+    icon: mdi:alert-circle
+
+  hue_unavailable_alerted:
+    name: Hue Unavailable Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  hue_debounce_minutes:
+    name: Hue Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 5
+
+  hue_repeat_hours:
+    name: Hue Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 0
+
+input_datetime:
+  hue_last_alert:
+    name: Hue Last Alert
+    has_date: true
+    has_time: true
+
+input_text:
+  hue_devices_down:
+    name: Hue Devices Down
+    max: 255
+    initial: ""
+
+# ====== Template Sensors ======
+template:
+  - sensor:
+      - name: Hue Unavailable Count
+        unique_id: hue_unavailable_count_v1
+        icon: mdi:hue-off
+        state: >-
+          {% set hue_all = integration_entities('hue') | list %}
+          {% set forced_hue = [
+            'light.lampara_de_mesa_maria_1',
+            'light.lampara_terraza_3',
+            'light.plafon_bano_de_andres_2',
+            'light.plafon_bano_de_andres_3'
+          ] %}
+          {% set excluded = [
+            'light.lampara_de_mesa_maria_1'
+          ] %}
+          {% set down = namespace(items=[]) %}
+          {% for s in states %}
+            {% if s.state | lower == 'unavailable' %}
+              {% set e = s.entity_id %}
+              {% if e in excluded %}{% continue %}{% endif %}
+              {% set did = device_id(e) %}
+              {% set man = (device_attr(did,'manufacturer') | lower) if did else '' %}
+              {% set via_id = (device_attr(did,'via_device_id')) if did else '' %}
+              {% set via_man = (device_attr(via_id,'manufacturer') | lower) if via_id else '' %}
+              {% set looks_hue =
+                (e in hue_all)
+                or ('signify' in man) or ('philips' in man) or ('hue' in man)
+                or ('signify' in via_man) or ('philips' in via_man) or ('hue' in via_man)
+                or (e in forced_hue) %}
+              {% if looks_hue %}
+                {% set down.items = down.items + [e] %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ down.items | length }}
+        attributes:
+          entities: >-
+            {% set hue_all = integration_entities('hue') | list %}
+            {% set forced_hue = [
+              'light.lampara_de_mesa_maria_1',
+              'light.lampara_terraza_3',
+              'light.plafon_bano_de_andres_2',
+              'light.plafon_bano_de_andres_3'
+            ] %}
+            {% set excluded = [
+              'light.lampara_de_mesa_maria_1'
+            ] %}
+            {% set down = namespace(items=[]) %}
+            {% for s in states %}
+              {% if s.state | lower == 'unavailable' %}
+                {% set e = s.entity_id %}
+                {% if e in excluded %}{% continue %}{% endif %}
+                {% set did = device_id(e) %}
+                {% set man = (device_attr(did,'manufacturer') | lower) if did else '' %}
+                {% set via_id = (device_attr(did,'via_device_id')) if did else '' %}
+                {% set via_man = (device_attr(via_id,'manufacturer') | lower) if via_id else '' %}
+                {% set looks_hue =
+                  (e in hue_all)
+                  or ('signify' in man) or ('philips' in man) or ('hue' in man)
+                  or ('signify' in via_man) or ('philips' in via_man) or ('hue' in via_man)
+                  or (e in forced_hue) %}
+                {% if looks_hue %}
+                  {% set down.items = down.items + [e] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ down.items }}
+          friendly_names: >-
+            {% set hue_all = integration_entities('hue') | list %}
+            {% set forced_hue = [
+              'light.lampara_de_mesa_maria_1',
+              'light.lampara_terraza_3',
+              'light.plafon_bano_de_andres_2',
+              'light.plafon_bano_de_andres_3'
+            ] %}
+            {% set excluded = [
+              'light.lampara_de_mesa_maria_1'
+            ] %}
+            {% set down = namespace(items=[]) %}
+            {% for s in states %}
+              {% if s.state | lower == 'unavailable' %}
+                {% set e = s.entity_id %}
+                {% if e in excluded %}{% continue %}{% endif %}
+                {% set did = device_id(e) %}
+                {% set man = (device_attr(did,'manufacturer') | lower) if did else '' %}
+                {% set via_id = (device_attr(did,'via_device_id')) if did else '' %}
+                {% set via_man = (device_attr(via_id,'manufacturer') | lower) if via_id else '' %}
+                {% set looks_hue =
+                  (e in hue_all)
+                  or ('signify' in man) or ('philips' in man) or ('hue' in man)
+                  or ('signify' in via_man) or ('philips' in via_man) or ('hue' in via_man)
+                  or (e in forced_hue) %}
+                {% if looks_hue %}
+                  {% set down.items = down.items + [state_attr(e, 'friendly_name') or e] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ down.items }}
+
+# ====== Scripts ======
+script:
+  test_hue_notification:
+    alias: Test Hue Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 💡 *Hue Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+# ====== Automations ======
+automation:
+  # ============ HUE BRIDGE - FAILURE ============
+  - id: 'hue_alert_bridge_failure'
+    alias: 'Hue Alert - Bridge Failure'
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_hue_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id in [
+            'sensor.hue_bridge_cine_status',
+            'sensor.hue_bridge_garage_status',
+            'sensor.hue_bridge_master_status',
+            'sensor.hue_bridge_piso_2_status'
+          ] }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          failed_entity: "{{ trigger.event.data.entity_id }}"
+          failed_name: "{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}"
+          debounce_mins: "{{ states('input_number.hue_debounce_minutes') | int(5) }}"
+      
+      # Wait for debounce (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+          # Check if still down
+          - condition: template
+            value_template: "{{ states(failed_entity) | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_hue_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      # Track device down
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.hue_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.hue_devices_down') %}
+            {% set current_list = current.split(',') | map('trim') | reject('eq', '') | list %}
+            {% if failed_name not in current_list %}
+              {% set new_list = current_list + [failed_name] %}
+              {{ new_list | join(',') | truncate(255, True, '') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 💡 *{{ failed_name }} Down*
+            *Status:* {{ states(failed_entity) }}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Mark as alerted and record time
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.hue_bridge_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.hue_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ HUE BRIDGE - RECOVERY ============
+  - id: 'hue_alert_bridge_recovery'
+    alias: 'Hue Alert - Bridge Recovery'
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_hue_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id in [
+            'sensor.hue_bridge_cine_status',
+            'sensor.hue_bridge_garage_status',
+            'sensor.hue_bridge_master_status',
+            'sensor.hue_bridge_piso_2_status'
+          ] }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.hue_bridge_alerted
+        state: 'on'
+# Only send recovery if THIS device was reported down
+      - condition: template
+        value_template: >
+          {% set recovered_name = state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') %}
+          {{ recovered_name in states('input_text.hue_devices_down').split(',') | map('trim') | list }}
+    action:
+      - variables:
+          recovered_name: "{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}"
+      
+      # Remove from devices down list
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.hue_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.hue_devices_down') %}
+            {% set devices = current.split(',') | map('trim') | reject('eq', recovered_name) | list %}
+            {{ devices | join(',') }}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 💡 *{{ recovered_name }} Recovered*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Clear alerted state
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.hue_bridge_alerted
+
+  # ============ HUE ENTITY - FAILURE (per entity) ============
+  - id: 'hue_alert_entity_failure'
+    alias: 'Hue Alert - Entity Failure'
+    mode: parallel
+    max: 20
+    trigger:
+      - platform: state
+        entity_id: sensor.hue_unavailable_count
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_hue_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ (trigger.to_state.state | int(0)) > (trigger.from_state.state | int(0)) }}"
+    action:
+      # Get the newly unavailable entities
+      - variables:
+          old_entities: "{{ trigger.from_state.attributes.entities | default([]) }}"
+          new_entities: "{{ trigger.to_state.attributes.entities | default([]) }}"
+          added_entities: "{{ new_entities | reject('in', old_entities) | list }}"
+          debounce_mins: "{{ states('input_number.hue_debounce_minutes') | int(5) }}"
+      
+      # Wait for debounce (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+      
+      # Check if still unavailable
+      - condition: template
+        value_template: "{{ states('sensor.hue_unavailable_count') | int(0) > 0 }}"
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_hue_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      # Get current unavailable entities
+      - variables:
+          current_entities: "{{ state_attr('sensor.hue_unavailable_count', 'entities') | default([]) }}"
+          still_down: "{{ added_entities | select('in', current_entities) | list }}"
+      
+      # Only alert if originally added entities are still down
+      - condition: template
+        value_template: "{{ still_down | length > 0 }}"
+      
+      # Mark as alerted
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.hue_unavailable_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.hue_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      
+      - repeat:
+          for_each: "{{ still_down }}"
+          sequence:
+            - variables:
+                entity_name: "{{ state_attr(repeat.item, 'friendly_name') or repeat.item.split('.')[1] | replace('_', ' ') | title }}"
+            # Track device down
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.hue_devices_down
+              data:
+                value: >
+                  {% set current = states('input_text.hue_devices_down') %}
+                  {% set current_list = current.split(',') | map('trim') | reject('eq', '') | list %}
+                  {% if entity_name not in current_list %}
+                    {% set new_list = current_list + [entity_name] %}
+                    {{ new_list | join(',') | truncate(255, True, '') }}
+                  {% else %}
+                    {{ current }}
+                  {% endif %}
+            - action: script.whatsapp_info
+              data:
+                message: |
+                  🔴 💡 *{{ entity_name }} Down*
+                  *Time:* {{ now().strftime('%H:%M') }}
+                  *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ HUE ENTITY - RECOVERY (per entity) ============
+  - id: 'hue_alert_entity_recovery'
+    alias: 'Hue Alert - Entity Recovery'
+    mode: parallel
+    max: 20
+    trigger:
+      - platform: state
+        entity_id: sensor.hue_unavailable_count
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_hue_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ (trigger.to_state.state | int(0)) < (trigger.from_state.state | int(0)) }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.hue_unavailable_alerted
+        state: 'on'
+    action:
+      # Get the recovered entities
+# Get the recovered entities - only those that were reported down
+      - variables:
+          old_entities: "{{ trigger.from_state.attributes.entities | default([]) }}"
+          new_entities: "{{ trigger.to_state.attributes.entities | default([]) }}"
+          raw_recovered: "{{ old_entities | reject('in', new_entities) | list }}"
+          devices_down_list: "{{ states('input_text.hue_devices_down').split(',') | map('trim') | list }}"
+          recovered_entities: >
+            {% set ns = namespace(filtered=[]) %}
+            {% for entity in raw_recovered %}
+              {% set name = state_attr(entity, 'friendly_name') or entity.split('.')[1] | replace('_', ' ') | title %}
+              {% if name in devices_down_list %}
+                {% set ns.filtered = ns.filtered + [entity] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.filtered }}
+      - repeat:
+          for_each: "{{ recovered_entities }}"
+          sequence:
+            - variables:
+                entity_name: "{{ state_attr(repeat.item, 'friendly_name') or repeat.item.split('.')[1] | replace('_', ' ') | title }}"
+            # Remove from devices down list
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.hue_devices_down
+              data:
+                value: >
+                  {% set current = states('input_text.hue_devices_down') %}
+                  {% set devices = current.split(',') | map('trim') | reject('eq', entity_name) | list %}
+                  {{ devices | join(',') }}
+            - action: script.whatsapp_info
+              data:
+                message: |
+                  🟢 💡 *{{ entity_name }} Recovered*
+                  *Time:* {{ now().strftime('%H:%M') }}
+                  *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Clear alerted state only when all recovered
+      - condition: template
+        value_template: "{{ trigger.to_state.state | int(0) == 0 }}"
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.hue_unavailable_alerted
+
+  # ============ HUE - REPEAT REMINDER ============
+  - id: 'hue_alert_repeat'
+    alias: 'Hue Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_hue_enabled
+        state: 'on'
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: input_boolean.hue_bridge_alerted
+            state: 'on'
+          - condition: state
+            entity_id: input_boolean.hue_unavailable_alerted
+            state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.hue_repeat_hours') | int(0) > 0 }}"
+      # Must have devices down
+      - condition: template
+        value_template: "{{ states('input_text.hue_devices_down') | trim != '' }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_hue_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.hue_last_alert') %}
+          {% set repeat_hrs = states('input_number.hue_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 💡 *Hue Devices Still Down*
+            *Devices:* {{ states('input_text.hue_devices_down') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.hue_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

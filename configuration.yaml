@@ -1,0 +1,66 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes & resources
+frontend:
+  themes: !include_dir_merge_named themes
+  extra_module_url:
+    - /hacsfiles/lovelace-card-mod/card-mod.js
+    - /hacsfiles/hass-hue-icons/hass-hue-icons.js
+    - /hacsfiles/kiosk-mode/kiosk-mode.js
+    - /local/weather-overlay.js
+
+# Keep these includes
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Enable packages – everything you want to keep lives here
+homeassistant:
+  packages: !include_dir_named packages
+
+# Recorder (SQLite)
+recorder:
+  db_url: !secret recorder_db_url_sqlite
+  purge_keep_days: 14
+  auto_purge: true
+  auto_repack: true
+  commit_interval: 1
+  exclude:
+    domains:
+      - camera
+      - persistent_notification
+      - updater
+      - media_player
+    entity_globs:
+      - sensor.*_wifi_signal
+      - sensor.*_rssi
+      - sensor.*_uptime
+      - sensor.*_packets*
+      - sensor.*_throughput*
+      - sensor.ring_*
+      - binary_sensor.ring_*
+      - sensor.*_debug*
+      - sensor.iphone_*          # mobile app sensors
+      - sensor.*_dir_of_travel*  # any “direction of travel”
+      - sensor.*_battery_*       # (optionally) battery detail sensor
+logbook:
+  exclude:
+    entity_globs:
+      - sensor.iphone_*
+
+# Logging silence noisy 
+logger:
+  default: info
+  logs:
+    ring_doorbell: critical
+    ring_doorbell.stickup_cam: critical
+    homeassistant.components.ring: critical
+    custom_components.xiaomi_miot: warning
+    custom_components.xiaomi_miot.core: warning
+    custom_components.xiaomi_miot.core.device: warning
+    custom_components.xiaomi_miot.core.device.xiaomi.vacuum: error
+    miio: warning
+    miio.miioprotocol: error
+    aioesphomeapi.reconnect_logic: warning
+

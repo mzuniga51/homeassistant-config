@@ -1,0 +1,31 @@
+# Weather Overlay Package
+# Place this file in # /config/packages/dashboard_control/weather_overlay_selector.yaml
+# Make sure packages are enabled in configuration.yaml
+
+# Input Boolean Helper - Toggle for Weather Overlay
+input_boolean:
+  weather_overlay:
+    name: Weather Overlay
+    icon: mdi:weather-partly-cloudy
+    initial: true  # Starts enabled by default
+
+# Input Select Helper - Test different weather effects
+input_select:
+  weather_overlay_test:
+    name: Weather Overlay Test
+    icon: mdi:test-tube
+    initial: Use Real Weather
+    options:
+      - Use Real Weather
+      - rainy
+      - pouring
+      - cloudy
+      - partlycloudy
+      - fog
+      - lightning
+      - lightning-rainy
+      - snowy
+      - snowy-rainy
+      - clear-night
+      - sunny
+      - windy

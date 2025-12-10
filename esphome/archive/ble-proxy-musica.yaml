@@ -1,0 +1,70 @@
+substitutions:
+  name: ble-proxy-musica
+  friendly_name: "BLE Proxy Música"
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  comment: "ESP32-S3 Bluetooth Proxy for Bermuda (Room: Música)"
+  project:
+    name: manuel.bermuda_ble_proxy
+    version: "1.0"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+# Logs to help diagnose BLE issues
+logger:
+
+# Native API to HA
+api:
+  encryption:
+    key: "REPLACE_WITH_API_KEY"
+
+ota:
+  - platform: esphome
+    password: "REPLACE_WITH_OTA_PASSWORD"
+
+wifi:
+  ssid: "REPLACE_WITH_YOUR_SSID"
+  password: "REPLACE_WITH_YOUR_WIFI_PASSWORD"
+  # Optional: set a static IP if you prefer
+  # manual_ip:
+  #   static_ip: 192.168.10.X
+  #   gateway: 192.168.10.1
+  #   subnet: 255.255.255.0
+  #   dns1: 192.168.10.1
+
+# Tiny HTTP page for quick checks (optional)
+web_server:
+  port: 80
+
+# === The two pieces Bermuda needs ===
+bluetooth_proxy:
+
+esp32_ble_tracker:
+  scan_parameters:
+    # A good balanced starting point; you can tweak later during calibration
+    interval: 1100ms
+    window: 1100ms
+    active: true
+  # No 'on_ble_advertise' is required for Bermuda; HA consumes advertisements.
+
+# Useful device info sensors (optional but helpful)
+sensor:
+  - platform: wifi_signal
+    name: "${friendly_name} WiFi Signal"
+    update_interval: 60s
+  - platform: uptime
+    name: "${friendly_name} Uptime"
+
+button:
+  - platform: restart
+    name: "${friendly_name} Restart"
+
+# Status LED (choose a pin if your S3 board has a user LED; many S3 DevKitC boards use GPIO48 or 38—leave off if unsure)
+# status_led:
+#   pin: GPIO48

@@ -1,0 +1,585 @@
+# ================================
+#  TV MASTER (Samsung) + CABLE MASTER
+#  Includes: focus helper, dialpad helper, power toggle, routing, transport,
+#            channels/digits, streaming app launches.
+# ================================
+
+input_boolean:
+  tele_master_dialpad_open:
+    name: Tele Master – Dialpad Open
+    icon: mdi:dialpad
+
+input_select:
+  tele_master_focus:
+    name: Tele Master – Focus
+    options:
+      - tv
+      - cable
+    initial: tv
+
+script:
+  # ---------- POWER ----------
+  tele_master_power:
+    alias: "Tele Master – Power Toggle (TV+Cable)"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('media_player.tele_master','off') }}"
+            sequence:
+              - service: media_player.turn_on
+                target:
+                  entity_id: media_player.cable_master
+              - service: remote.send_command
+                target:
+                  entity_id: remote.atv_master
+                data:
+                  command: top_menu
+              - delay: "00:00:05"
+              - service: remote.send_command
+                target:
+                  entity_id: remote.tele_master
+                data:
+                  command: KEY_EXIT
+              - delay: "00:00:05"
+              - service: remote.send_command
+                target:
+                  entity_id: remote.tele_master
+                data:
+                  command:
+                    - KEY_SOURCE
+                    - KEY_LEFT
+                    - KEY_LEFT
+                    - KEY_LEFT
+                    - KEY_RIGHT
+                    - KEY_RIGHT
+                    - KEY_ENTER
+                  delay_secs: 0.35
+        default:
+          - service: media_player.turn_off
+            target:
+              entity_id: media_player.tele_master
+          - service: media_player.turn_off
+            target:
+              entity_id: media_player.cable_master
+
+  # ---------- VOLUME ----------
+  tele_master_volume_up:
+    alias: "Tele Master - Volume Up"
+    mode: single
+    sequence:
+      - service: media_player.volume_up
+        target:
+          entity_id: media_player.tele_master
+
+  tele_master_volume_down:
+    alias: "Tele Master - Volume Down"
+    mode: single
+    sequence:
+      - service: media_player.volume_down
+        target:
+          entity_id: media_player.tele_master
+
+  tele_master_mute_toggle:
+    alias: "Tele Master - Mute Toggle"
+    mode: single
+    sequence:
+      - service: media_player.volume_mute
+        target:
+          entity_id: media_player.tele_master
+        data:
+          is_volume_muted: "{{ not (state_attr('media_player.tele_master','is_volume_muted') or false) }}"
+
+  # ---------- TV button (HDMI1) + focus=cable ----------
+  remote_master_tv_button:
+    alias: "Master – TV (HDMI1) + focus=cable"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "cable"
+      - service: remote.send_command
+        target:
+          entity_id: remote.tele_master
+        data:
+          command:
+            - KEY_SOURCE
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_RIGHT
+            - KEY_RIGHT
+            - KEY_ENTER
+          delay_secs: 0.35
+
+  # ---------- Streaming app launches (focus=tv) ----------
+  remote_master_open_netflix:
+    alias: "Master – Open Netflix"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "tv"
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.tele_master
+        data:
+          media_content_type: app
+          media_content_id: "3201907018807"
+
+  remote_master_open_hbo_max:
+    alias: "Master – Open Max"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "tv"
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.tele_master
+        data:
+          media_content_type: app
+          media_content_id: "3202301029760"
+
+  remote_master_open_apple_tv:
+    alias: "Master – Open Apple TV"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "tv"
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.tele_master
+        data:
+          media_content_type: app
+          media_content_id: "3201807016597"
+
+  remote_master_open_disney_plus:
+    alias: "Master – Open Disney+"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "tv"
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.tele_master
+        data:
+          media_content_type: app
+          media_content_id: "3201901017640"
+
+  remote_master_open_youtube:
+    alias: "Master – Open YouTube"
+    mode: single
+    sequence:
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.tele_master
+        data:
+          media_content_type: app
+          media_content_id: "111299001912"
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "tv"
+
+  remote_master_open_prime_video:
+    alias: "Master – Open Prime Video"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_master_focus
+        data:
+          option: "tv"
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.tele_master
+        data:
+          media_content_type: app
+          media_content_id: "3201910019365"
+
+  # ---------- Dynamic routing ----------
+  remote_master_route_up:
+    alias: "Master – Route UP"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: DPAD_UP
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_UP
+
+  remote_master_route_down:
+    alias: "Master – Route DOWN"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: DPAD_DOWN
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_DOWN
+
+  remote_master_route_left:
+    alias: "Master – Route LEFT"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: DPAD_LEFT
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_LEFT
+
+  remote_master_route_right:
+    alias: "Master – Route RIGHT"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: DPAD_RIGHT
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_RIGHT
+
+  remote_master_route_enter:
+    alias: "Master – Route ENTER"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: DPAD_CENTER
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_ENTER
+
+  remote_master_home_dynamic:
+    alias: "Master – HOME (dynamic)"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: HOME
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_HOME
+
+  remote_master_back_dynamic:
+    alias: "Master – BACK (dynamic)"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: BACK
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_RETURN
+
+  remote_master_exit_dynamic:
+    alias: "Master – EXIT (dynamic)"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: BACK
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_EXIT
+
+  remote_master_menu_dynamic:
+    alias: "Master – MENU/Settings (dynamic)"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_master_focus','cable') }}"
+            sequence:
+              - service: remote.send_command
+                target:
+                  entity_id: remote.cable_master
+                data:
+                  command: MENU
+        default:
+          - service: remote.send_command
+            target:
+              entity_id: remote.tele_master
+            data:
+              command: KEY_MENU
+
+  # ---------- Transport ----------
+  remote_master_transport_rewind:
+    alias: "Master – Transport Rewind"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: MEDIA_REWIND
+
+  remote_master_transport_fast_forward:
+    alias: "Master – Transport Fast Forward"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: MEDIA_FAST_FORWARD
+
+  remote_master_transport_previous:
+    alias: "Master – Transport Previous"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: MEDIA_PREVIOUS
+
+  remote_master_transport_next:
+    alias: "Master – Transport Next"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: MEDIA_NEXT
+
+  remote_master_transport_play_pause:
+    alias: "Master – Transport Play/Pause"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: MEDIA_PLAY_PAUSE
+
+  # ---------- Channels & Digits (Cable Master) ----------
+  cable_master_channel_up:
+    alias: "Cable Master - Channel Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: CHANNEL_UP
+
+  cable_master_channel_down:
+    alias: "Cable Master - Channel Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: CHANNEL_DOWN
+
+  cable_master_digit_0:
+    alias: "Cable Master - Digit 0"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "0"
+
+  cable_master_digit_1:
+    alias: "Cable Master - Digit 1"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "1"
+
+  cable_master_digit_2:
+    alias: "Cable Master - Digit 2"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "2"
+
+  cable_master_digit_3:
+    alias: "Cable Master - Digit 3"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "3"
+
+  cable_master_digit_4:
+    alias: "Cable Master - Digit 4"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "4"
+
+  cable_master_digit_5:
+    alias: "Cable Master - Digit 5"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "5"
+
+  cable_master_digit_6:
+    alias: "Cable Master - Digit 6"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "6"
+
+  cable_master_digit_7:
+    alias: "Cable Master - Digit 7"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "7"
+
+  cable_master_digit_8:
+    alias: "Cable Master - Digit 8"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "8"
+
+  cable_master_digit_9:
+    alias: "Cable Master - Digit 9"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: "9"
+
+  cable_master_backspace:
+    alias: "Cable Master - Backspace"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: DEL
+
+  cable_master_enter:
+    alias: "Cable Master - Enter"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_master
+        data:
+          command: DPAD_CENTER
+
+  remote_master_digit_enter:
+    alias: "Master – Dialpad Enter (send + hide)"
+    mode: single
+    sequence:
+      - service: script.cable_master_enter
+      - delay: "00:00:00.1"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.tele_master_dialpad_open

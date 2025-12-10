@@ -1,0 +1,184 @@
+homeassistant:
+
+input_boolean:
+  toldo_spa_state:
+    name: Toldo Spa
+    icon: mdi:awning
+
+  toldo_grill_state:
+    name: Toldo Grill
+    icon: mdi:awning
+
+  persiana_master_state:
+    name: Persiana Master
+    icon: mdi:blinds
+
+  cortinas_musica_state:
+    name: Cortinas Música
+    icon: mdi:curtains
+
+automation:
+  - alias: Toldo Spa Open
+    id: 9a18d73068b84347885f175232bb57bd
+    description: Send open impulse when Toldo Spa helper is turned on
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.toldo_spa_state
+        to: "on"
+    action:
+      - alias: "Spa OPEN: reset relay to OFF"
+        service: switch.turn_off
+        target:
+          entity_id: switch.toldo_spa_abierto_switch_1
+      - alias: "Spa OPEN: wait 1s"
+        delay: "00:00:01"
+      - alias: "Spa OPEN: pulse relay ON"
+        service: switch.turn_on
+        target:
+          entity_id: switch.toldo_spa_abierto_switch_1
+
+  - alias: Toldo Spa Close
+    id: 6b5aa8411cfd4cc9aec9a29c3197f29f
+    description: Send close impulse when Toldo Spa helper is turned off
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.toldo_spa_state
+        to: "off"
+    action:
+      - alias: "Spa CLOSE: reset relay to OFF"
+        service: switch.turn_off
+        target:
+          entity_id: switch.toldo_spa_cerrado_switch_1
+      - alias: "Spa CLOSE: wait 1s"
+        delay: "00:00:01"
+      - alias: "Spa CLOSE: pulse relay ON"
+        service: switch.turn_on
+        target:
+          entity_id: switch.toldo_spa_cerrado_switch_1
+
+  - alias: Toldo Grill Open
+    id: 6e20119590a04b8d94b1f649473aaaa4
+    description: Send open impulse when Toldo Grill helper is turned on
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.toldo_grill_state
+        to: "on"
+    action:
+      - alias: "Grill OPEN: reset relay to OFF"
+        service: switch.turn_off
+        target:
+          entity_id: switch.toldo_grill_abierto_switch_1
+      - alias: "Grill OPEN: wait 1s"
+        delay: "00:00:01"
+      - alias: "Grill OPEN: pulse relay ON"
+        service: switch.turn_on
+        target:
+          entity_id: switch.toldo_grill_abierto_switch_1
+
+  - alias: Toldo Grill Close
+    id: e163350de5094244b40cd5fad97a29c9
+    description: Send close impulse when Toldo Grill helper is turned off
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.toldo_grill_state
+        to: "off"
+    action:
+      - alias: "Grill CLOSE: reset relay to OFF"
+        service: switch.turn_off
+        target:
+          entity_id: switch.toldo_grill_cerrado_switch_1
+      - alias: "Grill CLOSE: wait 1s"
+        delay: "00:00:01"
+      - alias: "Grill CLOSE: pulse relay ON"
+        service: switch.turn_on
+        target:
+          entity_id: switch.toldo_grill_cerrado_switch_1
+
+  - alias: Persiana Master Open
+    id: 63eb59e3de10403aa0395ef4eff0689a
+    description: Send open impulse when Persiana Master helper is turned on (also open both Master curtains)
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.persiana_master_state
+        to: "on"
+    action:
+      - alias: "Persiana OPEN: reset relay to OFF"
+        service: switch.turn_off
+        target:
+          entity_id: switch.abre_persiana_switch_1
+      - alias: "Persiana OPEN: wait 1s"
+        delay: "00:00:01"
+      - alias: "Persiana OPEN: pulse relay ON"
+        service: switch.turn_on
+        target:
+          entity_id: switch.abre_persiana_switch_1
+      - alias: "Cortinas Master: OPEN both"
+        service: cover.open_cover
+        target:
+          entity_id:
+            - cover.cortina_master_derecha
+            - cover.cortina_master_izquierda
+
+  - alias: Persiana Master Close
+    id: a4d67a015ea145ea91a9ed451aa574d7
+    description: Send close impulse when Persiana Master helper is turned off (also close both Master curtains)
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.persiana_master_state
+        to: "off"
+    action:
+      - alias: "Persiana CLOSE: reset relay to OFF"
+        service: switch.turn_off
+        target:
+          entity_id: switch.cierra_persiana_switch_1
+      - alias: "Persiana CLOSE: wait 1s"
+        delay: "00:00:01"
+      - alias: "Persiana CLOSE: pulse relay ON"
+        service: switch.turn_on
+        target:
+          entity_id: switch.cierra_persiana_switch_1
+      - alias: "Cortinas Master: CLOSE both"
+        service: cover.close_cover
+        target:
+          entity_id:
+            - cover.cortina_master_derecha
+            - cover.cortina_master_izquierda
+
+  # Cortinas Música – helper-driven open/close
+  - alias: Cortinas Música – Open (0%)
+    id: 2a6f5f7f-4f7f-4f1e-9b4b-6a7d1c98a001
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.cortinas_musica_state
+        to: "on"
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id:
+            - cover.cortina_musica_izquierda_curtain
+            - cover.cortina_musica_derecha_curtain
+        data:
+          position: 0  # OPEN
+
+  - alias: Cortinas Música – Close (100%)
+    id: 5b9cc2d9-1b14-493a-85d4-0a7c1b18a002
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.cortinas_musica_state
+        to: "off"
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id:
+            - cover.cortina_musica_izquierda_curtain
+            - cover.cortina_musica_derecha_curtain
+        data:
+          position: 100  # CLOSE

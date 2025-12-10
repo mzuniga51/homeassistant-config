@@ -1,0 +1,1780 @@
+# /config/packages/integrations/pool.yaml
+# Pool & Spa Monitoring System
+# Features: Alert toggles, CONFIGURABLE debounce/repeat via sliders, recovery tracking
+
+input_boolean:
+  # ====== Master Toggle ======
+  alert_pool_all_enabled:
+    name: Pool Alerts (All)
+    icon: mdi:pool
+
+  # ====== Individual Alert Toggles ======
+  alert_pool_pump_off_enabled:
+    name: Pool Pump Off Alert
+    icon: mdi:pump-off
+
+  alert_spa_pump_off_enabled:
+    name: Spa Pump Off Alert
+    icon: mdi:pump-off
+
+  alert_pool_fill_enabled:
+    name: Pool Fill Alert
+    icon: mdi:water-plus
+
+  alert_spa_fill_enabled:
+    name: Spa Fill Alert
+    icon: mdi:water-plus
+
+  alert_pool_salt_enabled:
+    name: Pool Salt Level Alert
+    icon: mdi:shaker-outline
+
+  alert_spa_salt_enabled:
+    name: Spa Salt Level Alert
+    icon: mdi:shaker-outline
+
+  alert_pool_chlorine_enabled:
+    name: Pool Free Chlorine Alert
+    icon: mdi:flask-outline
+
+  alert_pool_ph_enabled:
+    name: Pool pH Alert
+    icon: mdi:ph
+
+  alert_spa_ph_enabled:
+    name: Spa pH Alert
+    icon: mdi:ph
+
+  alert_pool_chlor_status_enabled:
+    name: Pool Chlorinator Status Alert
+    icon: mdi:alert-circle
+
+  alert_spa_chlor_status_enabled:
+    name: Spa Chlorinator Status Alert
+    icon: mdi:alert-circle
+
+  alert_waterguru_cassette_enabled:
+    name: WaterGuru Cassette Alert
+    icon: mdi:calendar-alert
+
+  alert_pool_flow_enabled:
+    name: Pool Pump Flow Alert
+    icon: mdi:waves
+
+  alert_spa_flow_enabled:
+    name: Spa Pump Flow Alert
+    icon: mdi:waves
+
+  alert_pentair_status_enabled:
+    name: Pentair IntelliCenter Alert
+    icon: mdi:server-network
+
+  alert_spa_temp_enabled:
+    name: Spa Temperature Alert
+    icon: mdi:thermometer
+
+  alert_pool_fill_sequence_enabled:
+    name: Pool Fill Sequence
+    icon: mdi:water-pump
+
+  # ====== Alert Tracking Booleans ======
+  pool_pump_off_alerted:
+    name: Pool Pump Off Alerted
+    icon: mdi:flag
+
+  spa_pump_off_alerted:
+    name: Spa Pump Off Alerted
+    icon: mdi:flag
+
+  pool_salt_alerted:
+    name: Pool Salt Alerted
+    icon: mdi:flag
+
+  spa_salt_alerted:
+    name: Spa Salt Alerted
+    icon: mdi:flag
+
+  pool_chlorine_alerted:
+    name: Pool Chlorine Alerted
+    icon: mdi:flag
+
+  pool_ph_alerted:
+    name: Pool pH Alerted
+    icon: mdi:flag
+
+  spa_ph_alerted:
+    name: Spa pH Alerted
+    icon: mdi:flag
+
+  pool_chlor_status_alerted:
+    name: Pool Chlorinator Status Alerted
+    icon: mdi:flag
+
+  spa_chlor_status_alerted:
+    name: Spa Chlorinator Status Alerted
+    icon: mdi:flag
+
+  waterguru_cassette_alerted:
+    name: WaterGuru Cassette Alerted
+    icon: mdi:flag
+
+  pool_flow_alerted:
+    name: Pool Flow Alerted
+    icon: mdi:flag
+
+  spa_flow_alerted:
+    name: Spa Flow Alerted
+    icon: mdi:flag
+
+  pentair_status_alerted:
+    name: Pentair Status Alerted
+    icon: mdi:flag
+
+input_number:
+  # ====== Operational ======
+  pool_yesterday_rain_mm:
+    name: Pool Yesterday Rain (mm)
+    icon: mdi:weather-rainy
+    min: 0
+    max: 500
+    step: 0.1
+    unit_of_measurement: mm
+
+  pool_fill_duration_minutes:
+    name: Pool Fill Duration (minutes)
+    icon: mdi:timer
+    min: 0
+    max: 60
+    step: 0.1
+    unit_of_measurement: min
+
+  # ====== Debounce Settings (minutes) ======
+  pool_debounce_pump_off:
+    name: Pump Off Debounce
+    icon: mdi:timer-outline
+    min: 5
+    max: 120
+    step: 5
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_fill:
+    name: Fill Valve Debounce
+    icon: mdi:timer-outline
+    min: 5
+    max: 30
+    step: 1
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_salt:
+    name: Salt Level Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_ph:
+    name: pH Level Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_chlorinator:
+    name: Chlorinator Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_flow:
+    name: Flow Rate Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_chlorine:
+    name: Chlorine Level Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_waterguru:
+    name: WaterGuru Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_pentair:
+    name: Pentair Status Debounce
+    icon: mdi:timer-outline
+    min: 15
+    max: 120
+    step: 15
+    unit_of_measurement: min
+    mode: slider
+
+  pool_debounce_recovery:
+    name: Recovery Confirmation
+    icon: mdi:timer-outline
+    min: 5
+    max: 30
+    step: 5
+    unit_of_measurement: min
+    mode: slider
+
+  # ====== Repeat Settings ======
+  pool_repeat_critical:
+    name: Critical Alert Repeat
+    icon: mdi:repeat
+    min: 1
+    max: 30
+    step: 1
+    unit_of_measurement: min
+    mode: slider
+
+  pool_repeat_non_critical:
+    name: Non-Critical Alert Repeat
+    icon: mdi:repeat
+    min: 1
+    max: 24
+    step: 1
+    unit_of_measurement: hr
+    mode: slider
+
+template:
+  - binary_sensor:
+      # ============ DEBOUNCE SENSORS (configurable) ============
+      - name: "Pool Pump Off Over 1 Hour"
+        unique_id: pool_pump_off_over_1_hour
+        icon: mdi:pump-off
+        state: >
+          {{ is_state('switch.pool', 'off') 
+             and (as_timestamp(now()) - as_timestamp(states.switch.pool.last_changed)) 
+                > (states('input_number.pool_debounce_pump_off') | float(60) * 60) }}
+
+      - name: "Pool Fill On Over 10 Min"
+        unique_id: pool_fill_on_over_10_min
+        icon: mdi:water-alert
+        state: >
+          {{ is_state('switch.llenado_piscina', 'on')
+             and (as_timestamp(now()) - as_timestamp(states.switch.llenado_piscina.last_changed))
+                > (states('input_number.pool_debounce_fill') | float(10) * 60) }}
+
+      - name: "Spa Fill On Over 10 Min"
+        unique_id: spa_fill_on_over_10_min
+        icon: mdi:water-alert
+        state: >
+          {{ is_state('switch.llenado_spa', 'on')
+             and (as_timestamp(now()) - as_timestamp(states.switch.llenado_spa.last_changed))
+                > (states('input_number.pool_debounce_fill') | float(10) * 60) }}
+
+      - name: "Pool Chlorinator Not OK Over 1 Hour"
+        unique_id: pool_chlor_not_ok_over_1_hour
+        icon: mdi:alert-circle
+        state: >
+          {% set status = states('sensor.pool_chlor_status') | lower %}
+          {% set ok_states = ['ok','up','online','ready','healthy','on','true','1'] %}
+          {{ status not in ok_states 
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_chlor_status.last_changed)) 
+                > (states('input_number.pool_debounce_chlorinator') | float(60) * 60) }}
+
+      - name: "Spa Chlorinator Not OK Over 1 Hour"
+        unique_id: spa_chlor_not_ok_over_1_hour
+        icon: mdi:alert-circle
+        state: >
+          {% set status = states('sensor.spa_chlor_status') | lower %}
+          {% set ok_states = ['ok','up','online','ready','healthy','on','true','1'] %}
+          {{ status not in ok_states 
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_chlor_status.last_changed)) 
+                > (states('input_number.pool_debounce_chlorinator') | float(60) * 60) }}
+
+      - name: "Pool Pump Flow Zero"
+        unique_id: pool_pump_flow_zero
+        icon: mdi:waves
+        state: "{{ states('sensor.pool_pump_flow') | float(0) == 0 }}"
+
+      - name: "Pool Pump Flow Low Over 1 Hour"
+        unique_id: pool_pump_flow_low_over_1_hour
+        icon: mdi:waves
+        state: >
+          {% set flow = states('sensor.pool_pump_flow') | float(0) %}
+          {{ flow > 0 and flow < 20 
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_pump_flow.last_changed)) 
+                > (states('input_number.pool_debounce_flow') | float(60) * 60) }}
+
+      - name: "Spa Pump Flow Zero"
+        unique_id: spa_pump_flow_zero
+        icon: mdi:waves
+        state: "{{ states('sensor.spa_pump_flow') | float(0) == 0 }}"
+
+      - name: "Spa Pump Flow Low Over 1 Hour"
+        unique_id: spa_pump_flow_low_over_1_hour
+        icon: mdi:waves
+        state: >
+          {% set flow = states('sensor.spa_pump_flow') | float(0) %}
+          {{ flow > 0 and flow < 20 
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_pump_flow.last_changed)) 
+                > (states('input_number.pool_debounce_flow') | float(60) * 60) }}
+
+      - name: "Pool pH Out Of Range Over 1 Hour"
+        unique_id: pool_ph_out_of_range_over_1_hour
+        icon: mdi:ph
+        state: >
+          {% set ph = states('sensor.pool_chem_ph_level') | float(7.5) %}
+          {{ (ph < 7 or ph > 8)
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_chem_ph_level.last_changed)) 
+                > (states('input_number.pool_debounce_ph') | float(60) * 60) }}
+
+      - name: "Spa pH Out Of Range Over 1 Hour"
+        unique_id: spa_ph_out_of_range_over_1_hour
+        icon: mdi:ph
+        state: >
+          {% set ph = states('sensor.spa_chem_ph_level') | float(7.5) %}
+          {{ (ph < 7 or ph > 8)
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_chem_ph_level.last_changed)) 
+                > (states('input_number.pool_debounce_ph') | float(60) * 60) }}
+
+      - name: "Pool Salt Out Of Range Over 1 Hour"
+        unique_id: pool_salt_out_of_range_over_1_hour
+        icon: mdi:shaker-outline
+        state: >
+          {% set salt = states('sensor.pool_chlor_salt_level') | float(3500) %}
+          {{ (salt < 3000 or salt > 4200)
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_chlor_salt_level.last_changed)) 
+                > (states('input_number.pool_debounce_salt') | float(60) * 60) }}
+
+      - name: "Spa Salt Out Of Range Over 1 Hour"
+        unique_id: spa_salt_out_of_range_over_1_hour
+        icon: mdi:shaker-outline
+        state: >
+          {% set salt = states('sensor.spa_chlor_salt_level') | float(3500) %}
+          {{ (salt < 3000 or salt > 4200)
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_chlor_salt_level.last_changed)) 
+                > (states('input_number.pool_debounce_salt') | float(60) * 60) }}
+
+      # ============ RECOVERY SENSORS (configurable) ============
+      - name: "Pool Pump Recovered"
+        unique_id: pool_pump_recovered
+        icon: mdi:pump
+        state: >
+          {{ is_state('switch.pool', 'on')
+             and (as_timestamp(now()) - as_timestamp(states.switch.pool.last_changed))
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Spa Pump Off Over 1 Hour"
+        unique_id: spa_pump_off_over_1_hour
+        icon: mdi:pump-off
+        state: >
+          {{ is_state('switch.spa', 'off') 
+             and (as_timestamp(now()) - as_timestamp(states.switch.spa.last_changed)) 
+                > (states('input_number.pool_debounce_pump_off') | float(60) * 60) }}
+
+      - name: "Spa Pump Recovered"
+        unique_id: spa_pump_recovered
+        icon: mdi:pump
+        state: >
+          {{ is_state('switch.spa', 'on')
+             and (as_timestamp(now()) - as_timestamp(states.switch.spa.last_changed))
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Pool Salt Recovered"
+        unique_id: pool_salt_recovered
+        icon: mdi:shaker-outline
+        state: >
+          {% set salt = states('sensor.pool_chlor_salt_level') | float(0) %}
+          {{ salt >= 3000 and salt <= 4200
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_chlor_salt_level.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Spa Salt Recovered"
+        unique_id: spa_salt_recovered
+        icon: mdi:shaker-outline
+        state: >
+          {% set salt = states('sensor.spa_chlor_salt_level') | float(0) %}
+          {{ salt >= 3000 and salt <= 4200
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_chlor_salt_level.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Pool Chlorine Recovered"
+        unique_id: pool_chlorine_recovered
+        icon: mdi:flask-outline
+        state: >
+          {% set cl = states('sensor.waterguru_cerro_alto_51_free_chlorine') | float(0) %}
+          {{ cl >= 10
+             and (as_timestamp(now()) - as_timestamp(states.sensor.waterguru_cerro_alto_51_free_chlorine.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Pool pH Recovered"
+        unique_id: pool_ph_recovered
+        icon: mdi:ph
+        state: >
+          {% set ph = states('sensor.pool_chem_ph_level') | float(0) %}
+          {{ ph >= 7 and ph <= 8
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_chem_ph_level.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Spa pH Recovered"
+        unique_id: spa_ph_recovered
+        icon: mdi:ph
+        state: >
+          {% set ph = states('sensor.spa_chem_ph_level') | float(0) %}
+          {{ ph >= 7 and ph <= 8
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_chem_ph_level.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Pool Chlorinator Recovered"
+        unique_id: pool_chlorinator_recovered
+        icon: mdi:check-circle
+        state: >
+          {% set status = states('sensor.pool_chlor_status') | lower %}
+          {% set ok_states = ['ok','up','online','ready','healthy','on','true','1'] %}
+          {{ status in ok_states
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_chlor_status.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Spa Chlorinator Recovered"
+        unique_id: spa_chlorinator_recovered
+        icon: mdi:check-circle
+        state: >
+          {% set status = states('sensor.spa_chlor_status') | lower %}
+          {% set ok_states = ['ok','up','online','ready','healthy','on','true','1'] %}
+          {{ status in ok_states
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_chlor_status.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "WaterGuru Cassette Recovered"
+        unique_id: waterguru_cassette_recovered
+        icon: mdi:calendar-check
+        state: >
+          {% set days = states('sensor.waterguru_cerro_alto_51_cassette_days_remaining') | float(0) %}
+          {{ days >= 2
+             and (as_timestamp(now()) - as_timestamp(states.sensor.waterguru_cerro_alto_51_cassette_days_remaining.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Pool Pump Flow Recovered"
+        unique_id: pool_pump_flow_recovered
+        icon: mdi:waves
+        state: >
+          {% set flow = states('sensor.pool_pump_flow') | float(0) %}
+          {{ flow >= 20
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pool_pump_flow.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Spa Pump Flow Recovered"
+        unique_id: spa_pump_flow_recovered
+        icon: mdi:waves
+        state: >
+          {% set flow = states('sensor.spa_pump_flow') | float(0) %}
+          {{ flow >= 20
+             and (as_timestamp(now()) - as_timestamp(states.sensor.spa_pump_flow.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+      - name: "Pentair IntelliCenter Recovered"
+        unique_id: pentair_intellicenter_recovered
+        icon: mdi:server-network
+        state: >
+          {% set status = states('sensor.pentair_intellicenter_status') | lower %}
+          {% set ok_states = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {{ status in ok_states
+             and (as_timestamp(now()) - as_timestamp(states.sensor.pentair_intellicenter_status.last_changed)) 
+                > (states('input_number.pool_debounce_recovery') | float(10) * 60) }}
+
+script:
+  pool_fill_sequence:
+    alias: Pool Fill Sequence
+    mode: single
+    sequence:
+      - choose:
+          - conditions:
+              - condition: numeric_state
+                entity_id: input_number.pool_yesterday_rain_mm
+                above: 19.9
+            sequence:
+              - action: input_number.set_value
+                target:
+                  entity_id: input_number.pool_fill_duration_minutes
+                data:
+                  value: 0
+              - action: script.whatsapp_info
+                data:
+                  message: |
+                    🏊💧 *Pool Fill Skipped*
+                    *Reason:* Rain yesterday was {{ states('input_number.pool_yesterday_rain_mm') | float | round(1) }} mm (≥20mm threshold)
+                    *Time:* {{ now().strftime('%H:%M') }}
+        default:
+          - action: script.whatsapp_info
+            data:
+              message: |
+                🏊💧 *Pool Fill Starting*
+                *Duration:* 6 minutes
+                *Yesterday's Rain:* {{ states('input_number.pool_yesterday_rain_mm') | float | round(1) }} mm
+                *Time:* {{ now().strftime('%H:%M') }}
+          - action: switch.turn_on
+            target:
+              entity_id: switch.llenado_piscina
+          - delay:
+              minutes: 6
+          - action: switch.turn_off
+            target:
+              entity_id: switch.llenado_piscina
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.pool_fill_duration_minutes
+            data:
+              value: 6
+          - action: script.whatsapp_info
+            data:
+              message: |
+                🟢 🏊 *Pool Fill Complete*
+                *Duration:* 6 minutes
+                *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_pump_off_notification:
+    alias: Test Pool Pump Off Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Pump Off - TEST*
+            *Debounce:* {{ states('input_number.pool_debounce_pump_off') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_pump_off_notification:
+    alias: Test Spa Pump Off Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Pump Off - TEST*
+            *Debounce:* {{ states('input_number.pool_debounce_pump_off') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_fill_notification:
+    alias: Test Pool Fill Notification
+    mode: single
+    sequence:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🏊 *Pool Filling Too Long - TEST*
+            *Debounce:* {{ states('input_number.pool_debounce_fill') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_critical') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_fill_notification:
+    alias: Test Spa Fill Notification
+    mode: single
+    sequence:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🛁 *Spa Filling Too Long - TEST*
+            *Debounce:* {{ states('input_number.pool_debounce_fill') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_critical') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_salt_notification:
+    alias: Test Pool Salt Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Salt Out of Range - TEST*
+            *Level:* {{ states('sensor.pool_chlor_salt_level') }} ppm
+            *Range:* 3000 - 4200 ppm
+            *Debounce:* {{ states('input_number.pool_debounce_salt') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_salt_notification:
+    alias: Test Spa Salt Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Salt Out of Range - TEST*
+            *Level:* {{ states('sensor.spa_chlor_salt_level') }} ppm
+            *Range:* 3000 - 4200 ppm
+            *Debounce:* {{ states('input_number.pool_debounce_salt') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_chlorine_notification:
+    alias: Test Pool Chlorine Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Free Chlorine Low - TEST*
+            *Level:* {{ states('sensor.waterguru_cerro_alto_51_free_chlorine') }}
+            *Threshold:* < 10
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_ph_notification:
+    alias: Test Pool pH Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool pH Out of Range - TEST*
+            *Level:* {{ states('sensor.pool_chem_ph_level') }}
+            *Range:* 7.0 - 8.0
+            *Debounce:* {{ states('input_number.pool_debounce_ph') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_ph_notification:
+    alias: Test Spa pH Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa pH Out of Range - TEST*
+            *Level:* {{ states('sensor.spa_chem_ph_level') }}
+            *Range:* 7.0 - 8.0
+            *Debounce:* {{ states('input_number.pool_debounce_ph') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_chlor_status_notification:
+    alias: Test Pool Chlorinator Status Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Chlorinator Issue - TEST*
+            *Status:* {{ states('sensor.pool_chlor_status') }}
+            *Debounce:* {{ states('input_number.pool_debounce_chlorinator') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_chlor_status_notification:
+    alias: Test Spa Chlorinator Status Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Chlorinator Issue - TEST*
+            *Status:* {{ states('sensor.spa_chlor_status') }}
+            *Debounce:* {{ states('input_number.pool_debounce_chlorinator') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_waterguru_cassette_notification:
+    alias: Test WaterGuru Cassette Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *WaterGuru Cassette Expiring - TEST*
+            *Days Remaining:* {{ states('sensor.waterguru_cerro_alto_51_cassette_days_remaining') }}
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_flow_notification:
+    alias: Test Pool Flow Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Pump Flow Issue - TEST*
+            *Flow:* {{ states('sensor.pool_pump_flow') }} GPM
+            *Debounce:* {{ states('input_number.pool_debounce_flow') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_flow_notification:
+    alias: Test Spa Flow Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Pump Flow Issue - TEST*
+            *Flow:* {{ states('sensor.spa_pump_flow') }} GPM
+            *Debounce:* {{ states('input_number.pool_debounce_flow') | int }} min
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pentair_status_notification:
+    alias: Test Pentair Status Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pentair IntelliCenter Down - TEST*
+            *Status:* {{ states('sensor.pentair_intellicenter_status') }}
+            *Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_spa_temp_notification:
+    alias: Test Spa Temperature Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🛁🔥 *SPA LISTO - TEST*
+            *Temperature:* {{ states('sensor.intellicenter_i10d_water_sensor_2') }} °C
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_pool_fill_sequence_notification:
+    alias: Test Pool Fill Sequence Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏊💧 *Pool Fill Sequence - TEST*
+            *Yesterday's Rain:* {{ states('input_number.pool_yesterday_rain_mm') | float | round(1) }} mm
+            *Would Fill:* {{ 'No (rain ≥20mm)' if states('input_number.pool_yesterday_rain_mm') | float >= 20 else 'Yes (6 min)' }}
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  test_all_pool_notifications:
+    alias: Test All Pool Notifications
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏊🔔 *Pool Alerts Test - ALL*
+            *Critical Repeat:* {{ states('input_number.pool_repeat_critical') | int }} min
+            *Non-Critical Repeat:* {{ states('input_number.pool_repeat_non_critical') | int }} hr
+            *Recovery Debounce:* {{ states('input_number.pool_debounce_recovery') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  enable_all_pool_alerts:
+    alias: Enable All Pool Alerts
+    mode: single
+    sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id:
+            - input_boolean.alert_pool_all_enabled
+            - input_boolean.alert_pool_pump_off_enabled
+            - input_boolean.alert_spa_pump_off_enabled
+            - input_boolean.alert_pool_fill_enabled
+            - input_boolean.alert_spa_fill_enabled
+            - input_boolean.alert_pool_salt_enabled
+            - input_boolean.alert_spa_salt_enabled
+            - input_boolean.alert_pool_chlorine_enabled
+            - input_boolean.alert_pool_ph_enabled
+            - input_boolean.alert_spa_ph_enabled
+            - input_boolean.alert_pool_chlor_status_enabled
+            - input_boolean.alert_spa_chlor_status_enabled
+            - input_boolean.alert_waterguru_cassette_enabled
+            - input_boolean.alert_pool_flow_enabled
+            - input_boolean.alert_spa_flow_enabled
+            - input_boolean.alert_pentair_status_enabled
+            - input_boolean.alert_spa_temp_enabled
+            - input_boolean.alert_pool_fill_sequence_enabled
+
+  disable_all_pool_alerts:
+    alias: Disable All Pool Alerts
+    mode: single
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.alert_pool_all_enabled
+            - input_boolean.alert_pool_pump_off_enabled
+            - input_boolean.alert_spa_pump_off_enabled
+            - input_boolean.alert_pool_fill_enabled
+            - input_boolean.alert_spa_fill_enabled
+            - input_boolean.alert_pool_salt_enabled
+            - input_boolean.alert_spa_salt_enabled
+            - input_boolean.alert_pool_chlorine_enabled
+            - input_boolean.alert_pool_ph_enabled
+            - input_boolean.alert_spa_ph_enabled
+            - input_boolean.alert_pool_chlor_status_enabled
+            - input_boolean.alert_spa_chlor_status_enabled
+            - input_boolean.alert_waterguru_cassette_enabled
+            - input_boolean.alert_pool_flow_enabled
+            - input_boolean.alert_spa_flow_enabled
+            - input_boolean.alert_pentair_status_enabled
+            - input_boolean.alert_spa_temp_enabled
+            - input_boolean.alert_pool_fill_sequence_enabled
+
+automation:
+  # ============ POOL FILL SEQUENCE ============
+  - id: 'pool_fill_snapshot_rain'
+    alias: 'Pool Fill - Snapshot Rain at 23:55'
+    trigger:
+      - platform: time
+        at: "23:55:00"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_fill_sequence_enabled
+        state: 'on'
+    action:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.pool_yesterday_rain_mm
+        data:
+          value: "{{ states('sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo') | float(0) }}"
+
+  - id: 'pool_fill_run_sequence'
+    alias: 'Pool Fill - Run Sequence at 02:00'
+    trigger:
+      - platform: time
+        at: "02:00:00"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_fill_sequence_enabled
+        state: 'on'
+    action:
+      - action: script.pool_fill_sequence
+
+  - id: 'pool_fill_daily_report'
+    alias: 'Pool Fill - Daily Report at 07:00'
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_fill_sequence_enabled
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏊📊 *Pool Fill Daily Report*
+            *Yesterday's Rain:* {{ states('input_number.pool_yesterday_rain_mm') | float | round(1) }} mm
+            *Fill Duration:* {{ states('input_number.pool_fill_duration_minutes') | float | round(1) }} min
+            *Status:* {{ 'Skipped (rain ≥20mm)' if states('input_number.pool_fill_duration_minutes') | float == 0 else 'Completed' }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ SPA TEMPERATURE ============
+  - id: 'spa_temp_alert_35c'
+    alias: 'Spa ≥35°C Alert'
+    mode: single
+    trigger:
+      - platform: template
+        value_template: "{{ (states('sensor.intellicenter_i10d_water_sensor_2') | float(0)) >= 35 }}"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_temp_enabled
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: "🛁🔥 *SPA LISTO* — El Spa alcanzó {{ states('sensor.intellicenter_i10d_water_sensor_2') | float(0) | round(1) }} °C"
+
+  # ============ POOL PUMP OFF ============
+  - id: 'pool_alert_pump_off'
+    alias: 'Pool Alert - Pump Off'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_pump_off_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_pump_off_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Pump Off*
+            *Status:* Off for over {{ states('input_number.pool_debounce_pump_off') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_pump_off_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_pump_recovered'
+    alias: 'Pool Alert - Pump Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pool_pump_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_pump_off_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pool_pump_off_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pool Pump Recovered*
+            *Status:* Running for {{ states('input_number.pool_debounce_recovery') | int }}+ min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pool_pump_off_alerted
+
+  # ============ POOL FILL TOO LONG (critical) ============
+  - id: 'pool_alert_fill_too_long'
+    alias: 'Pool Alert - Fill Too Long'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_fill_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_fill_on_over_10_min
+        state: 'on'
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🏊 *Pool Filling Too Long*
+            *Duration:* Over {{ states('input_number.pool_debounce_fill') | int }} min
+            *Action:* Check for overflow!
+            *Time:* {{ now().strftime('%H:%M') }}
+      - delay:
+          minutes: "{{ states('input_number.pool_repeat_critical') | int }}"
+
+  # ============ SPA FILL TOO LONG (critical) ============
+  - id: 'pool_alert_spa_fill_too_long'
+    alias: 'Pool Alert - Spa Fill Too Long'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_fill_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_fill_on_over_10_min
+        state: 'on'
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🛁 *Spa Filling Too Long*
+            *Duration:* Over {{ states('input_number.pool_debounce_fill') | int }} min
+            *Action:* Check for overflow!
+            *Time:* {{ now().strftime('%H:%M') }}
+      - delay:
+          minutes: "{{ states('input_number.pool_repeat_critical') | int }}"
+
+  # ============ POOL SALT OUT OF RANGE ============
+  - id: 'pool_alert_salt_out_of_range'
+    alias: 'Pool Alert - Salt Out of Range'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_salt_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_salt_out_of_range_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Salt Out of Range*
+            *Current Level:* {{ states('sensor.pool_chlor_salt_level') }} ppm
+            *Normal Range:* 3000 - 4200 ppm
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_salt_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_salt_recovered'
+    alias: 'Pool Alert - Salt Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pool_salt_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_salt_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pool_salt_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pool Salt Recovered*
+            *Current Level:* {{ states('sensor.pool_chlor_salt_level') }} ppm
+            *Normal Range:* 3000 - 4200 ppm
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pool_salt_alerted
+
+  # ============ SPA SALT OUT OF RANGE ============
+  - id: 'pool_alert_spa_salt_out_of_range'
+    alias: 'Pool Alert - Spa Salt Out of Range'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_salt_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_salt_out_of_range_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Salt Out of Range*
+            *Current Level:* {{ states('sensor.spa_chlor_salt_level') }} ppm
+            *Normal Range:* 3000 - 4200 ppm
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.spa_salt_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_spa_salt_recovered'
+    alias: 'Pool Alert - Spa Salt Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.spa_salt_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_salt_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.spa_salt_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🛁 *Spa Salt Recovered*
+            *Current Level:* {{ states('sensor.spa_chlor_salt_level') }} ppm
+            *Normal Range:* 3000 - 4200 ppm
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.spa_salt_alerted
+
+  # ============ POOL FREE CHLORINE LOW ============
+  - id: 'pool_alert_chlorine_low'
+    alias: 'Pool Alert - Free Chlorine Low'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_chlorine_enabled
+        state: 'on'
+      - condition: numeric_state
+        entity_id: sensor.waterguru_cerro_alto_51_free_chlorine
+        below: 10
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Free Chlorine Low*
+            *Current Level:* {{ states('sensor.waterguru_cerro_alto_51_free_chlorine') }}
+            *Threshold:* < 10
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_chlorine_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_chlorine_recovered'
+    alias: 'Pool Alert - Free Chlorine Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pool_chlorine_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_chlorine_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pool_chlorine_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pool Free Chlorine Recovered*
+            *Current Level:* {{ states('sensor.waterguru_cerro_alto_51_free_chlorine') }}
+            *Threshold:* ≥ 10
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pool_chlorine_alerted
+
+  # ============ POOL PH OUT OF RANGE ============
+  - id: 'pool_alert_ph_out_of_range'
+    alias: 'Pool Alert - pH Out of Range'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_ph_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_ph_out_of_range_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool pH Out of Range*
+            *Current Level:* {{ states('sensor.pool_chem_ph_level') }}
+            *Normal Range:* 7.0 - 8.0
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_ph_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_ph_recovered'
+    alias: 'Pool Alert - pH Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pool_ph_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_ph_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pool_ph_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pool pH Recovered*
+            *Current Level:* {{ states('sensor.pool_chem_ph_level') }}
+            *Normal Range:* 7.0 - 8.0
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pool_ph_alerted
+
+  # ============ SPA PH OUT OF RANGE ============
+  - id: 'pool_alert_spa_ph_out_of_range'
+    alias: 'Pool Alert - Spa pH Out of Range'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_ph_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_ph_out_of_range_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa pH Out of Range*
+            *Current Level:* {{ states('sensor.spa_chem_ph_level') }}
+            *Normal Range:* 7.0 - 8.0
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.spa_ph_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_spa_ph_recovered'
+    alias: 'Pool Alert - Spa pH Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.spa_ph_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_ph_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.spa_ph_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🛁 *Spa pH Recovered*
+            *Current Level:* {{ states('sensor.spa_chem_ph_level') }}
+            *Normal Range:* 7.0 - 8.0
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.spa_ph_alerted
+
+  # ============ POOL CHLORINATOR STATUS ============
+  - id: 'pool_alert_chlor_status'
+    alias: 'Pool Alert - Chlorinator Status'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_chlor_status_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_chlorinator_not_ok_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Chlorinator Issue*
+            *Current Status:* {{ states('sensor.pool_chlor_status') }}
+            *Duration:* Over {{ states('input_number.pool_debounce_chlorinator') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_chlor_status_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_chlor_status_recovered'
+    alias: 'Pool Alert - Chlorinator Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pool_chlorinator_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_chlor_status_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pool_chlor_status_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pool Chlorinator Recovered*
+            *Current Status:* {{ states('sensor.pool_chlor_status') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pool_chlor_status_alerted
+
+  # ============ SPA CHLORINATOR STATUS ============
+  - id: 'pool_alert_spa_chlor_status'
+    alias: 'Pool Alert - Spa Chlorinator Status'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_chlor_status_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_chlorinator_not_ok_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Chlorinator Issue*
+            *Current Status:* {{ states('sensor.spa_chlor_status') }}
+            *Duration:* Over {{ states('input_number.pool_debounce_chlorinator') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.spa_chlor_status_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_spa_chlor_status_recovered'
+    alias: 'Pool Alert - Spa Chlorinator Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.spa_chlorinator_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_chlor_status_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.spa_chlor_status_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🛁 *Spa Chlorinator Recovered*
+            *Current Status:* {{ states('sensor.spa_chlor_status') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.spa_chlor_status_alerted
+
+  # ============ WATERGURU CASSETTE EXPIRING ============
+  - id: 'pool_alert_waterguru_cassette'
+    alias: 'Pool Alert - WaterGuru Cassette Expiring'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_waterguru_cassette_enabled
+        state: 'on'
+      - condition: numeric_state
+        entity_id: sensor.waterguru_cerro_alto_51_cassette_days_remaining
+        below: 2
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *WaterGuru Cassette Expiring*
+            *Days Remaining:* {{ states('sensor.waterguru_cerro_alto_51_cassette_days_remaining') }}
+            *Threshold:* < 2 days
+            *Action:* Replace cassette soon
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.waterguru_cassette_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_waterguru_cassette_recovered'
+    alias: 'Pool Alert - WaterGuru Cassette Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.waterguru_cassette_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_waterguru_cassette_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.waterguru_cassette_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *WaterGuru Cassette Recovered*
+            *Days Remaining:* {{ states('sensor.waterguru_cerro_alto_51_cassette_days_remaining') }}
+            *Threshold:* ≥ 2 days
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.waterguru_cassette_alerted
+
+  # ============ POOL PUMP FLOW ZERO ============
+  - id: 'pool_alert_flow_zero'
+    alias: 'Pool Alert - Flow Zero'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_flow_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_pump_flow_zero
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Pump Flow Zero*
+            *Current Flow:* {{ states('sensor.pool_pump_flow') }} GPM
+            *Action:* Check pump and filter
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_flow_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  # ============ POOL PUMP FLOW LOW ============
+  - id: 'pool_alert_flow_low'
+    alias: 'Pool Alert - Flow Low'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_flow_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.pool_pump_flow_low_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pool Pump Flow Low*
+            *Current Flow:* {{ states('sensor.pool_pump_flow') }} GPM
+            *Threshold:* < 20 GPM
+            *Duration:* Over {{ states('input_number.pool_debounce_flow') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pool_flow_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_flow_recovered'
+    alias: 'Pool Alert - Flow Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pool_pump_flow_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pool_flow_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pool_flow_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pool Pump Flow Recovered*
+            *Current Flow:* {{ states('sensor.pool_pump_flow') }} GPM
+            *Threshold:* ≥ 20 GPM
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pool_flow_alerted
+
+  # ============ SPA PUMP FLOW ZERO ============
+  - id: 'pool_alert_spa_flow_zero'
+    alias: 'Pool Alert - Spa Flow Zero'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_flow_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_pump_flow_zero
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Pump Flow Zero*
+            *Current Flow:* {{ states('sensor.spa_pump_flow') }} GPM
+            *Action:* Check pump and filter
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.spa_flow_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  # ============ SPA PUMP FLOW LOW ============
+  - id: 'pool_alert_spa_flow_low'
+    alias: 'Pool Alert - Spa Flow Low'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_flow_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_pump_flow_low_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Pump Flow Low*
+            *Current Flow:* {{ states('sensor.spa_pump_flow') }} GPM
+            *Threshold:* < 20 GPM
+            *Duration:* Over {{ states('input_number.pool_debounce_flow') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.spa_flow_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_spa_flow_recovered'
+    alias: 'Pool Alert - Spa Flow Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.spa_pump_flow_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_flow_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.spa_flow_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🛁 *Spa Pump Flow Recovered*
+            *Current Flow:* {{ states('sensor.spa_pump_flow') }} GPM
+            *Threshold:* ≥ 20 GPM
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.spa_flow_alerted
+
+  # ============ PENTAIR INTELLICENTER DOWN ============
+  - id: 'pool_alert_pentair_down'
+    alias: 'Pool Alert - Pentair IntelliCenter Down'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pentair_status_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ states('sensor.pentair_intellicenter_status') | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🏊 *Pentair IntelliCenter Down*
+            *Current Status:* {{ states('sensor.pentair_intellicenter_status') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.pentair_status_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_pentair_recovered'
+    alias: 'Pool Alert - Pentair IntelliCenter Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.pentair_intellicenter_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_pentair_status_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.pentair_status_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🏊 *Pentair IntelliCenter Recovered*
+            *Current Status:* {{ states('sensor.pentair_intellicenter_status') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.pentair_status_alerted
+
+  # ============ SPA PUMP OFF ============
+  - id: 'pool_alert_spa_pump_off'
+    alias: 'Pool Alert - Spa Pump Off'
+    trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_pump_off_enabled
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.spa_pump_off_over_1_hour
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🛁 *Spa Pump Off*
+            *Status:* Off for over {{ states('input_number.pool_debounce_pump_off') | int }} min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.spa_pump_off_alerted
+      - delay:
+          hours: "{{ states('input_number.pool_repeat_non_critical') | int }}"
+
+  - id: 'pool_alert_spa_pump_recovered'
+    alias: 'Pool Alert - Spa Pump Recovered'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.spa_pump_recovered
+        from: 'off'
+        to: 'on'
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_pool_all_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.alert_spa_pump_off_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.spa_pump_off_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🛁 *Spa Pump Recovered*
+            *Status:* Running for {{ states('input_number.pool_debounce_recovery') | int }}+ min
+            *Time:* {{ now().strftime('%H:%M') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.spa_pump_off_alerted

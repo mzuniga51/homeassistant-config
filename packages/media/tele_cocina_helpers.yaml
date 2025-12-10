@@ -1,0 +1,88 @@
+# ================================
+#  TV COCINA (Samsung) + CABLE COCINA (Cast/Android)
+#  Kept conservative since cable appears as Google Cast in your data.
+#  Provides: TV power/volume, HDMI (via key sequence), generic media controls for cable.
+# ================================
+
+script:
+  # ---------- TV COCINA (Samsung) ----------
+  tele_cocina_power_toggle:
+    alias: "Tele Cocina – Power Toggle"
+    mode: single
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('media_player.tele_cocina','off') }}"
+            sequence:
+              - service: media_player.turn_on
+                target: { entity_id: media_player.tele_cocina }
+        default:
+          - service: media_player.turn_off
+            target: { entity_id: media_player.tele_cocina }
+
+  tele_cocina_volume_up:
+    alias: "Tele Cocina - Volume Up"
+    mode: single
+    sequence:
+      - service: media_player.volume_up
+        target: { entity_id: media_player.tele_cocina }
+
+  tele_cocina_volume_down:
+    alias: "Tele Cocina - Volume Down"
+    mode: single
+    sequence:
+      - service: media_player.volume_down
+        target: { entity_id: media_player.tele_cocina }
+
+  tele_cocina_mute_toggle:
+    alias: "Tele Cocina - Mute Toggle"
+    mode: single
+    sequence:
+      - service: media_player.volume_mute
+        target: { entity_id: media_player.tele_cocina }
+        data:
+          is_volume_muted: >
+            {{ not (state_attr('media_player.tele_cocina','is_volume_muted') or false) }}
+
+  tele_cocina_hdmi1_via_keys:
+    alias: "Tele Cocina - Select HDMI via keys"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target: { entity_id: remote.tele_cocina }
+        data:
+          command:
+            - KEY_SOURCE
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_RIGHT
+            - KEY_ENTER
+          delay_secs: 0.35
+
+  # ---------- CABLE COCINA (Cast-like) ----------
+  cable_cocina_play_pause:
+    alias: "Cable Cocina - Play/Pause"
+    mode: single
+    sequence:
+      - service: media_player.media_play_pause
+        target: { entity_id: media_player.cable_cocina }
+
+  cable_cocina_stop:
+    alias: "Cable Cocina - Stop"
+    mode: single
+    sequence:
+      - service: media_player.media_stop
+        target: { entity_id: media_player.cable_cocina }
+
+  cable_cocina_next:
+    alias: "Cable Cocina - Next"
+    mode: single
+    sequence:
+      - service: media_player.media_next_track
+        target: { entity_id: media_player.cable_cocina }
+
+  cable_cocina_previous:
+    alias: "Cable Cocina - Previous"
+    mode: single
+    sequence:
+      - service: media_player.media_previous_track
+        target: { entity_id: media_player.cable_cocina }

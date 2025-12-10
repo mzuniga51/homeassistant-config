@@ -1,0 +1,391 @@
+# /config/packages/badge_sensors.yaml
+# Template sensors to cache heavy calculations for dashboard badges
+# These evaluate on their own schedule instead of on every state change
+
+template:
+  # ============ BLE BEACONS ============
+  - sensor:
+      - name: "BLE Devices Down"
+        unique_id: ble_devices_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set ns = namespace(count=0) %}
+          {% for e in states.sensor %}
+            {% if 'ble_proxy' in e.entity_id and '_uptime' in e.entity_id %}
+              {% if e.state in ['unavailable','unknown'] %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+            {% if e.entity_id.startswith('sensor.ble_') and e.entity_id.endswith('_status') and 'proxy' not in e.entity_id %}
+              {% if e.state|lower not in ok %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          esphome_down: >
+            {% set ns = namespace(down=[]) %}
+            {% for e in states.sensor %}
+              {% if 'ble_proxy' in e.entity_id and '_uptime' in e.entity_id %}
+                {% if e.state in ['unavailable','unknown'] %}
+                  {% set name = state_attr(e.entity_id, 'friendly_name') | replace(' Uptime', '') | replace('BLE Proxy ', '') %}
+                  {% set ns.down = ns.down + [name] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+          kuma_down: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set ns = namespace(down=[]) %}
+            {% for e in states.sensor %}
+              {% if e.entity_id.startswith('sensor.ble_') and e.entity_id.endswith('_status') and 'proxy' not in e.entity_id %}
+                {% if e.state|lower not in ok %}
+                  {% set name = state_attr(e.entity_id, 'friendly_name') | replace(' Status', '') %}
+                  {% set ns.down = ns.down + [name] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+
+  # ============ BATTERIES ============
+  - sensor:
+      - name: "Batteries Low"
+        unique_id: batteries_low_sensor
+        state: >
+          {% set threshold = states('input_number.battery_alert_threshold') | int(20) %}
+          {% set allowed = (integration_entities('matter') +
+                            integration_entities('mqtt') +
+                            integration_entities('hue')) | list %}
+          {% set excluded = ['sensor.switch_bano_de_visitas_battery'] %}
+          {% set ns = namespace(count=0) %}
+          {% for e in states.sensor
+               if state_attr(e.entity_id,'device_class') == 'battery'
+               and e.entity_id in allowed
+               and e.entity_id not in excluded %}
+            {% set n = (state_attr(e.entity_id,'friendly_name') or '') | lower %}
+            {% set u = (state_attr(e.entity_id,'unit_of_measurement') or '') | lower %}
+            {% set s = e.state %}
+            {% if 'camara' in n or 'cámara' in n or 'camera' in n or 'keypad' in n %}
+              {% continue %}
+            {% endif %}
+            {% if s in ['unknown','unavailable','None'] %}
+              {% continue %}
+            {% endif %}
+            {% if u in ['v','volt','volts'] %}
+              {% continue %}
+            {% endif %}
+            {% set v = s | float(999) %}
+            {% if 0 <= v <= threshold and v <= 100 %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          devices: >
+            {% set threshold = states('input_number.battery_alert_threshold') | int(20) %}
+            {% set allowed = (integration_entities('matter') +
+                              integration_entities('mqtt') +
+                              integration_entities('hue')) | list %}
+            {% set excluded = ['sensor.switch_bano_de_visitas_battery'] %}
+            {% set ns = namespace(low=[]) %}
+            {% for e in states.sensor
+                 if state_attr(e.entity_id,'device_class') == 'battery'
+                 and e.entity_id in allowed
+                 and e.entity_id not in excluded %}
+              {% set n = (state_attr(e.entity_id,'friendly_name') or '') %}
+              {% set n_lower = n | lower %}
+              {% set u = (state_attr(e.entity_id,'unit_of_measurement') or '') | lower %}
+              {% set s = e.state %}
+              {% if 'camara' in n_lower or 'cámara' in n_lower or 'camera' in n_lower or 'keypad' in n_lower %}
+                {% continue %}
+              {% endif %}
+              {% if s in ['unknown','unavailable','None'] %}
+                {% continue %}
+              {% endif %}
+              {% if u in ['v','volt','volts'] %}
+                {% continue %}
+              {% endif %}
+              {% set v = s | float(999) %}
+              {% if 0 <= v <= threshold and v <= 100 %}
+                {% set ns.low = ns.low + [{'name': n | replace(' Battery',''), 'level': v|int}] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.low }}
+
+  # ============ OMADA ============
+  - sensor:
+      - name: "Omada Devices Down"
+        unique_id: omada_devices_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set ids = [
+            'sensor.sagecom_router_status',
+            'sensor.er7206_router_status',
+            'sensor.oc200_controller_status',
+            'sensor.sg2210p_switch_musica_status',
+            'sensor.sg3428xmp_switch_principal_status',
+            'sensor.ap_2do_piso_status',
+            'sensor.ap_cocina_externo_status',
+            'sensor.ap_cocina_status',
+            'sensor.ap_frente_status',
+            'sensor.ap_master_status',
+            'sensor.ap_musica_status',
+            'sensor.ap_patio_status',
+            'sensor.ap_plomeria_status'
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% for id in ids %}
+            {% if states(id)|lower not in ok %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          devices: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set ids = [
+              'sensor.sagecom_router_status',
+              'sensor.er7206_router_status',
+              'sensor.oc200_controller_status',
+              'sensor.sg2210p_switch_musica_status',
+              'sensor.sg3428xmp_switch_principal_status',
+              'sensor.ap_2do_piso_status',
+              'sensor.ap_cocina_externo_status',
+              'sensor.ap_cocina_status',
+              'sensor.ap_frente_status',
+              'sensor.ap_master_status',
+              'sensor.ap_musica_status',
+              'sensor.ap_patio_status',
+              'sensor.ap_plomeria_status'
+            ] %}
+            {% set ns = namespace(down=[]) %}
+            {% for id in ids %}
+              {% if states(id)|lower not in ok %}
+                {% set ns.down = ns.down + [state_attr(id,'friendly_name') or id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+
+  # ============ CAMERAS ============
+  - sensor:
+      - name: "Cameras Down"
+        unique_id: cameras_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set ids = [
+            'sensor.camara_casa_maquinas_status',
+            'sensor.camara_costado_piscina_status',
+            'sensor.camara_frente_centro_status',
+            'sensor.camara_frente_derecha_status',
+            'sensor.camara_frente_izquierda_status',
+            'sensor.camara_garage_status',
+            'sensor.camara_piscina_status',
+            'sensor.camara_pom_cocina_status',
+            'sensor.camara_solario_status'
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% for id in ids %}
+            {% if states(id)|lower not in ok %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          devices: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set ids = [
+              'sensor.camara_casa_maquinas_status',
+              'sensor.camara_costado_piscina_status',
+              'sensor.camara_frente_centro_status',
+              'sensor.camara_frente_derecha_status',
+              'sensor.camara_frente_izquierda_status',
+              'sensor.camara_garage_status',
+              'sensor.camara_piscina_status',
+              'sensor.camara_pom_cocina_status',
+              'sensor.camara_solario_status'
+            ] %}
+            {% set ns = namespace(down=[]) %}
+            {% for id in ids %}
+              {% if states(id)|lower not in ok %}
+                {% set ns.down = ns.down + [state_attr(id,'friendly_name') or id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+
+  # ============ PLOMERIA ============
+  - sensor:
+      - name: "Plomeria Devices Down"
+        unique_id: plomeria_devices_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set ids = [
+            'sensor.breaker_bomba_de_agua_status',
+            'sensor.moen_flo_status',
+            'sensor.v_aya_status',
+            'sensor.v_filtro_in_status',
+            'sensor.v_filtro_out_status',
+            'sensor.v_riego_status',
+            'sensor.v_sin_filtro_out_status',
+            'sensor.v_tanque_in_status'
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% for id in ids %}
+            {% if states(id)|lower not in ok %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          devices: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set ids = [
+              'sensor.breaker_bomba_de_agua_status',
+              'sensor.moen_flo_status',
+              'sensor.v_aya_status',
+              'sensor.v_filtro_in_status',
+              'sensor.v_filtro_out_status',
+              'sensor.v_riego_status',
+              'sensor.v_sin_filtro_out_status',
+              'sensor.v_tanque_in_status'
+            ] %}
+            {% set ns = namespace(down=[]) %}
+            {% for id in ids %}
+              {% if states(id)|lower not in ok %}
+                {% set ns.down = ns.down + [state_attr(id,'friendly_name') or id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+
+  # ============ HUE ============
+  - sensor:
+      - name: "Hue Devices Down"
+        unique_id: hue_devices_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set excluded_entities = ['light.lampara_de_mesa_maria_1'] %}
+          {% set bridges_down = 
+            (1 if states('sensor.hue_bridge_cine_status')|lower not in ok else 0) +
+            (1 if states('sensor.hue_bridge_garage_status')|lower not in ok else 0) +
+            (1 if states('sensor.hue_bridge_master_status')|lower not in ok else 0) +
+            (1 if states('sensor.hue_bridge_piso_2_status')|lower not in ok else 0)
+          %}
+          {% set entities = state_attr('sensor.hue_unavailable_count','entities') or [] %}
+          {% set filtered = entities | reject('in', excluded_entities) | list %}
+          {{ bridges_down + (filtered | length) }}
+        attributes:
+          bridges_down: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set bridges = [
+              ('Cine', states('sensor.hue_bridge_cine_status')),
+              ('Garage', states('sensor.hue_bridge_garage_status')),
+              ('Master', states('sensor.hue_bridge_master_status')),
+              ('Piso 2', states('sensor.hue_bridge_piso_2_status'))
+            ] %}
+            {% set ns = namespace(down=[]) %}
+            {% for b in bridges %}
+              {% if b[1]|lower not in ok %}
+                {% set ns.down = ns.down + [b[0]] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+          entities_down: >
+            {% set excluded_entities = ['light.lampara_de_mesa_maria_1'] %}
+            {% set entities = state_attr('sensor.hue_unavailable_count', 'entities') or [] %}
+            {{ entities | reject('in', excluded_entities) | list }}
+
+  # ============ TV ============
+  - sensor:
+      - name: "TV Devices Down"
+        unique_id: tv_devices_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set ids = [
+            'sensor.cable_cine_status',
+            'sensor.cable_cocina_status',
+            'sensor.cable_master_status',
+            'sensor.cable_musica_status',
+            'sensor.cable_piscina_status',
+            'sensor.sonos_status',
+            'sensor.tele_cocina_status',
+            'sensor.tele_master_status'
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% for id in ids %}
+            {% if states(id)|lower not in ok %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          devices: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set ids = [
+              'sensor.cable_cine_status',
+              'sensor.cable_cocina_status',
+              'sensor.cable_master_status',
+              'sensor.cable_musica_status',
+              'sensor.cable_piscina_status',
+              'sensor.sonos_status',
+              'sensor.tele_cocina_status',
+              'sensor.tele_master_status'
+            ] %}
+            {% set ns = namespace(down=[]) %}
+            {% for id in ids %}
+              {% if states(id)|lower not in ok %}
+                {% set ns.down = ns.down + [state_attr(id,'friendly_name') or id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+
+  # ============ TUYA ============
+  - sensor:
+      - name: "Tuya Devices Down"
+        unique_id: tuya_devices_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {% set ids = [
+            'sensor.breaker_calentadores_status',
+            'sensor.cortina_musica_derecha_status',
+            'sensor.cortina_musica_izquierda_status',
+            'sensor.luces_arbol_derecho_status',
+            'sensor.luces_arbol_izquierdo_status',
+            'sensor.toma_doble_jardin_status',
+            'sensor.tv_mount_status',
+            'sensor.ventilador_solario_status'
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% for id in ids %}
+            {% if states(id)|lower not in ok %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          devices: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set ids = [
+              'sensor.breaker_calentadores_status',
+              'sensor.cortina_musica_derecha_status',
+              'sensor.cortina_musica_izquierda_status',
+              'sensor.luces_arbol_derecho_status',
+              'sensor.luces_arbol_izquierdo_status',
+              'sensor.toma_doble_jardin_status',
+              'sensor.tv_mount_status',
+              'sensor.ventilador_solario_status'
+            ] %}
+            {% set ns = namespace(down=[]) %}
+            {% for id in ids %}
+              {% if states(id)|lower not in ok %}
+                {% set ns.down = ns.down + [state_attr(id,'friendly_name') or id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+
+  # ============ RIEGO DOWN ============
+  - binary_sensor:
+      - name: "Riego Controller Down"
+        unique_id: riego_controller_down_sensor
+        state: >
+          {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+          {{ states('binary_sensor.hydrawise_controller_connectivity')|lower not in ok }}

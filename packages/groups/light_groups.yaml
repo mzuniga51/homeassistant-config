@@ -1,0 +1,248 @@
+#
+# Robust Light Groups – Safe, Warning-Free, Auto-Matching Entity IDs
+#
+
+template:
+  - light:
+
+      #
+      # 1) Faroles Delanteros
+      #
+      - name: "Faroles Delanteros"
+        unique_id: faroles_delanteros_robust
+        state: >-
+          {% set members = [
+            'light.farol_garage_1',
+            'light.farol_garage_2',
+            'light.farol_garage_3',
+            'light.portico',
+            'light.farol_balcon_1'
+          ] %}
+          {% set avail = expand(members)
+                         | selectattr('state','in',['on','off'])
+                         | list %}
+          {% if avail | count == 0 %}
+            off
+          {% elif avail | selectattr('state','eq','on') | list | count > 0 %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          action: script.faroles_delanteros_on
+        turn_off:
+          action: script.faroles_delanteros_off
+
+      #
+      # 2) Luces ExterioresTraseras (ALL must be ON)
+      #
+      - name: "Luces ExterioresTraseras"
+        unique_id: luces_exteriorestraseras_robust
+        state: >-
+          {% set members = [
+            'light.farol_trasero_1',
+            'light.farol_trasero_2',
+            'light.deck',
+            'light.luces_arbol_derecha_socket_1',
+            'light.toma_doble_jardin_socket_1',
+            'light.luces_arbol_izquierdo_socket_1'
+          ] %}
+          {% set avail = expand(members)
+                         | selectattr('state','in',['on','off'])
+                         | list %}
+          {% if avail | count == 0 %}
+            off
+          {% else %}
+            {% if avail | selectattr('state','eq','off') | list | count == 0 %}
+              on
+            {% else %}
+              off
+            {% endif %}
+          {% endif %}
+        turn_on:
+          action: script.luces_exteriorestraseras_on
+        turn_off:
+          action: script.luces_exteriorestraseras_off
+
+      #
+      # 3) Movies Lights on/off
+      #
+      - name: "Movies Lights on/off"
+        unique_id: movies_lights_on_off_robust
+        state: >-
+          {% set members = [
+            'light.farol_trasero_1',
+            'light.farol_trasero_2',
+            'light.deck',
+            'light.luces_arbol_derecha_socket_1',
+            'light.toma_doble_jardin_socket_1',
+            'light.luces_arbol_izquierdo_socket_1',
+            'light.cocina',
+            'light.cine',
+            'light.foyer',
+            'light.pasillo'
+          ] %}
+          {% set avail = expand(members)
+                         | selectattr('state','in',['on','off'])
+                         | list %}
+          {% if avail | count == 0 %}
+            off
+          {% elif avail | selectattr('state','eq','on') | list | count > 0 %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          action: script.movies_lights_on_off_on
+        turn_off:
+          action: script.movies_lights_on_off_off
+
+
+script:
+
+  #
+  # Faroles Delanteros
+  #
+  faroles_delanteros_on:
+    alias: "Faroles Delanteros – Robust ON"
+    sequence:
+      - variables:
+          members:
+            - light.farol_garage_1
+            - light.farol_garage_2
+            - light.farol_garage_3
+            - light.portico
+            - light.farol_balcon_1
+          avail: >-
+            {{ expand(members)
+               | selectattr('state','in',['on','off'])
+               | map(attribute='entity_id')
+               | list }}
+      - if: "{{ avail | count > 0 }}"
+        then:
+          - action: light.turn_on
+            target:
+              entity_id: "{{ avail }}"
+
+  faroles_delanteros_off:
+    alias: "Faroles Delanteros – Robust OFF"
+    sequence:
+      - variables:
+          members:
+            - light.farol_garage_1
+            - light.farol_garage_2
+            - light.farol_garage_3
+            - light.portico
+            - light.farol_balcon_1
+          avail: >-
+            {{ expand(members)
+               | selectattr('state','in',['on','off'])
+               | map(attribute='entity_id')
+               | list }}
+      - if: "{{ avail | count > 0 }}"
+        then:
+          - action: light.turn_off
+            target:
+              entity_id: "{{ avail }}"
+
+  #
+  # Luces ExterioresTraseras
+  #
+  luces_exteriorestraseras_on:
+    alias: "Luces ExterioresTraseras – Robust ON"
+    sequence:
+      - variables:
+          members:
+            - light.farol_trasero_1
+            - light.farol_trasero_2
+            - light.deck
+            - light.luces_arbol_derecha_socket_1
+            - light.toma_doble_jardin_socket_1
+            - light.luces_arbol_izquierdo_socket_1
+          avail: >-
+            {{ expand(members)
+               | selectattr('state','in',['on','off'])
+               | map(attribute='entity_id')
+               | list }}
+      - if: "{{ avail | count > 0 }}"
+        then:
+          - action: light.turn_on
+            target:
+              entity_id: "{{ avail }}"
+
+  luces_exteriorestraseras_off:
+    alias: "Luces ExterioresTraseras – Robust OFF"
+    sequence:
+      - variables:
+          members:
+            - light.farol_trasero_1
+            - light.farol_trasero_2
+            - light.deck
+            - light.luces_arbol_derecha_socket_1
+            - light.toma_doble_jardin_socket_1
+            - light.luces_arbol_izquierdo_socket_1
+          avail: >-
+            {{ expand(members)
+               | selectattr('state','in',['on','off'])
+               | map(attribute='entity_id')
+               | list }}
+      - if: "{{ avail | count > 0 }}"
+        then:
+          - action: light.turn_off
+            target:
+              entity_id: "{{ avail }}"
+
+  #
+  # Movies Lights on/off
+  #
+  movies_lights_on_off_on:
+    alias: "Movies Lights on/off – Robust ON"
+    sequence:
+      - variables:
+          members:
+            - light.farol_trasero_1
+            - light.farol_trasero_2
+            - light.deck
+            - light.luces_arbol_derecha_socket_1
+            - light.toma_doble_jardin_socket_1
+            - light.luces_arbol_izquierdo_socket_1
+            - light.cocina
+            - light.cine
+            - light.foyer
+            - light.pasillo
+          avail: >-
+            {{ expand(members)
+               | selectattr('state','in',['on','off'])
+               | map(attribute='entity_id')
+               | list }}
+      - if: "{{ avail | count > 0 }}"
+        then:
+          - action: light.turn_on
+            target:
+              entity_id: "{{ avail }}"
+
+  movies_lights_on_off_off:
+    alias: "Movies Lights on/off – Robust OFF"
+    sequence:
+      - variables:
+          members:
+            - light.farol_trasero_1
+            - light.farol_trasero_2
+            - light.deck
+            - light.luces_arbol_derecha_socket_1
+            - light.toma_doble_jardin_socket_1
+            - light.luces_arbol_izquierdo_socket_1
+            - light.cocina
+            - light.cine
+            - light.foyer
+            - light.pasillo
+          avail: >-
+            {{ expand(members)
+               | selectattr('state','in',['on','off'])
+               | map(attribute='entity_id')
+               | list }}
+      - if: "{{ avail | count > 0 }}"
+        then:
+          - action: light.turn_off
+            target:
+              entity_id: "{{ avail }}"

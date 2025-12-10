@@ -1,0 +1,472 @@
+# ================================
+#  TV CINE (LG/webOS-style sources) + CABLE CINE (Android/Shield/TiVo)
+#  Includes: TV inputs/apps/volume/mute, cable DPAD/transport/digits,
+#            Bose blaster (replace entity if needed).
+# ================================
+
+script:
+  # ---------- TV CINE ----------
+  tele_cine_power_on:
+    alias: "Tele Cine - Power On"
+    mode: single
+    sequence:
+      - service: media_player.turn_on
+        target:
+          entity_id: media_player.tele_cine
+
+  tele_cine_power_off:
+    alias: "Tele Cine - Power Off"
+    mode: single
+    sequence:
+      - service: media_player.turn_off
+        target:
+          entity_id: media_player.tele_cine
+
+  tele_cine_hdmi1:
+    alias: "Tele Cine - HDMI1"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "HDMI1"
+
+  tele_cine_hdmi2:
+    alias: "Tele Cine - HDMI2"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "HDMI2"
+
+  tele_cine_tv:
+    alias: "Tele Cine - TV"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "TV"
+
+  tele_cine_netflix:
+    alias: "Tele Cine - Netflix"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "Netflix"
+
+  tele_cine_disney_plus:
+    alias: "Tele Cine - Disney+"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "Disney+"
+
+  tele_cine_hbo_max:
+    alias: "Tele Cine - HBO Max"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "HBO Max"
+
+  tele_cine_prime_video:
+    alias: "Tele Cine - Prime Video"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "Prime Video"
+
+  tele_cine_youtube:
+    alias: "Tele Cine - YouTube"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "YouTube"
+
+  tele_cine_apple_tv:
+    alias: "Tele Cine - Apple TV"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          source: "Apple TV"
+
+  tele_cine_volume_up:
+    alias: "Tele Cine - Volume Up"
+    mode: single
+    sequence:
+      - service: media_player.volume_up
+        target:
+          entity_id: media_player.tele_cine
+
+  tele_cine_volume_down:
+    alias: "Tele Cine - Volume Down"
+    mode: single
+    sequence:
+      - service: media_player.volume_down
+        target:
+          entity_id: media_player.tele_cine
+
+  tele_cine_mute_toggle:
+    alias: "Tele Cine - Mute Toggle"
+    mode: single
+    sequence:
+      - service: media_player.volume_mute
+        target:
+          entity_id: media_player.tele_cine
+        data:
+          is_volume_muted: >
+            {{ not (state_attr('media_player.tele_cine','is_volume_muted') or false) }}
+
+  # ---------- CABLE CINE ----------
+  cable_cine_power:
+    alias: "Cable Cine - Power"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: POWER
+
+  cable_cine_up:
+    alias: "Cable Cine - Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DPAD_UP
+
+  cable_cine_down:
+    alias: "Cable Cine - Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DPAD_DOWN
+
+  cable_cine_left:
+    alias: "Cable Cine - Left"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DPAD_LEFT
+
+  cable_cine_right:
+    alias: "Cable Cine - Right"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DPAD_RIGHT
+
+  cable_cine_ok:
+    alias: "Cable Cine - OK"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DPAD_CENTER
+
+  cable_cine_home:
+    alias: "Cable Cine - Home"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: HOME
+
+  cable_cine_back:
+    alias: "Cable Cine - Back"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: BACK
+
+  cable_cine_menu:
+    alias: "Cable Cine - Menu"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MENU
+
+  cable_cine_channel_up:
+    alias: "Cable Cine - Channel Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: CHANNEL_UP
+
+  cable_cine_channel_down:
+    alias: "Cable Cine - Channel Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: CHANNEL_DOWN
+
+  cable_cine_digit_0:
+    alias: "Cable Cine - Digit 0"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "0"
+
+  cable_cine_digit_1:
+    alias: "Cable Cine - Digit 1"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "1"
+
+  cable_cine_digit_2:
+    alias: "Cable Cine - Digit 2"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "2"
+
+  cable_cine_digit_3:
+    alias: "Cable Cine - Digit 3"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "3"
+
+  cable_cine_digit_4:
+    alias: "Cable Cine - Digit 4"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "4"
+
+  cable_cine_digit_5:
+    alias: "Cable Cine - Digit 5"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "5"
+
+  cable_cine_digit_6:
+    alias: "Cable Cine - Digit 6"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "6"
+
+  cable_cine_digit_7:
+    alias: "Cable Cine - Digit 7"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "7"
+
+  cable_cine_digit_8:
+    alias: "Cable Cine - Digit 8"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "8"
+
+  cable_cine_digit_9:
+    alias: "Cable Cine - Digit 9"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: "9"
+
+  cable_cine_backspace:
+    alias: "Cable Cine - Backspace"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DEL
+
+  cable_cine_enter:
+    alias: "Cable Cine - Enter"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: DPAD_CENTER
+
+  cable_cine_play_pause:
+    alias: "Cable Cine - Play/Pause"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MEDIA_PLAY_PAUSE
+
+  cable_cine_stop:
+    alias: "Cable Cine - Stop"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MEDIA_STOP
+
+  cable_cine_next:
+    alias: "Cable Cine - Next"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MEDIA_NEXT
+
+  cable_cine_previous:
+    alias: "Cable Cine - Previous"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MEDIA_PREVIOUS
+
+  cable_cine_fast_forward:
+    alias: "Cable Cine - Fast Forward"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MEDIA_FAST_FORWARD
+
+  cable_cine_rewind:
+    alias: "Cable Cine - Rewind"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_cine
+        data:
+          command: MEDIA_REWIND
+
+  # ---------- BOSE BLASTER (replace entity_id if different) ----------
+  bose_power_on:
+    alias: "Bose – Power On"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.bose_blaster
+        data:
+          command: POWER_ON
+
+  bose_power_off:
+    alias: "Bose – Power Off"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.bose_blaster
+        data:
+          command: POWER_OFF
+
+  bose_volume_up:
+    alias: "Bose – Volume Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.bose_blaster
+        data:
+          command: VOLUME_UP
+
+  bose_volume_down:
+    alias: "Bose – Volume Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.bose_blaster
+        data:
+          command: VOLUME_DOWN

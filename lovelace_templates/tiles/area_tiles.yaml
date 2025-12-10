@@ -1,0 +1,62 @@
+area_tile_6:
+  show_icon: false
+  show_label: false
+  show_name: true
+  aspect_ratio: 2.3/1
+  styles:
+    card:
+      - border-radius: 20px
+      - box-shadow: var(--box-shadow)
+      - padding: 6px
+      - transform: translateZ(0)
+    name:
+      - grid-area: header
+      - justify-self: start
+      - align-self: start
+      - font-weight: 700
+      - font-size: 1em
+      - margin: 4px 0 0 4px
+    grid:
+      - grid-template-areas: |
+          "header header header header header sp"
+          "temp   temp   temp   temp   temp   sp"
+          "photo  photo  b1     b2     b3     sp"
+          "photo  photo  b4     b5     b6     sp"
+      - grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.02fr
+      - grid-template-rows: auto auto 1fr 1fr
+      - column-gap: 6px
+      - row-gap: 6px
+      - align-items: center
+      - overflow: visible
+
+area_tile_9:
+  show_icon: false
+  show_label: false
+  show_name: true
+  aspect_ratio: 2.3/1
+  styles:
+    card:
+      - border-radius: 20px
+      - box-shadow: var(--box-shadow)
+      - padding: 6px
+      - transform: translateZ(0)
+    name:
+      - grid-area: header
+      - justify-self: start
+      - align-self: start
+      - font-weight: 700
+      - font-size: 1em
+      - margin: 4px 0 0 4px
+    grid:
+      - grid-template-areas: |
+          "header header header header header sp"
+          "temp   temp   temp   temp   temp   sp"
+          "photo  photo  b1     b2     b3     sp"
+          "photo  photo  b4     b5     b6     sp"
+          "photo  photo  b7     b8     b9     sp"
+      - grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr 0.02fr
+      - grid-template-rows: auto auto 1fr 1fr 1fr
+      - column-gap: 6px
+      - row-gap: 6px
+      - align-items: center
+      - overflow: visible

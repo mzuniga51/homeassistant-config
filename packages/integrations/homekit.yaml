@@ -1,0 +1,164 @@
+# /config/packages/integrations/homekit.yaml
+# =========================
+# AC Power Switches + Cortinas group + HomeKit Bridge
+# =========================
+
+zeroconf:
+
+# --- AC power switches (tap = on/off) ---
+template:
+  - switch:
+      - name: "AC Andrés Power"
+        unique_id: switch_ac_andres_power
+        state: "{{ not is_state('climate.aire_andres','off') }}"
+        turn_on:
+          - action: climate.turn_on
+            target:
+              entity_id: climate.aire_andres
+        turn_off:
+          - action: climate.turn_off
+            target:
+              entity_id: climate.aire_andres
+
+      - name: "AC Cine Power"
+        unique_id: switch_ac_cine_power
+        state: "{{ not is_state('climate.aire_cine','off') }}"
+        turn_on:
+          - action: climate.turn_on
+            target:
+              entity_id: climate.aire_cine
+        turn_off:
+          - action: climate.turn_off
+            target:
+              entity_id: climate.aire_cine
+
+      - name: "AC Cocina Power"
+        unique_id: switch_ac_cocina_power
+        state: "{{ not is_state('climate.aire_cocina','off') }}"
+        turn_on:
+          - action: climate.turn_on
+            target:
+              entity_id: climate.aire_cocina
+        turn_off:
+          - action: climate.turn_off
+            target:
+              entity_id: climate.aire_cocina
+
+      - name: "AC María Power"
+        unique_id: switch_ac_maria_power
+        state: "{{ not is_state('climate.aire_maria','off') }}"
+        turn_on:
+          - action: climate.turn_on
+            target:
+              entity_id: climate.aire_maria
+        turn_off:
+          - action: climate.turn_off
+            target:
+              entity_id: climate.aire_maria
+
+      - name: "AC Master Power"
+        unique_id: switch_ac_master_power
+        state: "{{ not is_state('climate.aire_master','off') }}"
+        turn_on:
+          - action: climate.turn_on
+            target:
+              entity_id: climate.aire_master
+        turn_off:
+          - action: climate.turn_off
+            target:
+              entity_id: climate.aire_master
+
+      - name: "AC Música Power"
+        unique_id: switch_ac_musica_power
+        state: "{{ not is_state('climate.aire_musica','off') }}"
+        turn_on:
+          - action: climate.turn_on
+            target:
+              entity_id: climate.aire_musica
+        turn_off:
+          - action: climate.turn_off
+            target:
+              entity_id: climate.aire_musica
+
+# --- Grouped cover for both Música curtains (so HomeKit can control them) ---
+cover:
+  - platform: group
+    name: "Cortinas Música"
+    entities:
+      - cover.cortina_musica_izquierda_curtain
+      - cover.cortina_musica_derecha_curtain
+
+homeassistant:
+  customize:
+    cover.cortinas_musica:
+      friendly_name: Cortinas Música
+      device_class: curtain
+      icon: mdi:curtains
+
+# --- HomeKit Bridge (expose switches instead of climates) ---
+homekit:
+  - name: "Casa 51 – Main v3"
+    port: 21067
+    advertise_ip: 192.168.10.56
+
+    filter:
+      include_entities:
+        # ---- AC power (tap toggles) ----
+        - switch.ac_andres_power
+        - switch.ac_cine_power
+        - switch.ac_cocina_power
+        - switch.ac_maria_power
+        - switch.ac_master_power
+        - switch.ac_musica_power
+
+        # ---- Main lights ----
+        - light.alacena
+        - light.bano_andres
+        - light.bano_maria
+        - light.bano_master
+        - light.bano_visitas
+        - light.bodega_cocina
+        - light.bodega_garage
+        - light.cine
+        - light.closet_andres
+        - light.closet_maria
+        - light.closet_master
+        - light.cocina
+        - light.cuarto_andres
+        - light.cuarto_de_pilas
+        - light.cuarto_maria
+        - light.cuarto_master
+        - light.foyer
+        - light.garage
+        - light.gradas
+        - light.inodoro_master
+        - light.musica
+        - light.sala
+        - light.solario
+        - light.terraza
+
+        # ---- Light groups ----
+        - light.faroles_delanteros
+        - light.luces_exteriorestraseras
+
+        # ---- Cortinas Música (grouped cover) ----
+        - cover.cortinas_musica
+
+      exclude_entities: []
+
+    # Optional pretty names in Apple Home
+    entity_config:
+      switch.ac_master_power:
+        name: "AC Master"
+      switch.ac_musica_power:
+        name: "AC Música"
+      switch.ac_cocina_power:
+        name: "AC Cocina"
+      switch.ac_cine_power:
+        name: "AC Cine"
+      switch.ac_maria_power:
+        name: "AC María"
+      switch.ac_andres_power:
+        name: "AC Andrés"
+      cover.cortinas_musica:
+        name: "Cortinas Música"

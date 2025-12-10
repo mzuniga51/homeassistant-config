@@ -1,0 +1,382 @@
+# ============================================================
+#  /config/packages/integration/speedtest.yaml
+#  Real Speedtest & Internet Outage Count via Mac Mini
+#  + Low Speed Alerts with debounce, repeat, and priority
+# ============================================================
+
+input_boolean:
+  alert_speedtest_enabled:
+    name: Speedtest Alert
+    icon: mdi:speedometer
+
+  speedtest_alerted:
+    name: Speedtest Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  speedtest_threshold_mbps:
+    name: Speed Threshold
+    icon: mdi:speedometer-slow
+    min: 100
+    max: 800
+    step: 50
+    unit_of_measurement: "Mbps"
+    initial: 400
+
+  speedtest_debounce_minutes:
+    name: Speedtest Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 10
+
+  speedtest_repeat_hours:
+    name: Speedtest Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 0
+
+input_datetime:
+  speedtest_last_alert:
+    name: Speedtest Last Alert
+    has_date: true
+    has_time: true
+
+command_line:
+  - sensor:
+      name: "Speedtest Raw"
+      command: >-
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+        -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+        'speedtest --format=json --accept-license --accept-gdpr 2>/dev/null |
+         jq -r "\"\\(.download.bandwidth / 125000 | floor)|
+         \\(.upload.bandwidth / 125000 | floor)|
+         \\(.ping.latency)\""'
+      scan_interval: 900
+      command_timeout: 120
+
+  - sensor:
+      name: "Internet Check Raw"
+      command: >-
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+        -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+        'ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1 && echo "up" ||
+         ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1 && echo "up" ||
+         echo "down"'
+      scan_interval: 15
+      command_timeout: 10
+
+template:
+  # Binary sensor for internet availability (needed for outage count)
+  - binary_sensor:
+      - name: "Internet Available"
+        state: >
+          {% if states.sensor.internet_check_raw is defined %}
+            {{ 'up' in states('sensor.internet_check_raw') }}
+          {% else %}
+            false
+          {% endif %}
+        device_class: connectivity
+        icon: "{{ 'mdi:web-check' if this.state == 'on' else 'mdi:web-off' }}"
+
+  # Outage log: keeps the last 20 outages
+  # Stores ISO format: "2025-12-04 22:24|1m 59s"
+  # Display formatting (Hoy/Ayer/date) is done in the card template
+  - trigger:
+      - platform: state
+        entity_id: binary_sensor.internet_available
+        from: "on"
+        to: "off"
+      - platform: state
+        entity_id: binary_sensor.internet_available
+        from: "off"
+        to: "on"
+    sensor:
+      - name: "Internet Outage Log"
+        unique_id: internet_outage_log
+        state: >
+          {% set prev = states('sensor.internet_outage_log') %}
+          {% set lines = prev.split('\n') if prev not in ['unknown','unavailable',''] else [] %}
+
+          {# Only create entries when an outage ends: OFF -> ON #}
+          {% if trigger.to_state.state == 'on' and trigger.from_state.state == 'off' %}
+            {% set start_utc = as_datetime(trigger.from_state.last_changed) %}
+            {% set end_utc   = as_datetime(trigger.to_state.last_changed) %}
+            {% set start     = as_local(start_utc) %}
+            {% set end       = as_local(end_utc) %}
+
+            {# Duration in seconds #}
+            {% set dur   = (end - start).total_seconds() %}
+            {% set mins  = (dur // 60) | int %}
+            {% set secs  = (dur % 60)  | int %}
+            {% set dur_str = (mins ~ 'm ' if mins > 0 else '') ~ secs ~ 's' %}
+
+            {# Store as ISO datetime|duration #}
+            {% set entry = start.strftime('%Y-%m-%d %H:%M') ~ '|' ~ dur_str %}
+
+            {# New entry at top, keep last 20 #}
+            {% set new_lines = ([entry] + lines)[:20] %}
+            {{ new_lines | join('\n') }}
+          {% else %}
+            {{ prev }}
+          {% endif %}
+        icon: mdi:history
+
+
+  - sensor:
+      - name: "Speedtest Real Download"
+        state: >
+          {% set raw = states('sensor.speedtest_raw') %}
+          {% if raw and '|' in raw %}
+            {{ raw.split('|')[0] | int(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "Mbps"
+        icon: mdi:download-network
+        state_class: measurement
+
+      - name: "Speedtest Real Upload"
+        state: >
+          {% set raw = states('sensor.speedtest_raw') %}
+          {% if raw and '|' in raw %}
+            {{ raw.split('|')[1] | int(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "Mbps"
+        icon: mdi:upload-network
+        state_class: measurement
+
+      - name: "Speedtest Real Ping"
+        state: >
+          {% set raw = states('sensor.speedtest_raw') %}
+          {% if raw and '|' in raw %}
+            {{ raw.split('|')[2] | float(0) | round(1) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "ms"
+        icon: mdi:timer-outline
+        state_class: measurement
+
+  # Triggered sensor: captures daily downtime at 23:59 and stores history in attributes
+  - trigger:
+      - platform: time
+        at: "23:59:50"
+    sensor:
+      - name: "Internet Downtime Daily History"
+        unique_id: internet_downtime_daily_history
+        icon: mdi:chart-bar
+        state: >
+          {% set total_tests = 86400 / 15 %}
+          {% set outages = states('sensor.internet_outages_today') | int(0) %}
+          {{ (outages / total_tests * 100) | round(2) }}
+        unit_of_measurement: "%"
+        attributes:
+          daily_values: >
+            {% set prev = state_attr('sensor.internet_downtime_daily_history', 'daily_values') or {} %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set total_tests = 86400 / 15 %}
+            {% set outages = states('sensor.internet_outages_today') | int(0) %}
+            {% set today_pct = (outages / total_tests * 100) | round(2) %}
+            {% set new_data = dict(prev, **{today: today_pct}) %}
+            {% set keys = new_data.keys() | list | sort | reverse %}
+            {% set trimmed = dict.from_keys(keys[:30], new_data) %}
+            {{ trimmed }}
+
+script:
+  run_speedtest:
+    alias: "Run Speedtest"
+    icon: mdi:speedometer
+    mode: single
+    sequence:
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.speedtest_raw
+
+  test_speedtest_notification:
+    alias: Test Speedtest Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *Speedtest Alert - TEST*
+            *Download:* 350 Mbps
+            *Threshold:* 400 Mbps
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+sensor:
+  - platform: history_stats
+    name: "Internet Outages Today"
+    entity_id: binary_sensor.internet_available
+    state: "off"
+    type: count
+    start: "{{ today_at('00:00') }}"
+    end: "{{ now() }}"
+
+automation:
+  # ============ LOW SPEED - ALERT ============
+  - id: 'speedtest_alert_low_speed'
+    alias: 'Speedtest Alert - Low Speed'
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.speedtest_real_download
+        below: input_number.speedtest_threshold_mbps
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_speedtest_enabled
+        state: 'on'
+      # Ignore 0 (failed test)
+      - condition: template
+        value_template: "{{ states('sensor.speedtest_real_download') | int(0) > 0 }}"
+    action:
+      - variables:
+          debounce_mins: "{{ states('input_number.speedtest_debounce_minutes') | int(10) }}"
+          threshold: "{{ states('input_number.speedtest_threshold_mbps') | int(400) }}"
+      
+      # Wait for debounce period (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+          # Run another speedtest to confirm
+          - action: homeassistant.update_entity
+            target:
+              entity_id: sensor.speedtest_raw
+          - delay:
+              seconds: 120
+          # Check if STILL below threshold
+          - condition: numeric_state
+            entity_id: sensor.speedtest_real_download
+            below: input_number.speedtest_threshold_mbps
+          - condition: template
+            value_template: "{{ states('sensor.speedtest_real_download') | int(0) > 0 }}"
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_speedtest_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *Low Internet Speed*
+            *Download:* {{ states('sensor.speedtest_real_download') }} Mbps
+            *Threshold:* {{ threshold }} Mbps
+            *Upload:* {{ states('sensor.speedtest_real_upload') }} Mbps
+            *Ping:* {{ states('sensor.speedtest_real_ping') }} ms
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Mark as alerted and record time
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.speedtest_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.speedtest_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ LOW SPEED - RECOVERY ============
+  - id: 'speedtest_alert_recovery'
+    alias: 'Speedtest Alert - Recovery'
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.speedtest_real_download
+        above: input_number.speedtest_threshold_mbps
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_speedtest_enabled
+        state: 'on'
+      # Only send recovery if alert was sent
+      - condition: state
+        entity_id: input_boolean.speedtest_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 📶 *Internet Speed Recovered*
+            *Download:* {{ states('sensor.speedtest_real_download') }} Mbps
+            *Upload:* {{ states('sensor.speedtest_real_upload') }} Mbps
+            *Ping:* {{ states('sensor.speedtest_real_ping') }} ms
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Clear alerted state
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.speedtest_alerted
+
+  # ============ LOW SPEED - REPEAT REMINDER ============
+  - id: 'speedtest_alert_repeat'
+    alias: 'Speedtest Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_speedtest_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.speedtest_alerted
+        state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.speedtest_repeat_hours') | int(0) > 0 }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_speedtest_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.speedtest_last_alert') %}
+          {% set repeat_hrs = states('input_number.speedtest_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      # Run a fresh speedtest first
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.speedtest_raw
+      - delay:
+          seconds: 120
+      # Only notify if still below threshold
+      - condition: numeric_state
+        entity_id: sensor.speedtest_real_download
+        below: input_number.speedtest_threshold_mbps
+      - condition: template
+        value_template: "{{ states('sensor.speedtest_real_download') | int(0) > 0 }}"
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *Low Internet Speed (Reminder)*
+            *Download:* {{ states('sensor.speedtest_real_download') }} Mbps
+            *Threshold:* {{ states('input_number.speedtest_threshold_mbps') | int }} Mbps
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.speedtest_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

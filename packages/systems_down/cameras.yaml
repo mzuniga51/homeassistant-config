@@ -1,0 +1,236 @@
+# /config/packages/systems_down/cameras.yaml
+# Camera monitoring with debounce, repeat, and priority
+
+input_boolean:
+  alert_cameras_enabled:
+    name: Camera Alert
+    icon: mdi:cctv
+
+  # Alert tracking - only send recovery if DOWN was sent
+  cameras_alerted:
+    name: Camera Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  cameras_debounce_minutes:
+    name: Cameras Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 5
+
+  cameras_repeat_hours:
+    name: Cameras Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 0
+
+input_datetime:
+  cameras_last_alert:
+    name: Cameras Last Alert
+    has_date: true
+    has_time: true
+
+input_text:
+  cameras_devices_down:
+    name: Cameras Devices Down
+    max: 255
+    initial: ""
+
+script:
+  test_cameras_notification:
+    alias: Test Camera Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📹 *Camera Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+automation:
+  # ============ CAMERA - FAILURE ============
+  - id: 'camera_alert_failure'
+    alias: 'Camera Alert - Failure'
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_cameras_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id.startswith('sensor.camara_') and 
+             trigger.event.data.entity_id.endswith('_status') }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          failed_entity: "{{ trigger.event.data.entity_id }}"
+          failed_name: "{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}"
+          debounce_mins: "{{ states('input_number.cameras_debounce_minutes') | int(5) }}"
+      
+      # Wait for debounce period (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+          # Check if STILL down after debounce
+          - condition: template
+            value_template: "{{ states(failed_entity) | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_cameras_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      # Add to devices down list (with duplicate check)
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.cameras_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.cameras_devices_down') %}
+            {% set current_list = current.split(',') | map('trim') | reject('eq', '') | list %}
+            {% if failed_name not in current_list %}
+              {% set new_list = current_list + [failed_name] %}
+              {{ new_list | join(',') | truncate(255, True, '') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📹 *{{ failed_name }} Down*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Mark as alerted and record time
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.cameras_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.cameras_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ CAMERA - RECOVERY ============
+  - id: 'camera_alert_recovery'
+    alias: 'Camera Alert - Recovery'
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_cameras_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id.startswith('sensor.camara_') and 
+             trigger.event.data.entity_id.endswith('_status') }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.cameras_alerted
+        state: 'on'
+      # Only send recovery if THIS device was reported down
+      - condition: template
+        value_template: >
+          {% set recovered_name = state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') %}
+          {{ recovered_name in states('input_text.cameras_devices_down').split(',') | map('trim') | list }}
+    action:
+      - variables:
+          recovered_name: "{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}"
+      
+      # Remove from devices down list
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.cameras_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.cameras_devices_down') %}
+            {% set devices = current.split(',') | map('trim') | reject('eq', recovered_name) | reject('eq', '') | list %}
+            {{ devices | join(',') }}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 📹 *{{ recovered_name }} Recovered*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Clear alerted state only if no more devices down
+      - if:
+          - condition: template
+            value_template: "{{ states('input_text.cameras_devices_down') | trim == '' }}"
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.cameras_alerted
+
+  # ============ CAMERA - REPEAT REMINDER ============
+  - id: 'camera_alert_repeat'
+    alias: 'Camera Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_cameras_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.cameras_alerted
+        state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.cameras_repeat_hours') | int(0) > 0 }}"
+      # Must have devices down
+      - condition: template
+        value_template: "{{ states('input_text.cameras_devices_down') | trim != '' }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_cameras_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.cameras_last_alert') %}
+          {% set repeat_hrs = states('input_number.cameras_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📹 *Cameras Still Down*
+            *Devices:* {{ states('input_text.cameras_devices_down') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.cameras_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

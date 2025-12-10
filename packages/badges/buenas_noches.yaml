@@ -1,0 +1,88 @@
+# /config/packages/badges/buenas_noches.yaml
+# Buenas Noches package
+# - Night window sensor (21:00–05:00)
+# - Scene: Buenas Noches (all entities OFF)
+# - Script: buenas_noches_runner (calls scene + 1.5s delay)
+# - Automation: runs every 30 min from 00:30 to 06:30
+
+input_boolean:
+  automation_buenas_noches_enabled:
+    name: Buenas Noches Automation
+    icon: mdi:weather-night
+
+template:
+  - trigger:
+      - platform: time_pattern
+        minutes: "/1"
+    binary_sensor:
+      - name: "Ventana nocturna 21-05"
+        unique_id: night_window_21_05
+        state: "{{ now().hour >= 21 or now().hour < 5 }}"
+
+scene:
+  - id: '1759277140130'
+    name: Buenas Noches
+    icon: mdi:lightbulb-night-outline
+    entities:
+      # -------- LIGHTS (all OFF) --------
+      light.cine: 'off'
+      light.cuarto_de_pilas: 'off'
+      light.bodega_garage: 'off'
+      light.bano_visitas: 'off'
+      light.gradas: 'off'
+      light.cuarto_maria: 'off'
+      light.foyer: 'off'
+      light.sala: 'off'
+      light.terraza: 'off'
+      light.solario: 'off'
+      light.cocina: 'off'
+      light.garage: 'off'
+      light.pasillo: 'off'
+      light.grill: 'off'
+      light.closet_andres: 'off'
+      # -------- CLIMATE (all OFF) --------
+      climate.aire_cine: 'off'
+      climate.aire_cocina: 'off'
+      climate.aire_maria: 'off'
+      climate.aire_musica: 'off'
+      # -------- MEDIA PLAYERS (all OFF) --------
+      media_player.tele_cine: 'off'
+      media_player.cable_cine_2: 'off'
+      media_player.tele_cocina: 'off'
+      media_player.cable_cocina: 'off'
+      # -------- SWITCHES (OFF) --------
+      switch.cierra_persiana_switch_1: 'off'
+      # --------- LOCKS (LOCKED) --------
+      lock.puerta_principal: 'locked'
+
+script:
+  buenas_noches_runner:
+    alias: Buenas noches (runner)
+    mode: restart
+    sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.buenas_noches
+      - delay: "00:00:01.5"
+
+  test_buenas_noches:
+    alias: Test Buenas Noches
+    mode: single
+    sequence:
+      - action: script.buenas_noches_runner
+
+automation:
+  - id: 'buenas_noches_scheduled'
+    alias: 'Buenas Noches - Scheduled'
+    trigger:
+      - platform: time_pattern
+        minutes: "/30"
+    condition:
+      - condition: state
+        entity_id: input_boolean.automation_buenas_noches_enabled
+        state: 'on'
+      - condition: time
+        after: "00:30:00"
+        before: "06:30:00"
+    action:
+      - action: script.buenas_noches_runner

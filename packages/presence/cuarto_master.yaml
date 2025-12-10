@@ -1,0 +1,779 @@
+# =============================================================================
+# CUARTO MASTER - PRESENCE-BASED AUTOMATION PACKAGE
+# =============================================================================
+# Features:
+#   - Bayesian presence detection combining BLE, motion, and device trackers
+#   - Light automation with lux threshold, time window, and manual override
+#   - AC auto-off when room empty (with nighttime protection)
+#   - AC temperature regulation using room sensor feedback loop
+#   - TV auto-off when room empty
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# INPUT TEXT - TV entity (placeholder)
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# INPUT TEXT - Entity selectors (for entity picker cards)
+# -----------------------------------------------------------------------------
+input_text:
+  cuarto_master_tv_entity:
+    name: "Cuarto Master - TV Entity"
+    initial: "none"
+    icon: mdi:television
+
+  cuarto_master_light_entity:
+    name: "Cuarto Master - Light Entity"
+    initial: "light.cuarto_master"
+    icon: mdi:lightbulb
+    max: 255
+
+# -----------------------------------------------------------------------------
+# INPUT HELPERS - Configurable parameters via UI
+# -----------------------------------------------------------------------------
+input_boolean:
+  # Master switches for automations
+  cuarto_master_light_automation_enabled:
+    name: "Cuarto Master - Light Automation Enabled"
+    icon: mdi:lightbulb-auto
+    initial: true
+
+  cuarto_master_ac_automation_enabled:
+    name: "Cuarto Master - AC Automation Enabled"
+    icon: mdi:air-conditioner
+    initial: true
+
+  # Internal state: tracks if lights were manually cancelled
+  cuarto_master_light_program_cancelled:
+    name: "Cuarto Master - Light Program Cancelled"
+    icon: mdi:cancel
+    initial: false
+
+  # AC regulation enabled
+  cuarto_master_ac_regulation_enabled:
+    name: "Cuarto Master - AC Temperature Regulation Enabled"
+    icon: mdi:thermostat-auto
+    initial: true
+
+  # TV auto-off enabled
+  cuarto_master_tv_automation_enabled:
+    name: "Cuarto Master - TV Auto-Off Enabled"
+    icon: mdi:television-off
+    initial: false
+
+  # AC manual off tracking (reset at midnight)
+  cuarto_master_ac_manual_off:
+    name: "Cuarto Master - AC Manually Off"
+    icon: mdi:hand-back-left-off
+    initial: false
+
+input_number:
+  # Light automation parameters
+  cuarto_master_lux_threshold:
+    name: "Cuarto Master - Lux Threshold"
+    min: 0
+    max: 500
+    step: 5
+    unit_of_measurement: "lx"
+    icon: mdi:brightness-6
+    initial: 50
+
+  cuarto_master_light_off_delay:
+    name: "Cuarto Master - Light Off Delay"
+    min: 1
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    icon: mdi:timer-outline
+    initial: 5
+
+  # AC automation parameters
+  cuarto_master_ac_off_delay:
+    name: "Cuarto Master - AC Off Delay"
+    min: 1
+    max: 60
+    step: 1
+    unit_of_measurement: "min"
+    icon: mdi:timer-outline
+    initial: 5
+
+  cuarto_master_ac_target_temp:
+    name: "Cuarto Master - Target Temperature"
+    min: 16
+    max: 28
+    step: 0.5
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer
+    initial: 20
+
+  cuarto_master_ac_min_setpoint:
+    name: "Cuarto Master - AC Minimum Setpoint"
+    min: 16
+    max: 24
+    step: 1
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-chevron-down
+    initial: 18
+
+  cuarto_master_ac_max_setpoint:
+    name: "Cuarto Master - AC Maximum Setpoint"
+    min: 20
+    max: 30
+    step: 1
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-chevron-up
+    initial: 26
+
+  cuarto_master_ac_external_temp_reference:
+    name: "Cuarto Master - Outside Neutral Temp"
+    min: 20
+    max: 30
+    step: 1
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-alert
+    initial: 23
+
+  cuarto_master_ac_external_correction_factor:
+    name: "Cuarto Master - External Correction Factor"
+    min: 0
+    max: 1
+    step: 0.1
+    icon: mdi:tune
+    initial: 0.5
+
+  cuarto_master_ac_regulation_interval:
+    name: "Cuarto Master - AC Regulation Interval"
+    min: 5
+    max: 60
+    step: 5
+    unit_of_measurement: "min"
+    icon: mdi:timer-sync-outline
+    initial: 15
+
+  cuarto_master_tv_off_delay:
+    name: "Cuarto Master - TV Off Delay"
+    min: 1
+    max: 60
+    step: 1
+    unit_of_measurement: "min"
+    icon: mdi:timer-outline
+    initial: 10
+
+  cuarto_master_temp_calibration_offset:
+    name: "Cuarto Master - Temperature Calibration Offset"
+    min: -4
+    max: 4
+    step: 0.5
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-plus
+    initial: 0
+
+  # Bayesian sensor threshold
+  cuarto_master_presence_threshold:
+    name: "Cuarto Master - Presence Probability Threshold"
+    min: 0.3
+    max: 0.9
+    step: 0.05
+    icon: mdi:account-question
+    initial: 0.5
+
+input_datetime:
+  # Light automation time window
+  cuarto_master_light_start_time:
+    name: "Cuarto Master - Light Program Start"
+    has_date: false
+    has_time: true
+    initial: "12:00:00"
+    icon: mdi:weather-sunset-up
+
+  cuarto_master_light_end_time:
+    name: "Cuarto Master - Light Program End"
+    has_date: false
+    has_time: true
+    initial: "00:00:00"
+    icon: mdi:weather-sunset-down
+
+  # AC auto-off time window (outside this = protected)
+  cuarto_master_ac_autooff_start:
+    name: "Cuarto Master - AC Auto-Off Start"
+    has_date: false
+    has_time: true
+    initial: "12:00:00"
+    icon: mdi:clock-start
+
+  cuarto_master_ac_autooff_end:
+    name: "Cuarto Master - AC Auto-Off End"
+    has_date: false
+    has_time: true
+    initial: "23:00:00"
+    icon: mdi:clock-end
+
+  cuarto_master_ac_resume_start:
+    name: "Cuarto Master - AC Auto-Resume Start"
+    has_date: false
+    has_time: true
+    initial: "00:00:00"
+    icon: mdi:clock-start
+
+  cuarto_master_ac_resume_end:
+    name: "Cuarto Master - AC Auto-Resume End"
+    has_date: false
+    has_time: true
+    initial: "12:00:00"
+    icon: mdi:clock-end
+
+# -----------------------------------------------------------------------------
+# TIMER
+# -----------------------------------------------------------------------------
+timer:
+  cuarto_master_ac_regulation:
+    name: "Cuarto Master - AC Regulation Timer"
+    restore: true
+
+# -----------------------------------------------------------------------------
+# TEMPLATE SENSORS
+# -----------------------------------------------------------------------------
+template:
+  - sensor:
+      # Average lux from all sensors in room
+      - name: "Cuarto Master Average Lux"
+        unique_id: cuarto_master_average_lux
+        unit_of_measurement: "lx"
+        state_class: measurement
+        device_class: illuminance
+        state: >
+          {% set sensors = [
+            states('sensor.sensor_master_movimiento_illuminance') | float(0)
+          ] %}
+          {% set valid = sensors | select('gt', 0) | list %}
+          {{ (valid | sum / valid | count) | round(1) if valid else 0 }}
+
+      # Current temperature (AC sensor + calibration factor)
+      - name: "Cuarto Master Current Temperature"
+        unique_id: cuarto_master_current_temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        device_class: temperature
+        state: >
+          {% set ac_temp = state_attr('climate.aire_master', 'current_temperature') | float(20) %}
+          {% set offset = states('input_number.cuarto_master_temp_calibration_offset') | float(0) %}
+          {{ (ac_temp + offset) | round(1) }}
+
+      # Room temperature (same as current, kept for compatibility)
+      - name: "Cuarto Master Average Temperature"
+        unique_id: cuarto_master_average_temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        device_class: temperature
+        state: >
+          {% set ac_temp = state_attr('climate.aire_master', 'current_temperature') | float(20) %}
+          {% set offset = states('input_number.cuarto_master_temp_calibration_offset') | float(0) %}
+          {{ (ac_temp + offset) | round(1) }}
+
+      # AC setpoint calculator - feedback loop with external temp correction
+      - name: "Cuarto Master AC Calculated Setpoint"
+        unique_id: cuarto_master_ac_calculated_setpoint
+        unit_of_measurement: "°C"
+        state: >
+          {% set target = states('input_number.cuarto_master_ac_target_temp') | float(20) %}
+          {% set current = states('sensor.cuarto_master_average_temperature') | float(20) %}
+          {% set external = states('sensor.hp2564bu_pro_v1_9_9_feels_like_temperature') | float(25) %}
+          {% set min_sp = states('input_number.cuarto_master_ac_min_setpoint') | float(18) %}
+          {% set max_sp = states('input_number.cuarto_master_ac_max_setpoint') | float(26) %}
+          {% set ext_ref = states('input_number.cuarto_master_ac_external_temp_reference') | float(25) %}
+          {% set ext_factor = states('input_number.cuarto_master_ac_external_correction_factor') | float(0.5) %}
+          
+          {# Calculate error: positive = room too hot, negative = room too cold #}
+          {% set error = current - target %}
+          
+          {# Base adjustment: for every degree off, adjust setpoint by 1.5 degrees #}
+          {% set base_adjustment = error * 1.5 %}
+          
+          {# External temp correction (works both ways):
+             - If external > reference: positive correction (go colder)
+             - If external < reference: negative correction (go warmer)
+             For every 5°C difference from reference, adjust by (factor) degrees #}
+          {% set external_diff = external - ext_ref %}
+          {% set external_correction = (external_diff / 5) * ext_factor %}
+          
+          {# Cap external correction to reasonable range (-2 to +2) #}
+          {% set external_correction = [[external_correction, -2] | max, 2] | min %}
+          
+          {# Total adjustment #}
+          {% set total_adjustment = base_adjustment + external_correction %}
+          
+          {# New setpoint = target - adjustment #}
+          {% set new_setpoint = target - total_adjustment %}
+          
+          {# Clamp to allowed range #}
+          {{ [[new_setpoint, min_sp] | max, max_sp] | min | round(0) }}
+
+  - binary_sensor:
+      # Is it within light automation time window?
+      - name: "Cuarto Master Light Program Active"
+        unique_id: cuarto_master_light_program_active
+        state: >
+          {% set start = states('input_datetime.cuarto_master_light_start_time') %}
+          {% set end = states('input_datetime.cuarto_master_light_end_time') %}
+          {% set now_time = now().strftime('%H:%M:%S') %}
+          {% if end < start %}
+            {# Crosses midnight: active if after start OR before end #}
+            {{ now_time >= start or now_time < end }}
+          {% else %}
+            {{ start <= now_time < end }}
+          {% endif %}
+
+      # Is it within AC auto-off time window?
+      - name: "Cuarto Master AC AutoOff Window"
+        unique_id: cuarto_master_ac_autooff_window
+        state: >
+          {% set start = states('input_datetime.cuarto_master_ac_autooff_start') %}
+          {% set end = states('input_datetime.cuarto_master_ac_autooff_end') %}
+          {% set now_time = now().strftime('%H:%M:%S') %}
+          {% if end < start %}
+            {{ now_time >= start or now_time < end }}
+          {% else %}
+            {{ start <= now_time < end }}
+          {% endif %}
+
+      # Is it within AC auto-resume time window? (midnight to 8am)
+      - name: "Cuarto Master AC Resume Window"
+        unique_id: cuarto_master_ac_resume_window
+        state: >
+          {% set start = states('input_datetime.cuarto_master_ac_resume_start') %}
+          {% set end = states('input_datetime.cuarto_master_ac_resume_end') %}
+          {% set now_time = now().strftime('%H:%M:%S') %}
+          {% if end < start %}
+            {{ now_time >= start or now_time < end }}
+          {% else %}
+            {{ start <= now_time < end }}
+          {% endif %}
+
+      # Is lux below threshold?
+      - name: "Cuarto Master Lux Below Threshold"
+        unique_id: cuarto_master_lux_below_threshold
+        state: >
+          {{ states('sensor.cuarto_master_average_lux') | float(0) < 
+             states('input_number.cuarto_master_lux_threshold') | float(50) }}
+
+      # Combined: Should lights auto-trigger?
+      - name: "Cuarto Master Light Trigger Allowed"
+        unique_id: cuarto_master_light_trigger_allowed
+        state: >
+          {{ is_state('input_boolean.cuarto_master_light_automation_enabled', 'on') and
+             is_state('binary_sensor.cuarto_master_light_program_active', 'on') and
+             is_state('binary_sensor.cuarto_master_lux_below_threshold', 'on') and
+             is_state('input_boolean.cuarto_master_light_program_cancelled', 'off') }}
+
+      # Presence from Bayesian (threshold-based)
+      - name: "Cuarto Master Occupied"
+        unique_id: cuarto_master_occupied
+        device_class: occupancy
+        state: >
+          {{ state_attr('binary_sensor.cuarto_master_presence_probability', 'probability') | float(0) >= 
+             states('input_number.cuarto_master_presence_threshold') | float(0.5) }}
+
+      # Motion detected (any motion sensor)
+      - name: "Cuarto Master Motion Active"
+        unique_id: cuarto_master_motion_active
+        device_class: motion
+        state: >
+          {{ is_state('binary_sensor.sensor_master_movimiento_motion', 'on') or
+             is_state('binary_sensor.master_bedroom_motion', 'on') or
+             is_state('binary_sensor.sensor_evelyn_motion', 'on') or
+             is_state('binary_sensor.sensor_manuel_motion', 'on') }}
+
+      # BLE device detected (any phone/tablet in room)
+      - name: "Cuarto Master BLE Present"
+        unique_id: cuarto_master_ble_present
+        device_class: presence
+        state: >
+          {{ states('sensor.iphone_manuel_ble_area') == 'Cuarto Master' or
+             states('sensor.iphone_evelyn_area') == 'Cuarto Master' or
+             states('sensor.iphone_andres_ble_area') == 'Cuarto Master' or
+             states('sensor.ipad_manuel_area') == 'Cuarto Master' or
+             states('sensor.ipad_evelyn_area') == 'Cuarto Master' }}
+
+      # AC presence for resume window (BLE OR Motion)
+      - name: "Cuarto Master AC Resume Presence"
+        unique_id: cuarto_master_ac_resume_presence
+        device_class: occupancy
+        state: >
+          {{ is_state('binary_sensor.cuarto_master_motion_active', 'on') or
+             is_state('binary_sensor.cuarto_master_ble_present', 'on') }}
+
+# -----------------------------------------------------------------------------
+# BAYESIAN PRESENCE SENSOR
+# -----------------------------------------------------------------------------
+binary_sensor:
+  - platform: bayesian
+    name: "Cuarto Master Presence Probability"
+    unique_id: cuarto_master_presence_probability
+    probability_threshold: 0.5
+    prior: 0.25
+    observations:
+      # ----- BERMUDA: ANY phone in this room (single consolidated check) -----
+      - platform: template
+        value_template: >
+          {{ states('sensor.iphone_manuel_ble_area') == 'Cuarto Master' or
+             states('sensor.iphone_evelyn_area') == 'Cuarto Master' or
+             states('sensor.iphone_andres_ble_area') == 'Cuarto Master' or
+             states('sensor.ipad_manuel_area') == 'Cuarto Master' or
+             states('sensor.ipad_evelyn_area') == 'Cuarto Master' }}
+        prob_given_true: 0.95
+        prob_given_false: 0.10
+
+      # ----- MOTION: ANY motion sensor active -----
+      - platform: template
+        value_template: >
+          {{ is_state('binary_sensor.sensor_master_movimiento_motion', 'on') or
+             is_state('binary_sensor.master_bedroom_motion', 'on') or
+             is_state('binary_sensor.sensor_evelyn_motion', 'on') or
+             is_state('binary_sensor.sensor_manuel_motion', 'on') }}
+        prob_given_true: 0.90
+        prob_given_false: 0.25
+
+# -----------------------------------------------------------------------------
+# AUTOMATIONS
+# -----------------------------------------------------------------------------
+automation:
+  # ===========================================================================
+  # LIGHT AUTOMATIONS
+  # ===========================================================================
+
+  # Turn lights ON when motion detected (if conditions met)
+  - id: cuarto_master_lights_on_presence
+    alias: "Cuarto Master - Lights On (Motion)"
+    description: "Turn on lights when motion detected and conditions are met"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.sensor_master_movimiento_motion
+          - binary_sensor.master_bedroom_motion
+          - binary_sensor.sensor_evelyn_motion
+          - binary_sensor.sensor_manuel_motion
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.cuarto_master_light_trigger_allowed
+        state: "on"
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: "{{ 'light.spots_master' }}"
+
+  # Turn lights OFF when no motion for X minutes
+  - id: cuarto_master_lights_off_empty
+    alias: "Cuarto Master - Lights Off (No Motion)"
+    description: "Turn off lights when no motion for configured delay"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.cuarto_master_motion_active
+        to: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.cuarto_master_light_automation_enabled
+        state: "on"
+      - condition: template
+        value_template: "{{ states('light.spots_master') == 'on' }}"
+    action:
+      - delay:
+          minutes: "{{ states('input_number.cuarto_master_light_off_delay') | int(1) }}"
+      - condition: state
+        entity_id: binary_sensor.cuarto_master_motion_active
+        state: "off"
+      - condition: template
+        value_template: "{{ states('light.spots_master') == 'on' }}"
+      - service: light.turn_off
+        target:
+          entity_id: light.spots_master
+
+  # Cancel light program when Hue switch button 4 pressed (Manuel's switch)
+  - id: cuarto_master_cancel_light_program_manuel
+    alias: "Cuarto Master - Cancel Light Program (Manuel Switch)"
+    description: "Cancel auto-light program when Manuel's switch button 4 is pressed"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: event.switch_master_manuel_button_4
+    condition:
+      - condition: template
+        value_template: "{{ states('light.spots_master') == 'on' }}"
+    action:
+      - service: light.turn_off
+        target:
+          entity_id: "{{ 'light.spots_master' }}"
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.cuarto_master_light_program_cancelled
+
+  # Cancel light program when Hue switch button 4 pressed (Evelyn's switch)
+  - id: cuarto_master_cancel_light_program_evelyn
+    alias: "Cuarto Master - Cancel Light Program (Evelyn Switch)"
+    description: "Cancel auto-light program when Evelyn's switch button 4 is pressed"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: event.switch_master_evelyn_button_4
+    condition:
+      - condition: template
+        value_template: "{{ states('light.spots_master') == 'on' }}"
+    action:
+      - service: light.turn_off
+        target:
+          entity_id: "{{ 'light.spots_master' }}"
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.cuarto_master_light_program_cancelled
+
+  # Reset cancelled state at program start time (noon)
+  - id: cuarto_master_reset_light_program
+    alias: "Cuarto Master - Reset Light Program"
+    description: "Reset the cancelled flag at program start time"
+    mode: single
+    trigger:
+      - platform: time
+        at: input_datetime.cuarto_master_light_start_time
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.cuarto_master_light_program_cancelled
+
+  # ===========================================================================
+  # AC AUTOMATIONS
+  # ===========================================================================
+
+  # Turn AC OFF when room empty (within auto-off window)
+  - id: cuarto_master_ac_off_empty
+    alias: "Cuarto Master - AC Off (No Motion)"
+    description: "Turn off AC when no motion for configured delay (daytime only)"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.cuarto_master_motion_active
+        to: "off"
+        for:
+          minutes: "{{ states('input_number.cuarto_master_ac_off_delay') | int(5) }}"
+    condition:
+      - condition: state
+        entity_id: input_boolean.cuarto_master_ac_automation_enabled
+        state: "on"
+      - condition: state
+        entity_id: binary_sensor.cuarto_master_ac_autooff_window
+        state: "on"
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: climate.aire_master
+            state: "off"
+    action:
+      - service: climate.turn_off
+        target:
+          entity_id: climate.aire_master
+
+  # Temperature regulation - adjust setpoint at configurable interval (and turn on if off during night)
+  - id: cuarto_master_ac_regulate_temperature
+    alias: "Cuarto Master - AC Temperature Regulation"
+    description: "Adjust AC setpoint based on room temperature feedback loop"
+    mode: single
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.cuarto_master_ac_regulation
+    condition:
+      - condition: state
+        entity_id: input_boolean.cuarto_master_ac_regulation_enabled
+        state: "on"
+    action:
+      - choose:
+          # Room is too cold (>2°C below target) - turn AC off for this cycle
+          - conditions:
+              - condition: template
+                value_template: >
+                  {{ (states('input_number.cuarto_master_ac_target_temp') | float(20) - 
+                      states('sensor.cuarto_master_average_temperature') | float(20)) > 2 }}
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: climate.aire_master
+                    state: "off"
+            sequence:
+              - service: climate.turn_off
+                target:
+                  entity_id: climate.aire_master
+          # AC is off - only turn back on during resume window if presence detected (BLE OR Motion) and not manually off
+          - conditions:
+              - condition: state
+                entity_id: climate.aire_master
+                state: "off"
+              - condition: state
+                entity_id: binary_sensor.cuarto_master_ac_resume_window
+                state: "on"
+              # Check presence (BLE OR Motion)
+              - condition: state
+                entity_id: binary_sensor.cuarto_master_ac_resume_presence
+                state: "on"
+              # Not manually turned off
+              - condition: state
+                entity_id: input_boolean.cuarto_master_ac_manual_off
+                state: "off"
+              # Don't turn back on if room is still too cold
+              - condition: template
+                value_template: >
+                  {{ (states('input_number.cuarto_master_ac_target_temp') | float(20) - 
+                      states('sensor.cuarto_master_average_temperature') | float(20)) <= 2 }}
+            sequence:
+              - service: climate.turn_on
+                target:
+                  entity_id: climate.aire_master
+              - delay:
+                  seconds: 5
+              - service: climate.set_temperature
+                target:
+                  entity_id: climate.aire_master
+                data:
+                  temperature: "{{ states('sensor.cuarto_master_ac_calculated_setpoint') | float(20) }}"
+          # AC is on and room temp is fine - just adjust temperature
+          - conditions:
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: climate.aire_master
+                    state: "off"
+            sequence:
+              - service: climate.set_temperature
+                target:
+                  entity_id: climate.aire_master
+                data:
+                  temperature: "{{ states('sensor.cuarto_master_ac_calculated_setpoint') | float(20) }}"
+      # Restart timer for next cycle
+      - service: timer.start
+        target:
+          entity_id: timer.cuarto_master_ac_regulation
+        data:
+          duration:
+            minutes: "{{ states('input_number.cuarto_master_ac_regulation_interval') | int(15) }}"
+
+  # Start regulation timer when regulation is enabled
+  - id: cuarto_master_ac_start_regulation_timer
+    alias: "Cuarto Master - Start AC Regulation Timer"
+    description: "Start the regulation timer when enabled"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.cuarto_master_ac_regulation_enabled
+        to: "on"
+      - platform: homeassistant
+        event: start
+    condition:
+      - condition: state
+        entity_id: input_boolean.cuarto_master_ac_regulation_enabled
+        state: "on"
+    action:
+      - service: timer.start
+        target:
+          entity_id: timer.cuarto_master_ac_regulation
+        data:
+          duration:
+            minutes: "{{ states('input_number.cuarto_master_ac_regulation_interval') | int(15) }}"
+
+  # Stop timer when regulation is disabled
+  - id: cuarto_master_ac_stop_regulation_timer
+    alias: "Cuarto Master - Stop AC Regulation Timer"
+    description: "Stop the regulation timer when disabled"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.cuarto_master_ac_regulation_enabled
+        to: "off"
+    action:
+      - service: timer.cancel
+        target:
+          entity_id: timer.cuarto_master_ac_regulation
+
+  # Also regulate when AC is turned on
+  - id: cuarto_master_ac_regulate_on_start
+    alias: "Cuarto Master - AC Regulate On Start"
+    description: "Set optimal temperature when AC is turned on"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: climate.aire_master
+        from: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.cuarto_master_ac_regulation_enabled
+        state: "on"
+    action:
+      - delay:
+          seconds: 5
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.aire_master
+        data:
+          temperature: "{{ states('sensor.cuarto_master_ac_calculated_setpoint') | float(20) }}"
+
+  # ===========================================================================
+  # TV AUTOMATIONS
+  # ===========================================================================
+
+  # Turn TV OFF when room empty for X minutes
+  - id: cuarto_master_tv_off_empty
+    alias: "Cuarto Master - TV Off (Empty)"
+    description: "Turn off TV when room has been empty for configured delay"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.cuarto_master_occupied
+        to: "off"
+        for:
+          minutes: "{{ states('input_number.cuarto_master_tv_off_delay') | int(10) }}"
+    condition:
+      - condition: state
+        entity_id: input_boolean.cuarto_master_tv_automation_enabled
+        state: "on"
+      - condition: template
+        value_template: "{{ states('input_text.cuarto_master_tv_entity') != 'none' }}"
+    action:
+      - service: media_player.turn_off
+        target:
+          entity_id: "{{ states('input_text.cuarto_master_tv_entity') }}"
+
+  # ===========================================================================
+  # AC MANUAL OFF TRACKING
+  # ===========================================================================
+
+  # Track when AC is manually turned off between 08:00-12:00
+  - id: cuarto_master_ac_track_manual_off
+    alias: "Cuarto Master - Track AC Manual Off"
+    description: "Set manual_off flag when AC turned off between 08:00-12:00"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: climate.aire_master
+        to: "off"
+    condition:
+      # Only track during 08:00-12:00
+      - condition: template
+        value_template: >
+          {% set now_time = now().strftime('%H:%M:%S') %}
+          {{ '08:00:00' <= now_time < '12:00:00' }}
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.cuarto_master_ac_manual_off
+
+  # Reset manual_off flag at midnight
+  - id: cuarto_master_ac_reset_manual_off
+    alias: "Cuarto Master - Reset AC Manual Off"
+    description: "Reset manual_off flag at midnight"
+    mode: single
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.cuarto_master_ac_manual_off

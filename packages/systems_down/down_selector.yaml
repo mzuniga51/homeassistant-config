@@ -1,0 +1,166 @@
+# /config/packages/down_selector.yaml
+# Helpers for the universal alert control card
+
+input_select:
+  alert_package_selector:
+    name: Alert Package
+    icon: mdi:bell-cog
+    options:
+      - Tuya
+      - TV
+      - Omada
+      - BLE
+      - Cameras
+      - Plomeria
+      - Moen Flo
+      - Hue
+      - Riego
+      - Battery
+      - Speedtest
+      - Ecowitt
+    initial: Tuya
+
+  # Priority selectors for each package (default: Non-Critical)
+  alert_tuya_priority:
+    name: Tuya Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_tv_priority:
+    name: TV Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_omada_priority:
+    name: Omada Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_ble_priority:
+    name: BLE Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_cameras_priority:
+    name: Cameras Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_plomeria_priority:
+    name: Plomeria Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_moen_flo_priority:
+    name: Moen Flo Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_hue_priority:
+    name: Hue Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_riego_priority:
+    name: Riego Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_battery_priority:
+    name: Battery Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_pool_priority:
+    name: Pool Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_speedtest_priority:
+    name: Speedtest Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+  alert_ecowitt_priority:
+    name: Ecowitt Priority
+    icon: mdi:alert
+    options:
+      - Non-Critical
+      - Critical
+    initial: Non-Critical
+
+# Non-critical window settings
+input_boolean:
+  alert_window_enabled:
+    name: Alert Window Enabled
+    icon: mdi:clock-outline
+    initial: true
+
+input_datetime:
+  alert_window_start:
+    name: Alert Window Start
+    has_date: false
+    has_time: true
+    initial: "08:00"
+
+  alert_window_end:
+    name: Alert Window End
+    has_date: false
+    has_time: true
+    initial: "22:00"
+
+# Template sensor to check if currently in window
+template:
+  - binary_sensor:
+      - name: "Alert Window Active"
+        unique_id: alert_window_active
+        icon: mdi:clock-check
+        state: >
+          {% if not is_state('input_boolean.alert_window_enabled', 'on') %}
+            true
+          {% else %}
+            {% set start = states('input_datetime.alert_window_start') %}
+            {% set end = states('input_datetime.alert_window_end') %}
+            {% set now_time = now().strftime('%H:%M') %}
+            {% if start <= end %}
+              {{ start <= now_time <= end }}
+            {% else %}
+              {{ now_time >= start or now_time <= end }}
+            {% endif %}
+          {% endif %}

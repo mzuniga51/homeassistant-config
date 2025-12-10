@@ -1,0 +1,71 @@
+# /config/packages/dashboard_control/auto_return_selector.yaml
+# Optimized: Event-based trigger instead of polling every minute
+
+input_boolean:
+  auto_return_enabled:
+    name: Auto-return enabled
+    icon: mdi:home-clock
+    initial: true
+
+automation:
+  - alias: Auto-return browser to Home after 3 min
+    id: auto_return_browser_to_home_after_180s
+    mode: parallel
+    max: 10
+    variables:
+      MAIN_PATH: /dashboard-home/0
+      TIMEOUT: 180
+      EXEMPT_PATHS:
+        - /config
+      EXEMPT_BROWSERS:
+        - Mac Manuel
+    triggers:
+      # Trigger when any browser_mod path sensor changes
+      - trigger: event
+        event_type: state_changed
+    conditions:
+      # Must be enabled
+      - condition: state
+        entity_id: input_boolean.auto_return_enabled
+        state: "on"
+      # Must be a browser_mod sensor with path attribute
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id.startswith('sensor.') and
+             trigger.event.data.new_state is not none and
+             (state_attr(trigger.event.data.entity_id, 'browserID') is not none or
+              state_attr(trigger.event.data.entity_id, 'browser_id') is not none) }}
+      # Must not be an exempt browser
+      - condition: template
+        value_template: >
+          {% set browser_id = state_attr(trigger.event.data.entity_id, 'browserID') or 
+                              state_attr(trigger.event.data.entity_id, 'browser_id') or '' %}
+          {{ browser_id not in EXEMPT_BROWSERS }}
+      # Must have a path that's not exempt and not home
+      - condition: template
+        value_template: >
+          {% set cur = state_attr(trigger.event.data.entity_id, 'FullUrlPath') or
+                       state_attr(trigger.event.data.entity_id, 'full_url_path') or
+                       state_attr(trigger.event.data.entity_id, 'fullUrlPath') or
+                       state_attr(trigger.event.data.entity_id, 'path') %}
+          {{ cur is not none and cur != MAIN_PATH and cur not in EXEMPT_PATHS }}
+    actions:
+      # Wait 3 minutes
+      - delay:
+          seconds: "{{ TIMEOUT }}"
+      # Check if still on the same non-home path
+      - variables:
+          current_path: >
+            {{ state_attr(trigger.event.data.entity_id, 'FullUrlPath') or
+               state_attr(trigger.event.data.entity_id, 'full_url_path') or
+               state_attr(trigger.event.data.entity_id, 'fullUrlPath') or
+               state_attr(trigger.event.data.entity_id, 'path') }}
+      - condition: template
+        value_template: >
+          {{ current_path is not none and current_path != MAIN_PATH and current_path not in EXEMPT_PATHS }}
+      # Navigate back to home
+      - action: browser_mod.navigate
+        target:
+          device_id: "{{ device_id(trigger.event.data.entity_id) }}"
+        data:
+          path: "{{ MAIN_PATH }}"

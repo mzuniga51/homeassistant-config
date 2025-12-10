@@ -1,0 +1,299 @@
+# /config/packages/batteres.yaml
+# Battery monitoring with 24-hour confirmation debounce
+# Only notifies if battery is low for 2 consecutive checks (24h apart)
+# + Configurable repeat and priority
+
+input_boolean:
+  alert_battery_enabled:
+    name: Battery Alert
+    icon: mdi:battery-alert
+
+  battery_alerted:
+    name: Battery Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  battery_alert_threshold:
+    name: Battery Alert Threshold
+    min: 5
+    max: 50
+    step: 5
+    unit_of_measurement: '%'
+    icon: mdi:battery-20
+    initial: 20
+
+  # Note: Battery uses 24h confirmation as debounce, so this is extra wait after confirmation
+  battery_debounce_minutes:
+    name: Battery Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 0
+
+  battery_repeat_hours:
+    name: Battery Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 72
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 24
+
+input_datetime:
+  battery_last_alert:
+    name: Battery Last Alert
+    has_date: true
+    has_time: true
+
+input_text:
+  batteries_pending_confirmation:
+    name: Batteries Pending Confirmation
+    max: 255
+    initial: "[]"
+
+  batteries_confirmed_low:
+    name: Batteries Confirmed Low
+    max: 255
+    initial: "[]"
+
+script:
+  test_battery_notification:
+    alias: Test Battery Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔋🔴 *Battery Alert - TEST*
+            *Device:* Test Device
+            *Level:* 15%
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+automation:
+  # ============ BATTERY CHECK - RUNS EVERY 24 HOURS ============
+  - id: 'battery_alert_daily_check'
+    alias: 'Battery Alert - Daily Check'
+    trigger:
+      - platform: time
+        at: "09:00:00"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_battery_enabled
+        state: 'on'
+    action:
+      - variables:
+          threshold: "{{ states('input_number.battery_alert_threshold') | int(20) }}"
+          allowed: "{{ (integration_entities('matter') + integration_entities('mqtt') + integration_entities('hue')) | list }}"
+          excluded: ['sensor.switch_bano_de_visitas_battery']
+          pending: "{{ (states('input_text.batteries_pending_confirmation') | from_json) or [] }}"
+
+      # Find all currently low batteries
+      - variables:
+          currently_low: >
+            {% set ns = namespace(low=[]) %}
+            {% for e in states.sensor
+                 if state_attr(e.entity_id,'device_class') == 'battery'
+                 and e.entity_id in allowed
+                 and e.entity_id not in excluded %}
+              {% set n = (state_attr(e.entity_id,'friendly_name') or '') | lower %}
+              {% set u = (state_attr(e.entity_id,'unit_of_measurement') or '') | lower %}
+              {% set s = e.state %}
+              {% if 'camara' in n or 'cámara' in n or 'camera' in n or 'keypad' in n %}
+                {% continue %}
+              {% endif %}
+              {% if s in ['unknown','unavailable','None'] %}
+                {% continue %}
+              {% endif %}
+              {% if u in ['v','volt','volts'] %}
+                {% continue %}
+              {% endif %}
+              {% set v = s | float(999) %}
+              {% if 0 <= v <= threshold and v <= 100 %}
+                {% set ns.low = ns.low + [e.entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.low }}
+
+      # Confirmed = was pending yesterday AND still low today
+      - variables:
+          confirmed_low: "{{ currently_low | select('in', pending) | list }}"
+
+      # New pending = currently low but NOT yet confirmed (first time seen)
+      - variables:
+          new_pending: "{{ currently_low | reject('in', pending) | list }}"
+
+      # Update pending list first (always)
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.batteries_pending_confirmation
+        data:
+          value: "{{ currently_low | to_json }}"
+
+      # Stop if no confirmed low batteries
+      - condition: template
+        value_template: "{{ confirmed_low | length > 0 }}"
+
+      # Check priority/window before notifying
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_battery_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+
+      # Notify for confirmed low batteries
+      - repeat:
+          for_each: "{{ confirmed_low }}"
+          sequence:
+            - action: script.whatsapp_info
+              data:
+                message: |
+                  🔋🔴 *Battery Low*
+                  *Device:* {{ state_attr(repeat.item, 'friendly_name') | replace(' Battery', '') }}
+                  *Level:* {{ states(repeat.item) }}%
+                  *Time:* {{ now().strftime('%H:%M') }}
+                  *Date:* {{ now().strftime('%B %d, %Y') }}
+
+      # Update tracking
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.battery_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.battery_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.batteries_confirmed_low
+        data:
+          value: "{{ confirmed_low | to_json }}"
+
+  # ============ BATTERY - REPEAT REMINDER ============
+  - id: 'battery_alert_repeat'
+    alias: 'Battery Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        hours: "/1"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_battery_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.battery_alerted
+        state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.battery_repeat_hours') | int(0) > 0 }}"
+      # Must have confirmed low batteries
+      - condition: template
+        value_template: >
+          {% set confirmed = (states('input_text.batteries_confirmed_low') | from_json) or [] %}
+          {{ confirmed | length > 0 }}
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_battery_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.battery_last_alert') %}
+          {% set repeat_hrs = states('input_number.battery_repeat_hours') | int(24) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - variables:
+          threshold: "{{ states('input_number.battery_alert_threshold') | int(20) }}"
+          confirmed: "{{ (states('input_text.batteries_confirmed_low') | from_json) or [] }}"
+          # Re-check which are still low
+          still_low: >
+            {% set ns = namespace(low=[]) %}
+            {% for entity_id in confirmed %}
+              {% set s = states(entity_id) %}
+              {% if s not in ['unknown','unavailable','None'] %}
+                {% set v = s | float(999) %}
+                {% if 0 <= v <= threshold and v <= 100 %}
+                  {% set ns.low = ns.low + [entity_id] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.low }}
+      
+      # Only notify if batteries still low
+      - condition: template
+        value_template: "{{ still_low | length > 0 }}"
+      
+      - action: script.whatsapp_info
+        data:
+          message: >
+            🔋🔴 *Batteries Still Low (Reminder)*
+            {% for entity_id in still_low %}
+            • {{ state_attr(entity_id, 'friendly_name') | replace(' Battery', '') }}: {{ states(entity_id) }}%
+            {% endfor %}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.battery_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      
+      # Update confirmed list (remove recovered)
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.batteries_confirmed_low
+        data:
+          value: "{{ still_low | to_json }}"
+      
+      # Clear alerted if no more low batteries
+      - if:
+          - condition: template
+            value_template: "{{ still_low | length == 0 }}"
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.battery_alerted
+
+  # ============ BATTERY - CLEAR ALERTED AT MIDNIGHT ============
+  - id: 'battery_alert_daily_reset'
+    alias: 'Battery Alert - Daily Reset Check'
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    action:
+      - variables:
+          threshold: "{{ states('input_number.battery_alert_threshold') | int(20) }}"
+          confirmed: "{{ (states('input_text.batteries_confirmed_low') | from_json) or [] }}"
+          # Check which are still low
+          still_low: >
+            {% set ns = namespace(low=[]) %}
+            {% for entity_id in confirmed %}
+              {% set s = states(entity_id) %}
+              {% if s not in ['unknown','unavailable','None'] %}
+                {% set v = s | float(999) %}
+                {% if 0 <= v <= threshold and v <= 100 %}
+                  {% set ns.low = ns.low + [entity_id] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.low }}
+      # Clear alerted if all batteries recovered
+      - if:
+          - condition: template
+            value_template: "{{ still_low | length == 0 }}"
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.battery_alerted
+          - action: input_text.set_value
+            target:
+              entity_id: input_text.batteries_confirmed_low
+            data:
+              value: "[]"

@@ -1,0 +1,1835 @@
+# /config/packages/integrations/hydrawise.yaml
+# Consolidated: Hydrawise Controls + Time-Slot Irrigation Scheduling + Alerts + History Tracking
+# Updated: Added 7AM-7AM period tracking for irrigation consumption charts
+
+homeassistant:
+  customize: {}
+
+# ====== Hydrawise Credentials ======
+input_text:
+  hydrawise_api_key:
+    name: Hydrawise API Key
+    initial: "5e97-ee5c-fcd2-aac0"
+  hydrawise_controller_id:
+    name: Hydrawise Controller ID
+    initial: "451822"
+
+# ====== State tracking & Alerts ======
+input_boolean:
+  hydrawise_suspended:
+    name: Hydrawise Suspended
+    icon: mdi:sprinkler-variant
+
+  irrigation_master_enable:
+    name: Master Irrigation Enable
+    icon: mdi:sprinkler-variant
+
+  alert_irrigation_error_enabled:
+    name: Irrigation Error Alert
+    icon: mdi:alert-circle
+
+  # Slot running state (for error detection)
+  irrigation_slot_1_running:
+    name: Irrigation Slot 1 Running
+    icon: mdi:sprinkler
+  irrigation_slot_2_running:
+    name: Irrigation Slot 2 Running
+    icon: mdi:sprinkler
+  irrigation_slot_3_running:
+    name: Irrigation Slot 3 Running
+    icon: mdi:sprinkler
+  irrigation_slot_4_running:
+    name: Irrigation Slot 4 Running
+    icon: mdi:sprinkler
+
+  # Slot 1
+  slot_1_enabled:
+    name: Slot 1 Enabled
+  slot_1_monday:
+    name: Monday
+  slot_1_tuesday:
+    name: Tuesday
+  slot_1_wednesday:
+    name: Wednesday
+  slot_1_thursday:
+    name: Thursday
+  slot_1_friday:
+    name: Friday
+  slot_1_saturday:
+    name: Saturday
+  slot_1_sunday:
+    name: Sunday
+  slot_1_cocina_enabled:
+    name: Slot 1 - Cocina
+  slot_1_frente_enabled:
+    name: Slot 1 - Frente
+  slot_1_jardin_japones_enabled:
+    name: Slot 1 - Jardin Japones
+  slot_1_patio_arbustos_enabled:
+    name: Slot 1 - Patio Arbustos
+  slot_1_patio_central_enabled:
+    name: Slot 1 - Patio Central
+  slot_1_patio_derecha_enabled:
+    name: Slot 1 - Patio Derecha
+  slot_1_patio_izquierda_enabled:
+    name: Slot 1 - Patio Izquierda
+
+  # Slot 2
+  slot_2_enabled:
+    name: Slot 2 Enabled
+  slot_2_monday:
+    name: Monday
+  slot_2_tuesday:
+    name: Tuesday
+  slot_2_wednesday:
+    name: Wednesday
+  slot_2_thursday:
+    name: Thursday
+  slot_2_friday:
+    name: Friday
+  slot_2_saturday:
+    name: Saturday
+  slot_2_sunday:
+    name: Sunday
+  slot_2_cocina_enabled:
+    name: Slot 2 - Cocina
+  slot_2_frente_enabled:
+    name: Slot 2 - Frente
+  slot_2_jardin_japones_enabled:
+    name: Slot 2 - Jardin Japones
+  slot_2_patio_arbustos_enabled:
+    name: Slot 2 - Patio Arbustos
+  slot_2_patio_central_enabled:
+    name: Slot 2 - Patio Central
+  slot_2_patio_derecha_enabled:
+    name: Slot 2 - Patio Derecha
+  slot_2_patio_izquierda_enabled:
+    name: Slot 2 - Patio Izquierda
+
+  # Slot 3
+  slot_3_enabled:
+    name: Slot 3 Enabled
+  slot_3_monday:
+    name: Monday
+  slot_3_tuesday:
+    name: Tuesday
+  slot_3_wednesday:
+    name: Wednesday
+  slot_3_thursday:
+    name: Thursday
+  slot_3_friday:
+    name: Friday
+  slot_3_saturday:
+    name: Saturday
+  slot_3_sunday:
+    name: Sunday
+  slot_3_cocina_enabled:
+    name: Slot 3 - Cocina
+  slot_3_frente_enabled:
+    name: Slot 3 - Frente
+  slot_3_jardin_japones_enabled:
+    name: Slot 3 - Jardin Japones
+  slot_3_patio_arbustos_enabled:
+    name: Slot 3 - Patio Arbustos
+  slot_3_patio_central_enabled:
+    name: Slot 3 - Patio Central
+  slot_3_patio_derecha_enabled:
+    name: Slot 3 - Patio Derecha
+  slot_3_patio_izquierda_enabled:
+    name: Slot 3 - Patio Izquierda
+
+  # Slot 4
+  slot_4_enabled:
+    name: Slot 4 Enabled
+  slot_4_monday:
+    name: Monday
+  slot_4_tuesday:
+    name: Tuesday
+  slot_4_wednesday:
+    name: Wednesday
+  slot_4_thursday:
+    name: Thursday
+  slot_4_friday:
+    name: Friday
+  slot_4_saturday:
+    name: Saturday
+  slot_4_sunday:
+    name: Sunday
+  slot_4_cocina_enabled:
+    name: Slot 4 - Cocina
+  slot_4_frente_enabled:
+    name: Slot 4 - Frente
+  slot_4_jardin_japones_enabled:
+    name: Slot 4 - Jardin Japones
+  slot_4_patio_arbustos_enabled:
+    name: Slot 4 - Patio Arbustos
+  slot_4_patio_central_enabled:
+    name: Slot 4 - Patio Central
+  slot_4_patio_derecha_enabled:
+    name: Slot 4 - Patio Derecha
+  slot_4_patio_izquierda_enabled:
+    name: Slot 4 - Patio Izquierda
+
+# ====== Hydrawise UI helpers ======
+input_select:
+  hydrawise_suspend_duration:
+    name: Hydrawise Suspend (Quick)
+    options:
+      - 1d
+      - 3d
+      - 7d
+      - 14d
+      - 30d
+
+input_datetime:
+  hydrawise_suspend_end:
+    name: Hydrawise - End of suspension
+    has_date: true
+    has_time: false
+
+# ====== Numbers ======
+input_number:
+  rain_threshold:
+    name: Rain Threshold
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: mm
+    icon: mdi:water
+
+  # Slot hour selectors (0-23)
+  slot_1_hour:
+    name: Slot 1 Hour
+    min: 0
+    max: 23
+    step: 1
+    mode: box
+    icon: mdi:clock-outline
+  slot_2_hour:
+    name: Slot 2 Hour
+    min: 0
+    max: 23
+    step: 1
+    mode: box
+    icon: mdi:clock-outline
+  slot_3_hour:
+    name: Slot 3 Hour
+    min: 0
+    max: 23
+    step: 1
+    mode: box
+    icon: mdi:clock-outline
+  slot_4_hour:
+    name: Slot 4 Hour
+    min: 0
+    max: 23
+    step: 1
+    mode: box
+    icon: mdi:clock-outline
+
+  # Slot 1 Zone durations
+  slot_1_cocina_duration:
+    name: Slot 1 - Cocina Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_1_frente_duration:
+    name: Slot 1 - Frente Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_1_jardin_japones_duration:
+    name: Slot 1 - Jardin Japones Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_1_patio_arbustos_duration:
+    name: Slot 1 - Patio Arbustos Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_1_patio_central_duration:
+    name: Slot 1 - Patio Central Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_1_patio_derecha_duration:
+    name: Slot 1 - Patio Derecha Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_1_patio_izquierda_duration:
+    name: Slot 1 - Patio Izquierda Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+
+  # Slot 2 Zone durations
+  slot_2_cocina_duration:
+    name: Slot 2 - Cocina Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_2_frente_duration:
+    name: Slot 2 - Frente Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_2_jardin_japones_duration:
+    name: Slot 2 - Jardin Japones Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_2_patio_arbustos_duration:
+    name: Slot 2 - Patio Arbustos Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_2_patio_central_duration:
+    name: Slot 2 - Patio Central Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_2_patio_derecha_duration:
+    name: Slot 2 - Patio Derecha Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_2_patio_izquierda_duration:
+    name: Slot 2 - Patio Izquierda Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+
+  # Slot 3 Zone durations
+  slot_3_cocina_duration:
+    name: Slot 3 - Cocina Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_3_frente_duration:
+    name: Slot 3 - Frente Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_3_jardin_japones_duration:
+    name: Slot 3 - Jardin Japones Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_3_patio_arbustos_duration:
+    name: Slot 3 - Patio Arbustos Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_3_patio_central_duration:
+    name: Slot 3 - Patio Central Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_3_patio_derecha_duration:
+    name: Slot 3 - Patio Derecha Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_3_patio_izquierda_duration:
+    name: Slot 3 - Patio Izquierda Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+
+  # Slot 4 Zone durations
+  slot_4_cocina_duration:
+    name: Slot 4 - Cocina Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_4_frente_duration:
+    name: Slot 4 - Frente Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_4_jardin_japones_duration:
+    name: Slot 4 - Jardin Japones Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_4_patio_arbustos_duration:
+    name: Slot 4 - Patio Arbustos Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_4_patio_central_duration:
+    name: Slot 4 - Patio Central Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_4_patio_derecha_duration:
+    name: Slot 4 - Patio Derecha Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+  slot_4_patio_izquierda_duration:
+    name: Slot 4 - Patio Izquierda Duration
+    min: 1
+    max: 20
+    step: 1
+    unit_of_measurement: min
+
+  # ====== Irrigation History Tracking (7AM-7AM periods) ======
+  # Pre-midnight snapshots (captures value before Hydrawise resets at midnight)
+  riego_frente_pre_midnight:
+    name: Riego Frente Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_cocina_pre_midnight:
+    name: Riego Cocina Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_derecha_pre_midnight:
+    name: Riego Patio Derecha Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_central_pre_midnight:
+    name: Riego Patio Central Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_arbustos_pre_midnight:
+    name: Riego Patio Arbustos Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_izquierda_pre_midnight:
+    name: Riego Patio Izquierda Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_jardin_japones_pre_midnight:
+    name: Riego Jardin Japones Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+
+  # Day 1 (Yesterday 7AM-7AM)
+  riego_frente_day_1:
+    name: Riego Frente Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_cocina_day_1:
+    name: Riego Cocina Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_derecha_day_1:
+    name: Riego Patio Derecha Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_central_day_1:
+    name: Riego Patio Central Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_arbustos_day_1:
+    name: Riego Patio Arbustos Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_izquierda_day_1:
+    name: Riego Patio Izquierda Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_jardin_japones_day_1:
+    name: Riego Jardin Japones Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+
+  # Day 2 (2 days ago 7AM-7AM)
+  riego_frente_day_2:
+    name: Riego Frente Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_cocina_day_2:
+    name: Riego Cocina Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_derecha_day_2:
+    name: Riego Patio Derecha Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_central_day_2:
+    name: Riego Patio Central Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_arbustos_day_2:
+    name: Riego Patio Arbustos Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_izquierda_day_2:
+    name: Riego Patio Izquierda Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_jardin_japones_day_2:
+    name: Riego Jardin Japones Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+
+  # Day 3 (3 days ago 7AM-7AM)
+  riego_frente_day_3:
+    name: Riego Frente Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_cocina_day_3:
+    name: Riego Cocina Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_derecha_day_3:
+    name: Riego Patio Derecha Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_central_day_3:
+    name: Riego Patio Central Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_arbustos_day_3:
+    name: Riego Patio Arbustos Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_patio_izquierda_day_3:
+    name: Riego Patio Izquierda Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_jardin_japones_day_3:
+    name: Riego Jardin Japones Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+
+  # ====== Total Irrigation History (all zones combined) ======
+  riego_total_pre_midnight:
+    name: Riego Total Pre-Midnight
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_1:
+    name: Riego Total Day 1
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_2:
+    name: Riego Total Day 2
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_3:
+    name: Riego Total Day 3
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_4:
+    name: Riego Total Day 4
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_5:
+    name: Riego Total Day 5
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_6:
+    name: Riego Total Day 6
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+  riego_total_day_7:
+    name: Riego Total Day 7
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+
+  # ====== Rain History (7AM-7AM periods) ======
+  lluvia_pre_midnight:
+    name: Lluvia Pre-Midnight
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_1:
+    name: Lluvia Day 1
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_2:
+    name: Lluvia Day 2
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_3:
+    name: Lluvia Day 3
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_4:
+    name: Lluvia Day 4
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_5:
+    name: Lluvia Day 5
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_6:
+    name: Lluvia Day 6
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+  lluvia_day_7:
+    name: Lluvia Day 7
+    min: 0
+    max: 1000
+    step: 0.1
+    mode: box
+
+# ====== REST commands ======
+rest_command:
+  hydrawise_suspendall:
+    url: >-
+      https://app.hydrawise.com/api/v1/setzone.php?action=suspendall&api_key={{ api_key }}&controller_id={{ controller_id }}&period_id=999&custom={{ epoch }}
+    method: GET
+    timeout: 20
+
+# ====== Template Sensors ======
+template:
+  - binary_sensor:
+      - name: "Riego Activo"
+        state: >
+          {{ states.valve 
+             | selectattr('entity_id', 'search', 'riego_')
+             | selectattr('state', 'eq', 'open')
+             | list | count > 0 }}
+        attributes:
+          active_zones: >
+            {% set active = states.valve 
+               | selectattr('entity_id', 'search', 'riego_')
+               | selectattr('state', 'eq', 'open')
+               | map(attribute='name')
+               | list %}
+            {{ active | join(', ') }}
+          count: >
+            {{ states.valve 
+               | selectattr('entity_id', 'search', 'riego_')
+               | selectattr('state', 'eq', 'open')
+               | list | count }}
+
+  # Current period sensors (7AM to now) - combines pre-midnight + today's value
+  - sensor:
+      - name: "Riego Frente Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_frente_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_frente_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      - name: "Riego Cocina Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_cocina_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_cocina_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      - name: "Riego Patio Derecha Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_patio_derecha_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_patio_derecha_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      - name: "Riego Patio Central Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_patio_central_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_patio_central_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      - name: "Riego Patio Arbustos Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_patio_arbustos_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_patio_arbustos_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      - name: "Riego Patio Izquierda Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_patio_izquierda_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_patio_izquierda_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      - name: "Riego Jardin Japones Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_jardin_japones_pre_midnight') | float(0) %}
+          {% set today = states('sensor.riego_jardin_japones_daily_active_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      # Total irrigation (all zones) for current 7AM-7AM period
+      - name: "Riego Total Period"
+        unit_of_measurement: "L"
+        state: >
+          {% set pre = states('input_number.riego_total_pre_midnight') | float(0) %}
+          {% set today = states('sensor.hydrawise_controller_daily_total_water_use') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:water
+
+      # Rain for current 7AM-7AM period
+      - name: "Lluvia Period"
+        unit_of_measurement: "mm"
+        state: >
+          {% set pre = states('input_number.lluvia_pre_midnight') | float(0) %}
+          {% set today = states('sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo') | float(0) %}
+          {{ (pre + today) | round(1) }}
+        icon: mdi:weather-rainy
+
+# ====== Scripts ======
+script:
+  # ---- Hydrawise Controls ----
+  hydrawise_controller_suspend_quick:
+    alias: Hydrawise - Suspend (quick)
+    mode: single
+    sequence:
+      - variables:
+          sel: "{{ states('input_select.hydrawise_suspend_duration') }}"
+          days: "{{ {'1d':1,'3d':3,'7d':7,'14d':14,'30d':30}.get(sel, 1) }}"
+          epoch: "{{ ((now() | as_timestamp) + (days | int * 86400)) | int }}"
+          api_key: "{{ states('input_text.hydrawise_api_key') | trim }}"
+          controller_id: "{{ states('input_text.hydrawise_controller_id') | trim }}"
+      - condition: template
+        value_template: "{{ api_key != '' and controller_id != '' }}"
+      - action: rest_command.hydrawise_suspendall
+        data:
+          api_key: "{{ api_key }}"
+          controller_id: "{{ controller_id }}"
+          epoch: "{{ epoch }}"
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.hydrawise_suspended
+
+  hydrawise_controller_suspend_until:
+    alias: Hydrawise - Suspend until date
+    mode: single
+    sequence:
+      - variables:
+          until_date: "{{ states('input_datetime.hydrawise_suspend_end') }}"
+          epoch: "{{ as_timestamp(until_date + ' 23:59:59') | int if until_date not in ['unknown', 'unavailable', ''] else 0 }}"
+          api_key: "{{ states('input_text.hydrawise_api_key') | trim }}"
+          controller_id: "{{ states('input_text.hydrawise_controller_id') | trim }}"
+      - condition: template
+        value_template: "{{ api_key != '' and controller_id != '' and epoch > 0 }}"
+      - action: rest_command.hydrawise_suspendall
+        data:
+          api_key: "{{ api_key }}"
+          controller_id: "{{ controller_id }}"
+          epoch: "{{ epoch }}"
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.hydrawise_suspended
+      - action: browser_mod.close_popup
+
+  hydrawise_controller_resume_now:
+    alias: Hydrawise - Resume NOW
+    mode: single
+    sequence:
+      - variables:
+          epoch: "{{ (now() | as_timestamp) | int }}"
+          api_key: "{{ states('input_text.hydrawise_api_key') | trim }}"
+          controller_id: "{{ states('input_text.hydrawise_controller_id') | trim }}"
+      - condition: template
+        value_template: "{{ api_key != '' and controller_id != '' }}"
+      - action: rest_command.hydrawise_suspendall
+        data:
+          api_key: "{{ api_key }}"
+          controller_id: "{{ controller_id }}"
+          epoch: "{{ epoch }}"
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.hydrawise_suspended
+
+  # ---- Irrigation Slot Scripts ----
+  run_irrigation_slot_1:
+    alias: Run Irrigation Slot 1
+    mode: single
+    sequence:
+      # Mark slot as running
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.irrigation_slot_1_running
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_cocina_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_cocina_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_frente_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_frente_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_frente_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_frente_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_jardin_japones_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_jardin_japones_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_patio_arbustos_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_patio_arbustos_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_patio_central_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_patio_central_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_patio_derecha_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_patio_derecha_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_1_patio_izquierda_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_1_patio_izquierda_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+      # Mark slot as complete
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_1_running
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🟢 🌱 *Irrigation Complete*
+            *Schedule:* A (Slot 1)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  run_irrigation_slot_2:
+    alias: Run Irrigation Slot 2
+    mode: single
+    sequence:
+      # Mark slot as running
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.irrigation_slot_2_running
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_cocina_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_cocina_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_frente_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_frente_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_frente_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_frente_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_jardin_japones_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_jardin_japones_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_patio_arbustos_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_patio_arbustos_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_patio_central_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_patio_central_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_patio_derecha_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_patio_derecha_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_2_patio_izquierda_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_2_patio_izquierda_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+      # Mark slot as complete
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_2_running
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🟢 🌱 *Irrigation Complete*
+            *Schedule:* B (Slot 2)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  run_irrigation_slot_3:
+    alias: Run Irrigation Slot 3
+    mode: single
+    sequence:
+      # Mark slot as running
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.irrigation_slot_3_running
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_cocina_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_cocina_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_frente_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_frente_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_frente_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_frente_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_jardin_japones_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_jardin_japones_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_patio_arbustos_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_patio_arbustos_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_patio_central_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_patio_central_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_patio_derecha_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_patio_derecha_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_3_patio_izquierda_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_3_patio_izquierda_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+      # Mark slot as complete
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_3_running
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🟢 🌱 *Irrigation Complete*
+            *Schedule:* C (Slot 3)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  run_irrigation_slot_4:
+    alias: Run Irrigation Slot 4
+    mode: single
+    sequence:
+      # Mark slot as running
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.irrigation_slot_4_running
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_cocina_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_cocina_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_cocina_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_frente_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_frente_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_frente_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_frente_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_jardin_japones_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_jardin_japones_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_jardin_japones_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_patio_arbustos_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_patio_arbustos_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_arbustos_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_patio_central_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_patio_central_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_central_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_patio_derecha_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_patio_derecha_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_derecha_manual_watering
+      - if:
+          - condition: state
+            entity_id: input_boolean.slot_4_patio_izquierda_enabled
+            state: 'on'
+        then:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+          - delay:
+              minutes: "{{ states('input_number.slot_4_patio_izquierda_duration') | int }}"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.riego_patio_izquierda_manual_watering
+      # Mark slot as complete
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_4_running
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🟢 🌱 *Irrigation Complete*
+            *Schedule:* D (Slot 4)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ---- Test Script ----
+  test_irrigation_error_notification:
+    alias: Test Irrigation Error Notification
+    mode: single
+    sequence:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🌱 *Irrigation Error - TEST*
+            *Schedule:* Test
+            *Issue:* This is a test notification
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+# ====== Automations ======
+automation:
+  # ---- Slot Triggers ----
+  - id: 'irrigation_trigger_slot_1'
+    alias: 'Irrigation - Trigger Slot 1'
+    trigger:
+      - platform: time_pattern
+        hours: "*"
+        minutes: 0
+        seconds: 0
+    condition:
+      - condition: template
+        value_template: "{{ now().hour == states('input_number.slot_1_hour') | int }}"
+      - condition: state
+        entity_id: input_boolean.irrigation_master_enable
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.slot_1_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ is_state('input_boolean.slot_1_' ~ now().strftime('%A').lower(), 'on') }}
+      - condition: numeric_state
+        entity_id: sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo
+        below: input_number.rain_threshold
+    action:
+      - action: script.run_irrigation_slot_1
+
+  - id: 'irrigation_trigger_slot_2'
+    alias: 'Irrigation - Trigger Slot 2'
+    trigger:
+      - platform: time_pattern
+        hours: "*"
+        minutes: 0
+        seconds: 0
+    condition:
+      - condition: template
+        value_template: "{{ now().hour == states('input_number.slot_2_hour') | int }}"
+      - condition: state
+        entity_id: input_boolean.irrigation_master_enable
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.slot_2_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ is_state('input_boolean.slot_2_' ~ now().strftime('%A').lower(), 'on') }}
+      - condition: numeric_state
+        entity_id: sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo
+        below: input_number.rain_threshold
+    action:
+      - action: script.run_irrigation_slot_2
+
+  - id: 'irrigation_trigger_slot_3'
+    alias: 'Irrigation - Trigger Slot 3'
+    trigger:
+      - platform: time_pattern
+        hours: "*"
+        minutes: 0
+        seconds: 0
+    condition:
+      - condition: template
+        value_template: "{{ now().hour == states('input_number.slot_3_hour') | int }}"
+      - condition: state
+        entity_id: input_boolean.irrigation_master_enable
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.slot_3_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ is_state('input_boolean.slot_3_' ~ now().strftime('%A').lower(), 'on') }}
+      - condition: numeric_state
+        entity_id: sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo
+        below: input_number.rain_threshold
+    action:
+      - action: script.run_irrigation_slot_3
+
+  - id: 'irrigation_trigger_slot_4'
+    alias: 'Irrigation - Trigger Slot 4'
+    trigger:
+      - platform: time_pattern
+        hours: "*"
+        minutes: 0
+        seconds: 0
+    condition:
+      - condition: template
+        value_template: "{{ now().hour == states('input_number.slot_4_hour') | int }}"
+      - condition: state
+        entity_id: input_boolean.irrigation_master_enable
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.slot_4_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ is_state('input_boolean.slot_4_' ~ now().strftime('%A').lower(), 'on') }}
+      - condition: numeric_state
+        entity_id: sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo
+        below: input_number.rain_threshold
+    action:
+      - action: script.run_irrigation_slot_4
+
+  # ---- Error Detection ----
+  - id: 'irrigation_error_slot_1'
+    alias: 'Irrigation - Error Detection Slot 1'
+    description: 'Notify if irrigation slot 1 is still running after 2.5 hours'
+    trigger:
+      - platform: state
+        entity_id: input_boolean.irrigation_slot_1_running
+        to: 'on'
+        for:
+          hours: 2
+          minutes: 30
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_irrigation_error_enabled
+        state: 'on'
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🌱 *Irrigation Error*
+            *Schedule:* A (Slot 1)
+            *Issue:* Script still running after 2.5 hours (possible failure)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_1_running
+
+  - id: 'irrigation_error_slot_2'
+    alias: 'Irrigation - Error Detection Slot 2'
+    description: 'Notify if irrigation slot 2 is still running after 2.5 hours'
+    trigger:
+      - platform: state
+        entity_id: input_boolean.irrigation_slot_2_running
+        to: 'on'
+        for:
+          hours: 2
+          minutes: 30
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_irrigation_error_enabled
+        state: 'on'
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🌱 *Irrigation Error*
+            *Schedule:* B (Slot 2)
+            *Issue:* Script still running after 2.5 hours (possible failure)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_2_running
+
+  - id: 'irrigation_error_slot_3'
+    alias: 'Irrigation - Error Detection Slot 3'
+    description: 'Notify if irrigation slot 3 is still running after 2.5 hours'
+    trigger:
+      - platform: state
+        entity_id: input_boolean.irrigation_slot_3_running
+        to: 'on'
+        for:
+          hours: 2
+          minutes: 30
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_irrigation_error_enabled
+        state: 'on'
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🌱 *Irrigation Error*
+            *Schedule:* C (Slot 3)
+            *Issue:* Script still running after 2.5 hours (possible failure)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_3_running
+
+  - id: 'irrigation_error_slot_4'
+    alias: 'Irrigation - Error Detection Slot 4'
+    description: 'Notify if irrigation slot 4 is still running after 2.5 hours'
+    trigger:
+      - platform: state
+        entity_id: input_boolean.irrigation_slot_4_running
+        to: 'on'
+        for:
+          hours: 2
+          minutes: 30
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_irrigation_error_enabled
+        state: 'on'
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 🌱 *Irrigation Error*
+            *Schedule:* D (Slot 4)
+            *Issue:* Script still running after 2.5 hours (possible failure)
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.irrigation_slot_4_running
+
+  # ---- History Tracking: Pre-midnight snapshot ----
+  # Captures the daily value just before Hydrawise resets at midnight
+  - id: 'irrigation_history_pre_midnight'
+    alias: 'Irrigation - Pre-Midnight Snapshot'
+    trigger:
+      - platform: time
+        at: "23:59:00"
+    action:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_frente_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_frente_daily_active_water_use') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_cocina_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_cocina_daily_active_water_use') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_derecha_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_patio_derecha_daily_active_water_use') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_central_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_patio_central_daily_active_water_use') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_arbustos_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_patio_arbustos_daily_active_water_use') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_izquierda_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_patio_izquierda_daily_active_water_use') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_jardin_japones_pre_midnight
+        data:
+          value: "{{ states('sensor.riego_jardin_japones_daily_active_water_use') | float(0) }}"
+      # Total irrigation
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_pre_midnight
+        data:
+          value: "{{ states('sensor.hydrawise_controller_daily_total_water_use') | float(0) }}"
+      # Rain
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_pre_midnight
+        data:
+          value: "{{ states('sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo') | float(0) }}"
+
+  # ---- History Tracking: 7 AM Rotation ----
+  # At 7 AM: rotate history, calculate completed period, reset pre_midnight
+  - id: 'irrigation_history_rotate_7am'
+    alias: 'Irrigation - Rotate History at 7 AM'
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    action:
+      # === Frente ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_frente_day_3
+        data:
+          value: "{{ states('input_number.riego_frente_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_frente_day_2
+        data:
+          value: "{{ states('input_number.riego_frente_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_frente_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_frente_pre_midnight') | float(0)) + 
+               (states('sensor.riego_frente_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_frente_pre_midnight
+        data:
+          value: 0
+      # === Cocina ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_cocina_day_3
+        data:
+          value: "{{ states('input_number.riego_cocina_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_cocina_day_2
+        data:
+          value: "{{ states('input_number.riego_cocina_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_cocina_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_cocina_pre_midnight') | float(0)) + 
+               (states('sensor.riego_cocina_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_cocina_pre_midnight
+        data:
+          value: 0
+      # === Patio Derecha ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_derecha_day_3
+        data:
+          value: "{{ states('input_number.riego_patio_derecha_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_derecha_day_2
+        data:
+          value: "{{ states('input_number.riego_patio_derecha_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_derecha_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_patio_derecha_pre_midnight') | float(0)) + 
+               (states('sensor.riego_patio_derecha_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_derecha_pre_midnight
+        data:
+          value: 0
+      # === Patio Central ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_central_day_3
+        data:
+          value: "{{ states('input_number.riego_patio_central_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_central_day_2
+        data:
+          value: "{{ states('input_number.riego_patio_central_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_central_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_patio_central_pre_midnight') | float(0)) + 
+               (states('sensor.riego_patio_central_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_central_pre_midnight
+        data:
+          value: 0
+      # === Patio Arbustos ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_arbustos_day_3
+        data:
+          value: "{{ states('input_number.riego_patio_arbustos_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_arbustos_day_2
+        data:
+          value: "{{ states('input_number.riego_patio_arbustos_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_arbustos_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_patio_arbustos_pre_midnight') | float(0)) + 
+               (states('sensor.riego_patio_arbustos_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_arbustos_pre_midnight
+        data:
+          value: 0
+      # === Patio Izquierda ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_izquierda_day_3
+        data:
+          value: "{{ states('input_number.riego_patio_izquierda_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_izquierda_day_2
+        data:
+          value: "{{ states('input_number.riego_patio_izquierda_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_izquierda_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_patio_izquierda_pre_midnight') | float(0)) + 
+               (states('sensor.riego_patio_izquierda_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_patio_izquierda_pre_midnight
+        data:
+          value: 0
+      # === Jardin Japones ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_jardin_japones_day_3
+        data:
+          value: "{{ states('input_number.riego_jardin_japones_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_jardin_japones_day_2
+        data:
+          value: "{{ states('input_number.riego_jardin_japones_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_jardin_japones_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_jardin_japones_pre_midnight') | float(0)) + 
+               (states('sensor.riego_jardin_japones_daily_active_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_jardin_japones_pre_midnight
+        data:
+          value: 0
+      # === Total Irrigation (7 days) ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_7
+        data:
+          value: "{{ states('input_number.riego_total_day_6') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_6
+        data:
+          value: "{{ states('input_number.riego_total_day_5') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_5
+        data:
+          value: "{{ states('input_number.riego_total_day_4') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_4
+        data:
+          value: "{{ states('input_number.riego_total_day_3') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_3
+        data:
+          value: "{{ states('input_number.riego_total_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_2
+        data:
+          value: "{{ states('input_number.riego_total_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_day_1
+        data:
+          value: >
+            {{ (states('input_number.riego_total_pre_midnight') | float(0)) + 
+               (states('sensor.hydrawise_controller_daily_total_water_use') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.riego_total_pre_midnight
+        data:
+          value: 0
+      # === Rain (7 days) ===
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_7
+        data:
+          value: "{{ states('input_number.lluvia_day_6') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_6
+        data:
+          value: "{{ states('input_number.lluvia_day_5') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_5
+        data:
+          value: "{{ states('input_number.lluvia_day_4') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_4
+        data:
+          value: "{{ states('input_number.lluvia_day_3') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_3
+        data:
+          value: "{{ states('input_number.lluvia_day_2') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_2
+        data:
+          value: "{{ states('input_number.lluvia_day_1') | float(0) }}"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_day_1
+        data:
+          value: >
+            {{ (states('input_number.lluvia_pre_midnight') | float(0)) + 
+               (states('sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo') | float(0)) }}
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.lluvia_pre_midnight
+        data:
+          value: 0

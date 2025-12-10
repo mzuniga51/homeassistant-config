@@ -1,0 +1,6 @@
+# /config/packages/dashboard_control/badges_display_selector.yaml
+
+input_boolean:
+  dashboard_edit_mode:
+    name: Dashboard edit mode
+    icon: mdi:pencil

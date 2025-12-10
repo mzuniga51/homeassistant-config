@@ -1,0 +1,182 @@
+# /config/packages/systems_down/ecowitt.yaml
+# Ecowitt weather station monitoring with debounce, repeat, and priority
+
+input_boolean:
+  alert_ecowitt_enabled:
+    name: Ecowitt Alert
+    icon: mdi:weather-station
+
+  # Alert tracking - only send recovery if DOWN was sent
+  ecowitt_alerted:
+    name: Ecowitt Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  ecowitt_debounce_minutes:
+    name: Ecowitt Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 5
+
+  ecowitt_repeat_hours:
+    name: Ecowitt Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 6
+
+input_datetime:
+  ecowitt_last_alert:
+    name: Ecowitt Last Alert
+    has_date: true
+    has_time: true
+
+script:
+  test_ecowitt_notification:
+    alias: Test Ecowitt Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🌦️ *Ecowitt Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+automation:
+  # ============ ECOWITT - FAILURE ============
+  - id: 'ecowitt_alert_failure'
+    alias: 'Ecowitt Alert - Failure'
+    trigger:
+      - platform: state
+        entity_id: sensor.ecowitt_status
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ecowitt_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ trigger.from_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          debounce_mins: "{{ states('input_number.ecowitt_debounce_minutes') | int(5) }}"
+      
+      # Wait for debounce period (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+          # Check if STILL down after debounce
+          - condition: template
+            value_template: "{{ states('sensor.ecowitt_status') | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_ecowitt_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🌦️ *Ecowitt Weather Station Down*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Mark as alerted and record time
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.ecowitt_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ecowitt_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ ECOWITT - RECOVERY ============
+  - id: 'ecowitt_alert_recovery'
+    alias: 'Ecowitt Alert - Recovery'
+    trigger:
+      - platform: state
+        entity_id: sensor.ecowitt_status
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ecowitt_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ trigger.from_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.ecowitt_alerted
+        state: 'on'
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🌦️ *Ecowitt Weather Station Recovered*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Clear alerted state
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.ecowitt_alerted
+
+  # ============ ECOWITT - REPEAT REMINDER ============
+  - id: 'ecowitt_alert_repeat'
+    alias: 'Ecowitt Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ecowitt_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.ecowitt_alerted
+        state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.ecowitt_repeat_hours') | int(0) > 0 }}"
+      # Must still be down
+      - condition: template
+        value_template: "{{ states('sensor.ecowitt_status') | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_ecowitt_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.ecowitt_last_alert') %}
+          {% set repeat_hrs = states('input_number.ecowitt_repeat_hours') | int(6) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🌦️ *Ecowitt Weather Station Still Down*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ecowitt_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

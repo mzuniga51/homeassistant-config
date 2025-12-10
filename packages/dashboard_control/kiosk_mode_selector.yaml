@@ -1,0 +1,11 @@
+# /config/packages/dashboard_control/kiosk_mode_selector.yaml
+input_boolean:
+  kiosk_mode_override:
+    name: Disable Kiosk Mode
+    icon: mdi:monitor-eye
+    initial: true
+
+homeassistant:
+  customize:
+    input_boolean.kiosk_mode_override:
+      friendly_name: "Temporarily Disable Kiosk Mode"

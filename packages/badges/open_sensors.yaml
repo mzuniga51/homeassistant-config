@@ -1,0 +1,31 @@
+# /config/packages/badges/open_sensors.yaml
+# sensor.contact_labeled_on_count
+# EXACT logic as your working template (selectattr on expanded states).
+# Only entities labeled "contact" AND state == "on".
+# State = count; attributes.markdown = friendly-name list (no entity_ids).
+
+template:
+  - trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        seconds: "/10"     # recompute every 10s; change to "/30" or minutes if you prefer
+    sensor:
+      - name: Contact Labeled On Count
+        unique_id: contact_labeled_on_count
+        icon: mdi:door-open
+        state: >-
+          {% set on_items = label_entities('contact') | expand
+                            | selectattr('state','equalto','on') | list %}
+          {{ on_items | count }}
+        attributes:
+          markdown: >-
+            {% set on_items = label_entities('contact') | expand
+                              | selectattr('state','equalto','on') | list %}
+            {% if on_items | length == 0 %}
+            ✅ No labeled contacts are ON
+            {% else -%}
+            {%- for s in on_items | sort(attribute='name') -%}
+            - {{ s.name or s.entity_id }}{% if not loop.last %}\n{% endif %}
+            {%- endfor -%}
+            {% endif %}

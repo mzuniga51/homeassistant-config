@@ -1,0 +1,1121 @@
+# ================================
+#  TV PISCINA  (LG webOS) + CABLE PISCINA (Android box)
+#  Includes: focus helper, dialpad helper, all TV/Cable scripts,
+#            power toggle (TV+Cable+Screen), and wrappers for TV screen up/down/stop.
+#  NOTE: Assumes these scenes exist: scene.tv_down, scene.tv_up, scene.tv_stop.
+# ================================
+
+input_boolean:
+  tele_piscina_dialpad_open:
+    name: Tele Piscina – Dialpad Open
+    icon: mdi:dialpad
+
+input_select:
+  tele_piscina_focus:
+    name: Tele Piscina Focus
+    options:
+      - cable
+      - tv
+    initial: cable
+
+script:
+  # ---------- POWER ----------
+  tele_piscina_power_on_wol:
+    alias: "Tele Piscina - Power On (WOL + TV ON)"
+    mode: single
+    sequence:
+      - service: wake_on_lan.send_magic_packet
+        data:
+          mac: "C4:E5:32:32:B0:5C"
+          broadcast_address: "255.255.255.255"
+          broadcast_port: 9
+      - delay: "00:00:04"
+      - service: media_player.turn_on
+        target:
+          entity_id: media_player.tele_piscina
+
+  tele_piscina_power_off:
+    alias: "Tele Piscina - Power Off"
+    mode: single
+    sequence:
+      - service: media_player.turn_off
+        target:
+          entity_id: media_player.tele_piscina
+
+  # Global power toggle for the area (TV + Cable + Screen)
+  remote_piscina_power_toggle:
+    alias: "Piscina – Power Toggle (TV+Cable+Screen)"
+    mode: single
+    sequence:
+      - choose:
+          # If BOTH currently ON -> perform OFF sequence
+          - conditions:
+              - condition: state
+                entity_id: media_player.tele_piscina
+                state: "on"
+              - condition: state
+                entity_id: media_player.cable_piscina_2
+                state: "on"
+            sequence:
+              - service: media_player.turn_off
+                target:
+                  entity_id: media_player.tele_piscina
+              - service: media_player.turn_off
+                target:
+                  entity_id: media_player.cable_piscina_2
+              - service: scene.turn_on
+                target:
+                  entity_id: scene.tv_stop
+              - delay: "00:00:01"
+              - service: scene.turn_on
+                target:
+                  entity_id: scene.tv_up
+        default:
+          # ON sequence: TV on (WOL), Cable on, Screen down, wait, HDMI1, focus=cable
+          - service: script.tele_piscina_power_on_wol
+          - service: media_player.turn_on
+            target:
+              entity_id: media_player.cable_piscina_2
+          - service: scene.turn_on
+            target:
+              entity_id: scene.tv_down
+          - delay: "00:00:03"   # tele_piscina_power_on_wol already waited 4s
+          - service: script.tele_piscina_hdmi1
+          - service: input_select.select_option
+            target:
+              entity_id: input_select.tele_piscina_focus
+            data:
+              option: "cable"
+
+  # ---------- TV SCREEN WRAPPERS ----------
+  tv_screen_down:
+    alias: "TV Screen – Down"
+    mode: single
+    sequence:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.tv_down
+
+  tv_screen_up:
+    alias: "TV Screen – Up"
+    mode: single
+    sequence:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.tv_up
+
+  tv_screen_stop:
+    alias: "TV Screen – Stop"
+    mode: single
+    sequence:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.tv_stop
+
+  # ---------- TV (LG webOS): Volume / Mute ----------
+  tele_piscina_volume_up:
+    alias: "Tele Piscina - Volume Up"
+    mode: single
+    sequence:
+      - service: media_player.volume_up
+        target:
+          entity_id: media_player.tele_piscina
+
+  tele_piscina_volume_down:
+    alias: "Tele Piscina - Volume Down"
+    mode: single
+    sequence:
+      - service: media_player.volume_down
+        target:
+          entity_id: media_player.tele_piscina
+
+  tele_piscina_mute_toggle:
+    alias: "Tele Piscina - Mute Toggle"
+    mode: single
+    sequence:
+      - service: media_player.volume_mute
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          is_volume_muted: >
+            {{ not (state_attr('media_player.tele_piscina','is_volume_muted') or false) }}
+
+  # ---------- TV (LG webOS): Inputs & Apps ----------
+  tele_piscina_hdmi1:
+    alias: "Tele Piscina - HDMI 1"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "HDMI 1"
+
+  tele_piscina_hdmi2:
+    alias: "Tele Piscina - HDMI 2"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "HDMI 2"
+
+  tele_piscina_netflix:
+    alias: "Tele Piscina - Netflix"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "Netflix"
+
+  tele_piscina_hbo_max:
+    alias: "Tele Piscina - HBO Max"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "HBO Max"
+
+  tele_piscina_apple_tv:
+    alias: "Tele Piscina - Apple TV"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "Apple TV"
+
+  tele_piscina_disney_plus:
+    alias: "Tele Piscina - Disney+"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "Disney+"
+
+  tele_piscina_prime_video:
+    alias: "Tele Piscina - Prime Video"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "Prime Video"
+
+  tele_piscina_youtube:
+    alias: "Tele Piscina - YouTube"
+    mode: single
+    sequence:
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          source: "YouTube"
+
+  # ---------- TV (LG webOS): Navigation ----------
+  tele_piscina_nav_up:
+    alias: "Tele Piscina - Up"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "UP"
+
+  tele_piscina_nav_down:
+    alias: "Tele Piscina - Down"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "DOWN"
+
+  tele_piscina_nav_left:
+    alias: "Tele Piscina - Left"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "LEFT"
+
+  tele_piscina_nav_right:
+    alias: "Tele Piscina - Right"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "RIGHT"
+
+  tele_piscina_nav_enter:
+    alias: "Tele Piscina - Enter"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "ENTER"
+
+  tele_piscina_key_back:
+    alias: "Tele Piscina - Back"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "BACK"
+
+  tele_piscina_key_home:
+    alias: "Tele Piscina - Home"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "HOME"
+
+  tele_piscina_key_menu:
+    alias: "Tele Piscina - Menu (Settings)"
+    mode: single
+    sequence:
+      - service: webostv.button
+        target:
+          entity_id: media_player.tele_piscina
+        data:
+          button: "MENU"
+
+  tele_piscina_send_text:
+    alias: "Tele Piscina – Keyboard Send + Enter"
+    mode: queued
+    fields:
+      text:
+        name: "Text"
+        description: "Type this on the TV (focus a text box first)"
+    sequence:
+      - choose:
+          - conditions: "{{ text is string and text|length > 0 }}"
+            sequence:
+              - service: webostv.command
+                target:
+                  entity_id: media_player.tele_piscina
+                data:
+                  command: "com.webos.service.ime/insertText"
+                  payload:
+                    text: "{{ text }}"
+              - delay:
+                  milliseconds: 150
+              - service: webostv.button
+                target:
+                  entity_id: media_player.tele_piscina
+                data:
+                  button: "ENTER"
+
+  # ---------- CABLE (Android): DPAD / Transport / Digits ----------
+  cable_piscina_up:
+    alias: "Cable Piscina - Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_UP"
+
+  cable_piscina_down:
+    alias: "Cable Piscina - Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_DOWN"
+
+  cable_piscina_left:
+    alias: "Cable Piscina - Left"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_LEFT"
+
+  cable_piscina_right:
+    alias: "Cable Piscina - Right"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_RIGHT"
+
+  cable_piscina_ok:
+    alias: "Cable Piscina - OK"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_CENTER"
+
+  cable_piscina_home:
+    alias: "Cable Piscina - Home"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "HOME"
+
+  cable_piscina_back:
+    alias: "Cable Piscina - Back"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "BACK"
+
+  cable_piscina_menu:
+    alias: "Cable Piscina - Menu"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MENU"
+
+  cable_piscina_info:
+    alias: "Cable Piscina - Info"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "INFO"
+
+  cable_piscina_channel_up:
+    alias: "Cable Piscina - Channel Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "CHANNEL_UP"
+
+  cable_piscina_channel_down:
+    alias: "Cable Piscina - Channel Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "CHANNEL_DOWN"
+
+  cable_piscina_digit_0:
+    alias: "Cable Piscina - Digit 0"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "0"
+
+  cable_piscina_digit_1:
+    alias: "Cable Piscina - Digit 1"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "1"
+
+  cable_piscina_digit_2:
+    alias: "Cable Piscina - Digit 2"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "2"
+
+  cable_piscina_digit_3:
+    alias: "Cable Piscina - Digit 3"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "3"
+
+  cable_piscina_digit_4:
+    alias: "Cable Piscina - Digit 4"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "4"
+
+  cable_piscina_digit_5:
+    alias: "Cable Piscina - Digit 5"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "5"
+
+  cable_piscina_digit_6:
+    alias: "Cable Piscina - Digit 6"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "6"
+
+  cable_piscina_digit_7:
+    alias: "Cable Piscina - Digit 7"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "7"
+
+  cable_piscina_digit_8:
+    alias: "Cable Piscina - Digit 8"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "8"
+
+  cable_piscina_digit_9:
+    alias: "Cable Piscina - Digit 9"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "9"
+
+  cable_piscina_enter:
+    alias: "Cable Piscina - Enter"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_CENTER"
+
+  cable_piscina_backspace:
+    alias: "Cable Piscina - Backspace"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DEL"
+
+  cable_piscina_volume_up:
+    alias: "Cable Piscina - Volume Up"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "VOLUME_UP"
+
+  cable_piscina_volume_down:
+    alias: "Cable Piscina - Volume Down"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "VOLUME_DOWN"
+
+  cable_piscina_mute:
+    alias: "Cable Piscina - Mute"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MUTE"
+
+  cable_piscina_power:
+    alias: "Cable Piscina - Power"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "POWER"
+
+  cable_piscina_play_pause:
+    alias: "Cable Piscina - Play/Pause"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MEDIA_PLAY_PAUSE"
+
+  cable_piscina_stop:
+    alias: "Cable Piscina - Stop"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MEDIA_STOP"
+
+  cable_piscina_next:
+    alias: "Cable Piscina - Next"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MEDIA_NEXT"
+
+  cable_piscina_previous:
+    alias: "Cable Piscina - Previous"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MEDIA_PREVIOUS"
+
+  cable_piscina_fast_forward:
+    alias: "Cable Piscina - Fast Forward"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MEDIA_FAST_FORWARD"
+
+  cable_piscina_rewind:
+    alias: "Cable Piscina - Rewind"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MEDIA_REWIND"
+
+  # ---------- Guide (workaround) ----------
+  cable_piscina_guide:
+    alias: "Cable Piscina - Guide (workaround)"
+    mode: single
+    sequence:
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "MENU"
+      - delay: "00:00:01"
+      - repeat:
+          count: 3
+          sequence:
+            - service: remote.send_command
+              target:
+                entity_id: remote.cable_piscina
+              data:
+                command: "DPAD_RIGHT"
+            - delay:
+                milliseconds: 300
+      - service: remote.send_command
+        target:
+          entity_id: remote.cable_piscina
+        data:
+          command: "DPAD_CENTER"
+
+  # ---------- Routers: DPAD / HOME/BACK/MENU / Transport ----------
+  remote_piscina_route_up:
+    alias: "Piscina – Route UP"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_up
+        default:
+          - service: script.tele_piscina_nav_up
+
+  remote_piscina_route_down:
+    alias: "Piscina – Route DOWN"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_down
+        default:
+          - service: script.tele_piscina_nav_down
+
+  remote_piscina_route_left:
+    alias: "Piscina – Route LEFT"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_left
+        default:
+          - service: script.tele_piscina_nav_left
+
+  remote_piscina_route_right:
+    alias: "Piscina – Route RIGHT"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_right
+        default:
+          - service: script.tele_piscina_nav_right
+
+  remote_piscina_route_enter:
+    alias: "Piscina – Route ENTER/OK"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_ok
+        default:
+          - service: script.tele_piscina_nav_enter
+
+  remote_piscina_home_dynamic:
+    alias: "Piscina – HOME (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_home
+        default:
+          - service: script.tele_piscina_key_home
+
+  remote_piscina_back_dynamic:
+    alias: "Piscina – BACK (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_back
+        default:
+          - service: script.tele_piscina_key_back
+
+  remote_piscina_exit_dynamic:
+    alias: "Piscina – EXIT (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_back
+        default:
+          - service: webostv.button
+            target:
+              entity_id: media_player.tele_piscina
+            data:
+              button: "BACK"
+
+  remote_piscina_menu_dynamic:
+    alias: "Piscina – MENU/Settings (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_menu
+        default:
+          - service: script.tele_piscina_key_menu
+
+  remote_piscina_transport_previous:
+    alias: "Piscina – Previous (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_previous
+        default:
+          - service: media_player.media_previous_track
+            target:
+              entity_id: media_player.tele_piscina
+
+  remote_piscina_transport_rewind:
+    alias: "Piscina – Rewind (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_rewind
+        default:
+          - service: webostv.button
+            target:
+              entity_id: media_player.tele_piscina
+            data:
+              button: "REWIND"
+
+  remote_piscina_transport_play_pause:
+    alias: "Piscina – Play/Pause (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_play_pause
+        default:
+          - service: media_player.media_play_pause
+            target:
+              entity_id: media_player.tele_piscina
+
+  remote_piscina_transport_fast_forward:
+    alias: "Piscina – Fast Forward (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_fast_forward
+        default:
+          - service: webostv.button
+            target:
+              entity_id: media_player.tele_piscina
+            data:
+              button: "FASTFORWARD"
+
+  remote_piscina_transport_next:
+    alias: "Piscina – Next (dynamic)"
+    mode: queued
+    sequence:
+      - choose:
+          - conditions: "{{ is_state('input_select.tele_piscina_focus','cable') }}"
+            sequence:
+              - service: script.cable_piscina_next
+        default:
+          - service: media_player.media_next_track
+            target:
+              entity_id: media_player.tele_piscina
+
+  # ---------- TV button (HDMI1) sets focus=cable ----------
+  remote_piscina_tv_button:
+    alias: "Piscina – TV (HDMI1 + focus=cable)"
+    mode: single
+    sequence:
+      - service: script.tele_piscina_hdmi1
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "cable"
+
+  # ---------- Streaming wrappers (set focus=tv, then launch) ----------
+  remote_piscina_open_netflix:
+    alias: "Piscina – Open Netflix (focus=tv)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "tv"
+      - service: script.tele_piscina_netflix
+
+  remote_piscina_open_hbo_max:
+    alias: "Piscina – Open Max (focus=tv)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "tv"
+      - service: script.tele_piscina_hbo_max
+
+  remote_piscina_open_apple_tv:
+    alias: "Piscina – Open Apple TV (focus=tv)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "tv"
+      - service: script.tele_piscina_apple_tv
+
+  remote_piscina_open_disney_plus:
+    alias: "Piscina – Open Disney+ (focus=tv)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "tv"
+      - service: script.tele_piscina_disney_plus
+
+  remote_piscina_open_youtube:
+    alias: "Piscina – Open YouTube (focus=tv)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "tv"
+      - service: script.tele_piscina_youtube
+
+  remote_piscina_open_prime_video:
+    alias: "Piscina – Open Prime Video (focus=tv)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "tv"
+      - service: script.tele_piscina_prime_video
+
+  # ---------- Dialpad popup ----------
+  remote_piscina_open_numpad:
+    alias: "Piscina – Open Dialpad (Popup)"
+    mode: single
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.tele_piscina_focus
+        data:
+          option: "cable"
+      - service: browser_mod.popup
+        data:
+          title: "Dialpad"
+          timeout: 0
+          browser_id: this
+          content:
+            type: custom:universal-remote-card
+            platform: "Generic Remote"
+            haptics: true
+            styles: |
+              :host { max-width: 360px; margin: 0 auto; }
+            rows:
+              - [pad_cable_small]
+              - [digit_1, digit_2, digit_3]
+              - [digit_4, digit_5, digit_6]
+              - [digit_7, digit_8, digit_9]
+              - [null, digit_0, backspace_key]
+            custom_actions:
+              - type: circlepad
+                name: pad_cable_small
+                center:
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.turn_on
+                    target:
+                      entity_id: script.remote_piscina_digit_enter
+                up:
+                  icon: mdi:chevron-up
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.turn_on
+                    target:
+                      entity_id: script.remote_piscina_route_up
+                  hold_action:
+                    action: repeat
+                right:
+                  icon: mdi:chevron-right
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.turn_on
+                    target:
+                      entity_id: script.remote_piscina_route_right
+                  hold_action:
+                    action: repeat
+                down:
+                  icon: mdi:chevron-down
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.turn_on
+                    target:
+                      entity_id: script.remote_piscina_route_down
+                  hold_action:
+                    action: repeat
+                left:
+                  icon: mdi:chevron-left
+                  tap_action:
+                    action: perform-action
+                    perform_action: script.turn_on
+                    target:
+                      entity_id: script.remote_piscina_route_left
+                  hold_action:
+                    action: repeat
+                styles: |
+                  :host { width: 160px; margin: 6px auto 8px; }
+                  .circlepad { width: 160px; height: 160px; border: none !important; outline: none !important; background: transparent !important; box-shadow: none !important; }
+                  #center::part(button) {
+                    width: 54px !important; height: 54px !important; border-radius: 50% !important;
+                    background: #CFCFCF !important; border: none !important; outline: none !important; box-shadow: none !important;
+                    padding: 0 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;
+                  }
+                  #up::part(button), #right::part(button), #down::part(button), #left::part(button) {
+                    background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important;
+                  }
+              - type: button
+                name: digit_1
+                icon: mdi:numeric-1
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_1
+              - type: button
+                name: digit_2
+                icon: mdi:numeric-2
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_2
+              - type: button
+                name: digit_3
+                icon: mdi:numeric-3
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_3
+              - type: button
+                name: digit_4
+                icon: mdi:numeric-4
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_4
+              - type: button
+                name: digit_5
+                icon: mdi:numeric-5
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_5
+              - type: button
+                name: digit_6
+                icon: mdi:numeric-6
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_6
+              - type: button
+                name: digit_7
+                icon: mdi:numeric-7
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_7
+              - type: button
+                name: digit_8
+                icon: mdi:numeric-8
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_8
+              - type: button
+                name: digit_9
+                icon: mdi:numeric-9
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_9
+              - type: button
+                name: digit_0
+                icon: mdi:numeric-0
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_digit_0
+              - type: button
+                name: backspace_key
+                icon: mdi:backspace
+                tap_action:
+                  action: perform-action
+                  perform_action: script.turn_on
+                  target:
+                    entity_id: script.cable_piscina_backspace
+
+  remote_piscina_digit_enter:
+    alias: "Piscina – Dialpad Enter (send + hide)"
+    mode: single
+    sequence:
+      - service: script.cable_piscina_enter
+      - delay: "00:00:00.2"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.tele_piscina_dialpad_open

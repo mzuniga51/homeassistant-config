@@ -1,0 +1,657 @@
+# /config/packages/systems_down/beacons.yaml
+# BLE Beacon monitoring with configurable debounce, repeat, and priority
+# - ESPHome BLE Proxies (uptime sensors)
+# - Uptime Kuma BLE Beacons (status sensors)
+
+input_boolean:
+  alert_ble_enabled:
+    name: BLE Beacon Alert
+    icon: mdi:lighthouse-on
+
+  # Alert tracking - only send recovery if DOWN was sent
+  ble_proxy_alerted:
+    name: BLE Proxy Alerted
+    icon: mdi:alert-circle
+
+  ble_beacon_alerted:
+    name: BLE Beacon Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  ble_debounce_minutes:
+    name: BLE Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 10
+
+  ble_repeat_hours:
+    name: BLE Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 0
+
+input_datetime:
+  ble_last_alert:
+    name: BLE Last Alert
+    has_date: true
+    has_time: true
+
+input_text:
+  ble_proxy_pending_down:
+    name: BLE Proxy Pending Down
+    max: 255
+    initial: ""
+
+  ble_proxy_pending_recovery:
+    name: BLE Proxy Pending Recovery
+    max: 255
+    initial: ""
+
+  ble_beacon_pending_down:
+    name: BLE Beacon Pending Down
+    max: 255
+    initial: ""
+
+  ble_beacon_pending_recovery:
+    name: BLE Beacon Pending Recovery
+    max: 255
+    initial: ""
+
+  ble_devices_down:
+    name: BLE Devices Down
+    max: 255
+    initial: ""
+
+# ====== Timers for Debounce ======
+timer:
+  # BLE Proxy DOWN debounce timers
+  ble_proxy_cine_down:
+    name: BLE Proxy Cine Down Timer
+    duration: "00:10:00"
+
+  ble_proxy_cocina_down:
+    name: BLE Proxy Cocina Down Timer
+    duration: "00:10:00"
+
+  ble_proxy_cuarto_maria_down:
+    name: BLE Proxy Cuarto María Down Timer
+    duration: "00:10:00"
+
+  ble_proxy_solario_down:
+    name: BLE Proxy Solario Down Timer
+    duration: "00:10:00"
+
+  # BLE Proxy RECOVERY debounce timers (5 minutes)
+  ble_proxy_cine_recovery:
+    name: BLE Proxy Cine Recovery Timer
+    duration: "00:05:00"
+
+  ble_proxy_cocina_recovery:
+    name: BLE Proxy Cocina Recovery Timer
+    duration: "00:05:00"
+
+  ble_proxy_cuarto_maria_recovery:
+    name: BLE Proxy Cuarto María Recovery Timer
+    duration: "00:05:00"
+
+  ble_proxy_solario_recovery:
+    name: BLE Proxy Solario Recovery Timer
+    duration: "00:05:00"
+
+  # BLE Beacon DOWN debounce timer
+  ble_beacon_down:
+    name: BLE Beacon Down Timer
+    duration: "00:10:00"
+
+  # BLE Beacon RECOVERY debounce timer (5 minutes)
+  ble_beacon_recovery:
+    name: BLE Beacon Recovery Timer
+    duration: "00:05:00"
+
+script:
+  test_ble_notification:
+    alias: Test BLE Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *BLE Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+automation:
+  # ============ ESPHOME BLE PROXY - FAILURE DETECTED ============
+  - id: 'ble_alert_proxy_failure_detected'
+    alias: 'BLE Alert - Proxy Failure Detected'
+    description: >
+      Starts a debounce timer when BLE proxy goes unavailable.
+      Only sends notification if still down after timer expires.
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ 'ble_proxy' in trigger.event.data.entity_id and '_uptime' in trigger.event.data.entity_id }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state in ['unavailable','unknown'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state not in ['unavailable','unknown'] }}"
+    action:
+      - variables:
+          debounce_secs: "{{ states('input_number.ble_debounce_minutes') | int(10) * 60 }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_proxy_pending_down
+        data:
+          value: "{{ trigger.event.data.entity_id }}|{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Uptime', '') }}"
+      - action: timer.cancel
+        target:
+          entity_id: >
+            {% set entity = trigger.event.data.entity_id %}
+            {% if 'cine' in entity | lower %}
+              timer.ble_proxy_cine_recovery
+            {% elif 'cocina' in entity | lower %}
+              timer.ble_proxy_cocina_recovery
+            {% elif 'maria' in entity | lower %}
+              timer.ble_proxy_cuarto_maria_recovery
+            {% elif 'solario' in entity | lower %}
+              timer.ble_proxy_solario_recovery
+            {% else %}
+              timer.ble_proxy_cine_recovery
+            {% endif %}
+      - action: timer.start
+        target:
+          entity_id: >
+            {% set entity = trigger.event.data.entity_id %}
+            {% if 'cine' in entity | lower %}
+              timer.ble_proxy_cine_down
+            {% elif 'cocina' in entity | lower %}
+              timer.ble_proxy_cocina_down
+            {% elif 'maria' in entity | lower %}
+              timer.ble_proxy_cuarto_maria_down
+            {% elif 'solario' in entity | lower %}
+              timer.ble_proxy_solario_down
+            {% else %}
+              timer.ble_proxy_cine_down
+            {% endif %}
+        data:
+          duration: "{{ debounce_secs }}"
+
+  # ============ ESPHOME BLE PROXY - FAILURE CONFIRMED (Timer Finished) ============
+  - id: 'ble_alert_proxy_failure_confirmed'
+    alias: 'BLE Alert - Proxy Failure Confirmed'
+    description: >
+      Sends notification when debounce timer expires and device is still down.
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_cine_down
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_cocina_down
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_cuarto_maria_down
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_solario_down
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ states('input_text.ble_proxy_pending_down') | length > 0 }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_ble_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+    action:
+      - variables:
+          pending_data: "{{ states('input_text.ble_proxy_pending_down').split('|') }}"
+          entity_id: "{{ pending_data[0] if pending_data | length > 0 else '' }}"
+          device_name: "{{ pending_data[1] if pending_data | length > 1 else 'Unknown' }}"
+      - condition: template
+        value_template: "{{ states(entity_id) in ['unavailable','unknown'] }}"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *{{ device_name }} Down*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Track device down
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.ble_devices_down') %}
+            {% set current_list = current.split(',') | map('trim') | reject('eq', '') | list %}
+            {% if device_name not in current_list %}
+              {% set new_list = current_list + [device_name] %}
+              {{ new_list | join(',') | truncate(255, True, '') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      # Mark as alerted
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.ble_proxy_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ble_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_proxy_pending_down
+        data:
+          value: ""
+
+  # ============ ESPHOME BLE PROXY - RECOVERY DETECTED ============
+  - id: 'ble_alert_proxy_recovery_detected'
+    alias: 'BLE Alert - Proxy Recovery Detected'
+    description: >
+      Starts a 5-minute timer when BLE proxy comes back online.
+      Only sends notification if still up after timer expires.
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ 'ble_proxy' in trigger.event.data.entity_id and '_uptime' in trigger.event.data.entity_id }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state in ['unavailable','unknown'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state not in ['unavailable','unknown'] }}"
+    action:
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_proxy_pending_recovery
+        data:
+          value: "{{ trigger.event.data.entity_id }}|{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Uptime', '') }}"
+      - action: timer.cancel
+        target:
+          entity_id: >
+            {% set entity = trigger.event.data.entity_id %}
+            {% if 'cine' in entity | lower %}
+              timer.ble_proxy_cine_down
+            {% elif 'cocina' in entity | lower %}
+              timer.ble_proxy_cocina_down
+            {% elif 'maria' in entity | lower %}
+              timer.ble_proxy_cuarto_maria_down
+            {% elif 'solario' in entity | lower %}
+              timer.ble_proxy_solario_down
+            {% else %}
+              timer.ble_proxy_cine_down
+            {% endif %}
+      - action: timer.start
+        target:
+          entity_id: >
+            {% set entity = trigger.event.data.entity_id %}
+            {% if 'cine' in entity | lower %}
+              timer.ble_proxy_cine_recovery
+            {% elif 'cocina' in entity | lower %}
+              timer.ble_proxy_cocina_recovery
+            {% elif 'maria' in entity | lower %}
+              timer.ble_proxy_cuarto_maria_recovery
+            {% elif 'solario' in entity | lower %}
+              timer.ble_proxy_solario_recovery
+            {% else %}
+              timer.ble_proxy_cine_recovery
+            {% endif %}
+
+  # ============ ESPHOME BLE PROXY - RECOVERY CONFIRMED (Timer Finished) ============
+  - id: 'ble_alert_proxy_recovery_confirmed'
+    alias: 'BLE Alert - Proxy Recovery Confirmed'
+    description: >
+      Sends notification when 5-minute timer expires and device is still online.
+      Only sends if a DOWN alert was previously sent.
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_cine_recovery
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_cocina_recovery
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_cuarto_maria_recovery
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_proxy_solario_recovery
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ states('input_text.ble_proxy_pending_recovery') | length > 0 }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.ble_proxy_alerted
+        state: 'on'
+        # Only send recovery if THIS device was reported down
+      - condition: template
+        value_template: >
+          {% set pending_data = states('input_text.ble_proxy_pending_recovery').split('|') %}
+          {% set device_name = pending_data[1] if pending_data | length > 1 else '' %}
+          {{ device_name in states('input_text.ble_devices_down').split(',') | map('trim') | list }}
+    action:
+      - variables:
+          pending_data: "{{ states('input_text.ble_proxy_pending_recovery').split('|') }}"
+          entity_id: "{{ pending_data[0] if pending_data | length > 0 else '' }}"
+          device_name: "{{ pending_data[1] if pending_data | length > 1 else 'Unknown' }}"
+      - condition: template
+        value_template: "{{ states(entity_id) not in ['unavailable','unknown'] }}"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 📶 *{{ device_name }} Recovered*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Remove from devices down list
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.ble_devices_down') %}
+            {% set devices = current.split(',') | map('trim') | reject('eq', device_name) | list %}
+            {{ devices | join(',') }}
+      # Clear alerted state if no more devices down
+      - if:
+          - condition: template
+            value_template: >
+              {% set current = states('input_text.ble_devices_down') %}
+              {% set devices = current.split(',') | map('trim') | reject('eq', device_name) | list %}
+              {{ devices | length == 0 or devices == [''] }}
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.ble_proxy_alerted
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_proxy_pending_recovery
+        data:
+          value: ""
+
+  # ============ UPTIME KUMA BLE BEACON - FAILURE DETECTED ============
+  - id: 'ble_alert_beacon_failure_detected'
+    alias: 'BLE Alert - Beacon Failure Detected'
+    description: >
+      Starts a debounce timer when BLE beacon goes down.
+      Only sends notification if still down after timer expires.
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id.startswith('sensor.ble_') and 
+             trigger.event.data.entity_id.endswith('_status') and 
+             'proxy' not in trigger.event.data.entity_id }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          debounce_secs: "{{ states('input_number.ble_debounce_minutes') | int(10) * 60 }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_beacon_pending_down
+        data:
+          value: "{{ trigger.event.data.entity_id }}|{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}|{{ trigger.event.data.new_state.state }}"
+      - action: timer.cancel
+        target:
+          entity_id: timer.ble_beacon_recovery
+      - action: timer.start
+        target:
+          entity_id: timer.ble_beacon_down
+        data:
+          duration: "{{ debounce_secs }}"
+
+  # ============ UPTIME KUMA BLE BEACON - FAILURE CONFIRMED (Timer Finished) ============
+  - id: 'ble_alert_beacon_failure_confirmed'
+    alias: 'BLE Alert - Beacon Failure Confirmed'
+    description: >
+      Sends notification when debounce timer expires and beacon is still down.
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_beacon_down
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ states('input_text.ble_beacon_pending_down') | length > 0 }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_ble_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+    action:
+      - variables:
+          pending_data: "{{ states('input_text.ble_beacon_pending_down').split('|') }}"
+          entity_id: "{{ pending_data[0] if pending_data | length > 0 else '' }}"
+          device_name: "{{ pending_data[1] if pending_data | length > 1 else 'Unknown' }}"
+          status: "{{ pending_data[2] if pending_data | length > 2 else 'down' }}"
+      - condition: template
+        value_template: "{{ states(entity_id) | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *{{ device_name }} Down*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Track device down
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.ble_devices_down') %}
+            {% set current_list = current.split(',') | map('trim') | reject('eq', '') | list %}
+            {% if device_name not in current_list %}
+              {% set new_list = current_list + [device_name] %}
+              {{ new_list | join(',') | truncate(255, True, '') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      # Mark as alerted
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.ble_beacon_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ble_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_beacon_pending_down
+        data:
+          value: ""
+
+  # ============ UPTIME KUMA BLE BEACON - RECOVERY DETECTED ============
+  - id: 'ble_alert_beacon_recovery_detected'
+    alias: 'BLE Alert - Beacon Recovery Detected'
+    description: >
+      Starts a 5-minute timer when BLE beacon comes back online.
+      Only sends notification if still up after timer expires.
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id.startswith('sensor.ble_') and 
+             trigger.event.data.entity_id.endswith('_status') and 
+             'proxy' not in trigger.event.data.entity_id }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_beacon_pending_recovery
+        data:
+          value: "{{ trigger.event.data.entity_id }}|{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}|{{ trigger.event.data.new_state.state }}"
+      - action: timer.cancel
+        target:
+          entity_id: timer.ble_beacon_down
+      - action: timer.start
+        target:
+          entity_id: timer.ble_beacon_recovery
+
+  # ============ UPTIME KUMA BLE BEACON - RECOVERY CONFIRMED (Timer Finished) ============
+  - id: 'ble_alert_beacon_recovery_confirmed'
+    alias: 'BLE Alert - Beacon Recovery Confirmed'
+    description: >
+      Sends notification when 5-minute timer expires and beacon is still online.
+      Only sends if a DOWN alert was previously sent.
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.ble_beacon_recovery
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ states('input_text.ble_beacon_pending_recovery') | length > 0 }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.ble_beacon_alerted
+        state: 'on'
+        # Only send recovery if THIS device was reported down
+      - condition: template
+        value_template: >
+          {% set pending_data = states('input_text.ble_beacon_pending_recovery').split('|') %}
+          {% set device_name = pending_data[1] if pending_data | length > 1 else '' %}
+          {{ device_name in states('input_text.ble_devices_down').split(',') | map('trim') | list }}
+    action:
+      - variables:
+          pending_data: "{{ states('input_text.ble_beacon_pending_recovery').split('|') }}"
+          entity_id: "{{ pending_data[0] if pending_data | length > 0 else '' }}"
+          device_name: "{{ pending_data[1] if pending_data | length > 1 else 'Unknown' }}"
+          status: "{{ pending_data[2] if pending_data | length > 2 else 'up' }}"
+      - condition: template
+        value_template: "{{ states(entity_id) | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 📶 *{{ device_name }} Recovered*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Remove from devices down list
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.ble_devices_down') %}
+            {% set devices = current.split(',') | map('trim') | reject('eq', device_name) | list %}
+            {{ devices | join(',') }}
+      # Clear alerted state if no more devices down
+      - if:
+          - condition: template
+            value_template: >
+              {% set current = states('input_text.ble_devices_down') %}
+              {% set devices = current.split(',') | map('trim') | reject('eq', device_name) | list %}
+              {{ devices | length == 0 or devices == [''] }}
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.ble_beacon_alerted
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.ble_beacon_pending_recovery
+        data:
+          value: ""
+
+  # ============ BLE - REPEAT REMINDER ============
+  - id: 'ble_alert_repeat'
+    alias: 'BLE Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_ble_enabled
+        state: 'on'
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: input_boolean.ble_proxy_alerted
+            state: 'on'
+          - condition: state
+            entity_id: input_boolean.ble_beacon_alerted
+            state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.ble_repeat_hours') | int(0) > 0 }}"
+      # Must have devices down
+      - condition: template
+        value_template: "{{ states('input_text.ble_devices_down') | trim != '' }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_ble_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.ble_last_alert') %}
+          {% set repeat_hrs = states('input_number.ble_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 📶 *BLE Devices Still Down*
+            *Devices:* {{ states('input_text.ble_devices_down') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ble_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

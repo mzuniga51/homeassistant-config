@@ -1,0 +1,53 @@
+# /config/packages/badges/alexa_alarm.yaml
+#============================
+# Alexa — Cancel active alarms
+# Requiere integración HACS: Alexa Media Player
+# ============================
+
+# Input boolean to track if we want to show the cancel button
+# Note: Detecting a "ringing" alarm automatically is unreliable in AMP
+# You can trigger this manually or via other automations
+input_boolean:
+  alexa_alarm_active:
+    name: Alexa alarm active
+    icon: mdi:alarm
+
+# Script to cancel alarms on all Echo devices
+script:
+  cancel_alexa_alarms_targeted:
+    alias: Alexa — Cancel alarms (all devices)
+    mode: parallel
+    sequence:
+      # Send "Cancel alarm" command to each Echo device
+      # This is like saying "Alexa, cancel alarm" to each device
+      - action: media_player.play_media
+        data:
+          media_content_id: "Cancel alarm"
+          media_content_type: custom
+        target:
+          entity_id:
+            - media_player.andy
+            - media_player.bano_andy
+            - media_player.cuarto_master
+            - media_player.garage
+            - media_player.maquinas
+            - media_player.musica
+      # Also try "Stop" which can stop any currently playing alarm/timer
+      - action: media_player.play_media
+        data:
+          media_content_id: "Stop"
+          media_content_type: custom
+        target:
+          entity_id:
+            - media_player.andy
+            - media_player.bano_andy
+            - media_player.cuarto_master
+            - media_player.garage
+            - media_player.maquinas
+            - media_player.musica
+      # Turn off the indicator
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.alexa_alarm_active
+      # Keep script ON for animation
+      - delay: "00:00:01.5"

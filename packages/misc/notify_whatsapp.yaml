@@ -1,0 +1,520 @@
+# /config/packages/misc/notify_whatsapp.yaml
+# CallMeBot → WhatsApp via Home Assistant REST notify
+# Features:
+#   - Quiet hours queuing (00:00-07:00) with 7 AM summary
+#   - Notification logging for dashboard display
+#   - Tracks delivered vs queued status
+#   - Network outage suppression (30 min after recovery)
+
+notify:
+  # 1) Manuel directo
+  - name: whatsapp_manu
+    platform: rest
+    resource: https://api.callmebot.com/whatsapp.php
+    method: GET
+    message_param_name: text
+    data:
+      phone: !secret callmebot_phone_manu
+      apikey: !secret callmebot_apikey_manu
+
+  # 2) Canal crítico (por defecto en alertas) - 24/7
+  - name: whatsapp_critical
+    platform: rest
+    resource: https://api.callmebot.com/whatsapp.php
+    method: GET
+    message_param_name: text
+    data:
+      phone: !secret callmebot_phone_critical
+      apikey: !secret callmebot_apikey_critical
+
+  # 3) Canal informativo - raw (used by script wrapper)
+  - name: whatsapp_info_raw
+    platform: rest
+    resource: https://api.callmebot.com/whatsapp.php
+    method: GET
+    message_param_name: text
+    data:
+      phone: !secret callmebot_phone_info
+      apikey: !secret callmebot_apikey_info
+
+################################################################################
+# INPUT BOOLEANS - Network Suppression
+################################################################################
+input_boolean:
+  network_alert_suppressed:
+    name: Network Alert Suppressed
+    icon: mdi:bell-off
+
+################################################################################
+# TEMPLATE SENSORS - Notification Log & Queue
+################################################################################
+template:
+  # Main notification log - stores last 50 notifications with status
+  - trigger:
+      - platform: event
+        event_type: whatsapp_notification_logged
+      - platform: event
+        event_type: whatsapp_log_clear
+    sensor:
+      - name: "WhatsApp Notification Log"
+        unique_id: whatsapp_notification_log
+        state: >
+          {% if trigger.event.event_type == 'whatsapp_log_clear' %}
+            0 delivered, 0 queued
+          {% else %}
+            {% set d = this.attributes.get('delivered_count', 0) | int %}
+            {% set q = this.attributes.get('queued_count', 0) | int %}
+            {% if trigger.event.data.status == 'delivered' %}
+              {{ d + 1 }} delivered, {{ q }} queued
+            {% elif trigger.event.data.status == 'queued' %}
+              {{ d }} delivered, {{ q + 1 }} queued
+            {% else %}
+              {{ d }} delivered, {{ q }} queued
+            {% endif %}
+          {% endif %}
+        attributes:
+          notifications: >
+            {% if trigger.event.event_type == 'whatsapp_log_clear' %}
+              []
+            {% else %}
+              {% set current = this.attributes.get('notifications', []) %}
+              {% set new_entry = {
+                'time': trigger.event.data.time,
+                'status': trigger.event.data.status,
+                'summary': trigger.event.data.summary,
+                'full_message': trigger.event.data.get('full_message', ''),
+                'channel': trigger.event.data.channel
+              } %}
+              {{ ([new_entry] + current)[:50] }}
+            {% endif %}
+          delivered_count: >
+            {% if trigger.event.event_type == 'whatsapp_log_clear' %}
+              0
+            {% else %}
+              {% set current = this.attributes.get('delivered_count', 0) | int %}
+              {% if trigger.event.data.status == 'delivered' %}
+                {{ current + 1 }}
+              {% else %}
+                {{ current }}
+              {% endif %}
+            {% endif %}
+          queued_count: >
+            {% if trigger.event.event_type == 'whatsapp_log_clear' %}
+              0
+            {% else %}
+              {% set current = this.attributes.get('queued_count', 0) | int %}
+              {% if trigger.event.data.status == 'queued' %}
+                {{ current + 1 }}
+              {% else %}
+                {{ current }}
+              {% endif %}
+            {% endif %}
+          log_date: "{{ now().strftime('%Y-%m-%d') }}"
+
+  # Queue for messages during quiet hours
+  - trigger:
+      - platform: event
+        event_type: whatsapp_message_queued
+      - platform: event
+        event_type: whatsapp_queue_clear
+    sensor:
+      - name: "WhatsApp Message Queue"
+        unique_id: whatsapp_message_queue
+        state: >
+          {% if trigger.event.event_type == 'whatsapp_queue_clear' %}
+            0 queued
+          {% else %}
+            {{ (this.attributes.get('count', 0) | int) + 1 }} queued
+          {% endif %}
+        attributes:
+          count: >
+            {% if trigger.event.event_type == 'whatsapp_queue_clear' %}
+              0
+            {% else %}
+              {{ (this.attributes.get('count', 0) | int) + 1 }}
+            {% endif %}
+          messages: >
+            {% if trigger.event.event_type == 'whatsapp_queue_clear' %}
+              []
+            {% else %}
+              {% set current = this.attributes.get('messages', []) %}
+              {% set new_msg = {
+                'message': trigger.event.data.message,
+                'summary': trigger.event.data.summary,
+                'time': trigger.event.data.time
+              } %}
+              {{ (current + [new_msg])[:20] }}
+            {% endif %}
+
+  # Markdown card content - Summary
+  - sensor:
+      - name: "WhatsApp Log Summary Card"
+        unique_id: whatsapp_log_summary_card
+        state: "{{ now().strftime('%Y-%m-%d') }}"
+        attributes:
+          markdown: >
+            {% set delivered = state_attr('sensor.whatsapp_notification_log', 'delivered_count') | int(0) %}
+            {% set queued = state_attr('sensor.whatsapp_notification_log', 'queued_count') | int(0) %}
+            {% set total = delivered + queued %}
+            ## 📬 Notifications Today
+            | Status | Count |
+            |:-------|------:|
+            | ✅ Delivered | {{ delivered }} |
+            | ⏸️ Queued | {{ queued }} |
+            | **Total** | **{{ total }}** |
+
+  # Markdown card content - Detail Log
+  - sensor:
+      - name: "WhatsApp Log Detail Card"
+        unique_id: whatsapp_log_detail_card
+        state: "{{ now().strftime('%Y-%m-%d') }}"
+        attributes:
+          markdown: >
+            {% set notifications = state_attr('sensor.whatsapp_notification_log', 'notifications') or [] %}
+            ## 📋 Notification Log
+            {% if notifications | length == 0 %}
+            _No notifications today_
+            {% else %}
+            | Time | St | Message |
+            |:-----|:--:|:--------|
+            {% for n in notifications %}
+            | {{ n.time }} | {% if n.status == 'delivered' %}✅{% elif n.status == 'queued' %}⏸️{% else %}🔄{% endif %} | {{ n.summary[:35] }}{% if n.summary | length > 35 %}…{% endif %} |
+            {% endfor %}
+            {% endif %}
+
+################################################################################
+# SCRIPTS
+################################################################################
+script:
+  # Main wrapper for info notifications - queues during quiet hours, suppresses during network outage
+  whatsapp_info:
+    alias: "WhatsApp Info (Time-Restricted)"
+    mode: parallel
+    fields:
+      message:
+        description: Message to send
+        example: "Informational message"
+    sequence:
+      # Check if network alert suppression is active
+      - condition: state
+        entity_id: input_boolean.network_alert_suppressed
+        state: "off"
+      - variables:
+          # Extract first line as summary (remove markdown bold)
+          msg_summary: >
+            {% set first_line = message.split('\n')[0] | replace('*', '') | trim %}
+            {{ first_line[:50] }}
+          current_time: "{{ now().strftime('%H:%M') }}"
+      - choose:
+          # During active hours (7 AM - midnight): send immediately
+          - conditions:
+              - condition: time
+                after: "07:00:00"
+                before: "00:00:00"
+            sequence:
+              - action: notify.whatsapp_info_raw
+                data:
+                  message: "{{ message }}"
+              # Log as delivered (with full message)
+              - event: whatsapp_notification_logged
+                event_data:
+                  status: "delivered"
+                  summary: "{{ msg_summary }}"
+                  full_message: "{{ message }}"
+                  time: "{{ current_time }}"
+                  channel: "info"
+        # During quiet hours (midnight - 7 AM): queue the message
+        default:
+          # Add to queue
+          - event: whatsapp_message_queued
+            event_data:
+              message: "{{ message }}"
+              summary: "{{ msg_summary }}"
+              time: "{{ current_time }}"
+          # Log as queued (with full message)
+          - event: whatsapp_notification_logged
+            event_data:
+              status: "queued"
+              summary: "{{ msg_summary }}"
+              full_message: "{{ message }}"
+              time: "{{ current_time }}"
+              channel: "info"
+
+  # Wrapper for critical notifications - always sends, always logged (bypasses suppression)
+  whatsapp_critical:
+    alias: "WhatsApp Critical (Logged)"
+    mode: parallel
+    fields:
+      message:
+        description: Message to send
+        example: "Critical message"
+    sequence:
+      - variables:
+          msg_summary: >
+            {% set first_line = message.split('\n')[0] | replace('*', '') | trim %}
+            🚨 {{ first_line[:47] }}
+          current_time: "{{ now().strftime('%H:%M') }}"
+      - action: notify.whatsapp_critical
+        data:
+          message: "{{ message }}"
+      # Log as delivered (critical always sends immediately)
+      - event: whatsapp_notification_logged
+        event_data:
+          status: "delivered"
+          summary: "{{ msg_summary }}"
+          full_message: "{{ message }}"
+          time: "{{ current_time }}"
+          channel: "critical"
+
+  # Send queued messages at end of quiet hours
+  whatsapp_send_queued:
+    alias: "WhatsApp Send Queued Messages"
+    mode: single
+    sequence:
+      - variables:
+          queued_count: "{{ state_attr('sensor.whatsapp_message_queue', 'count') | int(0) }}"
+      - condition: template
+        value_template: "{{ queued_count > 0 }}"
+      - variables:
+          messages: "{{ state_attr('sensor.whatsapp_message_queue', 'messages') or [] }}"
+      # Send summary with up to 5 full messages
+      - action: notify.whatsapp_info_raw
+        data:
+          message: >
+            🌅 *Quiet Hours Summary*
+            *Notifications Queued:* {{ queued_count }}
+            {% for msg in messages[:5] %}
+            
+            ━━━━━━━━━━━━━━━━━━
+            ⏰ *{{ msg.time }}*
+            {{ msg.message[:300] }}{% if msg.message | length > 300 %}...{% endif %}
+            {% endfor %}
+            {% if queued_count > 5 %}
+            
+            _...and {{ queued_count - 5 }} more notification(s)_
+            {% endif %}
+            
+            *Sent:* {{ now().strftime('%H:%M') }}
+      # Log the summary send
+      - event: whatsapp_notification_logged
+        event_data:
+          status: "delivered"
+          summary: "🌅 Quiet Hours Summary ({{ queued_count }} msgs)"
+          time: "{{ now().strftime('%H:%M') }}"
+          channel: "info"
+      # Clear the queue
+      - event: whatsapp_queue_clear
+
+  # Clear notification log manually
+  whatsapp_clear_log:
+    alias: "WhatsApp Clear Notification Log"
+    mode: single
+    sequence:
+      - event: whatsapp_log_clear
+
+  # Post-outage check - sends summary of devices still down
+  whatsapp_post_outage_check:
+    alias: "WhatsApp Post-Outage Check"
+    mode: single
+    sequence:
+      - variables:
+          # Check key monitored entities
+          still_down: >
+            {% set devices = namespace(list=[]) %}
+            {% set monitored = [
+              {'entity': 'sensor.pentair_intellicenter_status', 'name': 'Pentair IntelliCenter'},
+              {'entity': 'sensor.ecowitt_status', 'name': 'Ecowitt Weather Station'},
+              {'entity': 'sensor.hue_bridge_cine_status', 'name': 'Hue Bridge Cine'},
+              {'entity': 'sensor.hue_bridge_garage_status', 'name': 'Hue Bridge Garage'},
+              {'entity': 'sensor.hue_bridge_master_status', 'name': 'Hue Bridge Master'},
+              {'entity': 'sensor.hue_bridge_piso_2_status', 'name': 'Hue Bridge Piso 2'}
+            ] %}
+            {% for device in monitored %}
+              {% set state = states(device.entity) | lower %}
+              {% if state in ['unavailable', 'unknown', 'down', 'offline'] %}
+                {% set devices.list = devices.list + [device.name] %}
+              {% endif %}
+            {% endfor %}
+            {% set hue_count = states('sensor.hue_unavailable_count') | int(0) %}
+            {% if hue_count > 0 %}
+              {% set hue_names = state_attr('sensor.hue_unavailable_count', 'friendly_names') or [] %}
+              {% for name in hue_names %}
+                {% set devices.list = devices.list + [name] %}
+              {% endfor %}
+            {% endif %}
+            {{ devices.list }}
+      - condition: template
+        value_template: "{{ still_down | length > 0 }}"
+      - action: notify.whatsapp_info_raw
+        data:
+          message: >
+            ⚠️ *Post-Outage Status*
+            The following devices have not yet reconnected after the network outage:
+            {% for device in still_down %}
+            • {{ device }}
+            {% endfor %}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      - event: whatsapp_notification_logged
+        event_data:
+          status: "delivered"
+          summary: "⚠️ Post-Outage: {{ still_down | length }} devices still down"
+          time: "{{ now().strftime('%H:%M') }}"
+          channel: "info"
+
+  # Test scripts
+  whatsapp_test_critical:
+    alias: "WhatsApp: Test (Critical)"
+    mode: single
+    sequence:
+      - action: notify.whatsapp_critical
+        data:
+          message: >-
+            *HA WhatsApp OK* — {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+            Prueba de notificación crítica ✅
+
+  whatsapp_test_manu:
+    alias: "WhatsApp: Test (Manu)"
+    mode: single
+    sequence:
+      - action: notify.whatsapp_manu
+        data:
+          message: "Prueba directa a Manu — {{ now() }}"
+
+  whatsapp_test_info:
+    alias: "WhatsApp: Test (Info)"
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            📧 *Test Info Notification*
+            This is a test of the info channel
+            *Time:* {{ now().strftime('%H:%M') }}
+
+  whatsapp_test_queue:
+    alias: "WhatsApp: Test Queue"
+    mode: single
+    sequence:
+      - event: whatsapp_message_queued
+        event_data:
+          message: "Test queued message — {{ now() }}"
+          summary: "Test queued message"
+          time: "{{ now().strftime('%H:%M') }}"
+      - event: whatsapp_notification_logged
+        event_data:
+          status: "queued"
+          summary: "Test queued message"
+          time: "{{ now().strftime('%H:%M') }}"
+          channel: "info"
+
+################################################################################
+# AUTOMATIONS
+################################################################################
+automation:
+  # Send queued messages at 7 AM when quiet hours end
+  - id: 'whatsapp_quiet_hours_end'
+    alias: 'WhatsApp - Send Queued Messages at 7 AM'
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    action:
+      - action: script.whatsapp_send_queued
+
+  # Reset notification log at midnight
+  - id: 'whatsapp_reset_log_midnight'
+    alias: 'WhatsApp - Reset Notification Log at Midnight'
+    trigger:
+      - platform: time
+        at: "00:00:05"
+    action:
+      - event: whatsapp_log_clear
+
+  # Auto-log critical notifications (catches direct notify.whatsapp_critical calls)
+  - id: 'whatsapp_log_critical_notifications'
+    alias: 'WhatsApp - Log Critical Notifications'
+    trigger:
+      - platform: event
+        event_type: call_service
+        event_data:
+          domain: notify
+          service: whatsapp_critical
+    action:
+      - variables:
+          message: "{{ trigger.event.data.service_data.message | default('') }}"
+          msg_summary: >
+            {% set first_line = message.split('\n')[0] | replace('*', '') | trim %}
+            🚨 {{ first_line[:47] }}
+          current_time: "{{ now().strftime('%H:%M') }}"
+      - event: whatsapp_notification_logged
+        event_data:
+          status: "delivered"
+          summary: "{{ msg_summary }}"
+          full_message: "{{ message }}"
+          time: "{{ current_time }}"
+          channel: "critical"
+
+  # ============ NETWORK OUTAGE SUPPRESSION ============
+  # When mass network outage detected (3+ devices down) - enable suppression
+  - id: 'network_outage_suppression_start'
+    alias: 'Network Outage - Start Suppression'
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.network_outage_batch
+    condition:
+      - condition: template
+        value_template: >
+          {% set devices = states('input_text.network_devices_down_pending') %}
+          {% set count = devices.split('|') | length if devices | length > 0 else 0 %}
+          {{ count >= 3 }}
+    action:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.network_alert_suppressed
+
+  # When mass network recovery detected (3+ devices recovered) - start 30 min countdown
+  - id: 'network_outage_suppression_end'
+    alias: 'Network Outage - End Suppression'
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.network_recovery_batch
+    condition:
+      - condition: state
+        entity_id: input_boolean.network_alert_suppressed
+        state: 'on'
+      - condition: template
+        value_template: >
+          {% set devices = states('input_text.network_devices_recovery_pending') %}
+          {% set count = devices.split('|') | length if devices | length > 0 else 0 %}
+          {{ count >= 3 }}
+    action:
+      - delay:
+          minutes: 30
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.network_alert_suppressed
+      - action: script.whatsapp_post_outage_check
+
+  # ============ FAILSAFE - Auto-disable suppression after 1 hour ============
+  - id: 'network_suppression_failsafe'
+    alias: 'Network Suppression - Failsafe Timeout'
+    trigger:
+      - platform: state
+        entity_id: input_boolean.network_alert_suppressed
+        to: 'on'
+        for:
+          hours: 1
+    action:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.network_alert_suppressed
+      - action: script.whatsapp_info
+        data:
+          message: |
+            ⚠️ *Network Suppression Failsafe*
+            Auto-disabled after 1 hour timeout
+            *Time:* {{ now().strftime('%H:%M') }}

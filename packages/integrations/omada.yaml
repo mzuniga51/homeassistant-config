@@ -1,0 +1,717 @@
+################################################################################
+# Omada / Sagecom – Manual Reboot Orchestration (edge → core)
+# + Network Device Monitoring with WhatsApp Notifications
+# + Batched/Consolidated Notifications for Mass Outages (15s window)
+# + Configurable debounce, repeat, and priority
+# /config/packages/integrations/omada.yaml
+################################################################################
+
+input_boolean:
+  omada_reboot_in_progress:
+    name: Omada / network reboot in progress
+
+  alert_omada_enabled:
+    name: Network Device Alert
+    icon: mdi:router-network-wireless
+
+  # Track if we have active alerts (for repeat logic)
+  omada_alerted:
+    name: Omada Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  network_mass_outages_today:
+    name: Network Mass Outages Today
+    min: 0
+    max: 100
+    step: 1
+    initial: 0
+    icon: mdi:alert-circle-outline
+
+  omada_debounce_minutes:
+    name: Omada Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 2
+
+  omada_repeat_hours:
+    name: Omada Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 0
+
+input_text:
+  omada_reboot_target:
+    name: Omada reboot target
+    max: 64
+
+  # For batched DOWN notifications
+  network_devices_down_pending:
+    name: Network Devices Down Pending
+    max: 255
+    initial: ""
+
+  # For batched RECOVERY notifications
+  network_devices_recovery_pending:
+    name: Network Devices Recovery Pending
+    max: 255
+    initial: ""
+
+  # Track devices currently down (for repeat)
+  omada_devices_down:
+    name: Omada Devices Down
+    max: 255
+    initial: ""
+
+input_datetime:
+  omada_last_alert:
+    name: Omada Last Alert
+    has_date: true
+    has_time: true
+
+input_select:
+  omada_reboot_picker:
+    name: Dispositivo
+    options:
+      - AP Patio
+      - AP 2do Piso
+      - AP Cocina
+      - AP Cocina Ext
+      - AP Frente
+      - AP Master
+      - AP Plomería
+      - AP Música
+      - Switch Música
+      - Switch Principal
+      - Router
+      - Sagecom Router
+      - All Devices
+
+timer:
+  # Batch timer for DOWN notifications (15 seconds collection window)
+  network_outage_batch:
+    name: Network Outage Batch Timer
+    duration: "00:00:15"
+
+  # Batch timer for RECOVERY notifications (15 seconds collection window)
+  network_recovery_batch:
+    name: Network Recovery Batch Timer
+    duration: "00:00:15"
+
+  # Debounce timer - wait before sending notification
+  omada_debounce:
+    name: Omada Debounce Timer
+    duration: "00:05:00"
+
+################################################################################
+# SHELL COMMANDS – called from HA, executed on Mac mini via SSH
+################################################################################
+
+shell_command:
+  reboot_sagecom_router: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/.venv_sage/bin/python
+    /Users/macmini/Documents/ServiceScripts/reboot-sagemcom.py'
+
+  reboot_omada_ap_2do_piso: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 98-BA-5F-C3-33-FC'
+
+  reboot_omada_ap_cocina: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 98-BA-5F-C3-4D-E2'
+
+  reboot_omada_ap_cocina_ext: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 3C-52-A1-9C-45-DA'
+
+  reboot_omada_ap_frente: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac EC-75-0C-D3-6E-60'
+
+  reboot_omada_ap_master: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 98-BA-5F-C3-37-DE'
+
+  reboot_omada_ap_patio: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac EC-75-0C-D3-6E-54'
+
+  reboot_omada_ap_plomeria: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 30-68-93-F1-0E-33'
+
+  reboot_omada_ap_musica: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 98-BA-5F-C3-96-7C'
+
+  reboot_omada_switch_musica: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac 98-BA-5F-84-88-DC'
+
+  reboot_omada_switch_principal: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-mac EC-75-0C-E8-73-16'
+
+  reboot_omada_router: >-
+    ssh -o UserKnownHostsFile=/config/ssh/known_hosts
+    -i /config/ssh/ha_to_macmini macmini@192.168.10.58
+    '/Users/macmini/Documents/ServiceScripts/reboot-omada.sh reboot-router'
+
+################################################################################
+# SCRIPTS
+################################################################################
+
+script:
+  omada_reboot_selected:
+    alias: Omada reboot selected device
+    mode: single
+    sequence:
+      - action: script.omada_reboot_with_feedback
+        data:
+          target: "{{ states('input_select.omada_reboot_picker') }}"
+
+  omada_reboot_with_feedback:
+    alias: Omada reboot (manual sequence)
+    mode: queued
+    fields:
+      target:
+        description: Device picked from the selector
+        example: "Router"
+    variables:
+      picked: "{{ target }}"
+      device_map:
+        "AP Patio": ap_patio
+        "AP 2do Piso": ap_2do_piso
+        "AP Cocina": ap_cocina
+        "AP Cocina Ext": ap_cocina_ext
+        "AP Frente": ap_frente
+        "AP Master": ap_master
+        "AP Plomería": ap_plomeria
+        "AP Música": ap_musica
+        "Switch Música": switch_musica
+        "Switch Principal": switch_principal
+        "Router": router
+        "Sagecom Router": sagecom_router
+        "All Devices": all
+      key: "{{ device_map.get(picked, picked) }}"
+      sensor_map:
+        all: ""
+        ap_patio: "sensor.ap_patio_status"
+        ap_2do_piso: "sensor.ap_2do_piso_status"
+        ap_cocina: "sensor.ap_cocina_status"
+        ap_cocina_ext: "sensor.ap_cocina_externo_status"
+        ap_frente: "sensor.ap_frente_status"
+        ap_master: "sensor.ap_master_status"
+        ap_plomeria: "sensor.ap_plomeria_status"
+        ap_musica: "sensor.ap_musica_status"
+        switch_musica: "sensor.sg2210p_switch_musica_status"
+        switch_principal: "sensor.sg3428xmp_switch_principal_status"
+        router: "sensor.er7206_router_status"
+        sagecom_router: ""
+      status_sensor: "{{ sensor_map.get(key, '') }}"
+
+    sequence:
+      - action: input_text.set_value
+        data:
+          entity_id: input_text.omada_reboot_target
+          value: "{{ key }}"
+
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.omada_reboot_in_progress
+
+      - choose:
+          - conditions: "{{ key == 'ap_patio' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_patio
+
+          - conditions: "{{ key == 'ap_2do_piso' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_2do_piso
+
+          - conditions: "{{ key == 'ap_cocina' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_cocina
+
+          - conditions: "{{ key == 'ap_cocina_ext' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_cocina_ext
+
+          - conditions: "{{ key == 'ap_frente' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_frente
+
+          - conditions: "{{ key == 'ap_master' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_master
+
+          - conditions: "{{ key == 'ap_plomeria' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_plomeria
+
+          - conditions: "{{ key == 'ap_musica' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_musica
+
+          - conditions: "{{ key == 'switch_musica' }}"
+            sequence:
+              - action: shell_command.reboot_omada_switch_musica
+
+          - conditions: "{{ key == 'switch_principal' }}"
+            sequence:
+              - action: shell_command.reboot_omada_switch_principal
+
+          - conditions: "{{ key == 'router' }}"
+            sequence:
+              - action: shell_command.reboot_omada_router
+
+          - conditions: "{{ key == 'sagecom_router' }}"
+            sequence:
+              - action: shell_command.reboot_sagecom_router
+
+          - conditions: "{{ key == 'all' }}"
+            sequence:
+              - action: shell_command.reboot_omada_ap_patio
+              - delay: "00:00:10"
+              - action: shell_command.reboot_omada_ap_2do_piso
+              - delay: "00:00:40"
+              - action: shell_command.reboot_omada_switch_musica
+              - delay: "00:00:20"
+              - action: shell_command.reboot_omada_switch_principal
+              - delay: "00:01:00"
+              - action: shell_command.reboot_omada_router
+              - delay: "00:02:00"
+              - action: shell_command.reboot_sagecom_router
+              - delay: "00:02:00"
+
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.omada_reboot_in_progress
+
+  test_omada_notification:
+    alias: Test Omada Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            📡🔴 *Omada Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+################################################################################
+# AUTOMATIONS
+################################################################################
+
+automation:
+  # ============ FAILSAFE TIMEOUT ============
+  - id: omada_reboot_failsafe_timeout
+    alias: "Omada reboot failsafe timeout"
+    description: "Turn off reboot flag if stuck for more than 20 minutes"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.omada_reboot_in_progress
+        to: "on"
+        for: "00:20:00"
+    action:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.omada_reboot_in_progress
+
+  # ============ NETWORK DEVICE FAILURE - COLLECT INTO BATCH ============
+  - id: 'network_alert_collect_failures'
+    alias: 'Network Alert - Collect Failures'
+    description: >
+      When a network device goes down, add it to the pending list and start
+      a batch timer. Uses debounce setting for the timer duration.
+    trigger:
+      - platform: state
+        entity_id:
+          - sensor.ap_2do_piso_status
+          - sensor.ap_cocina_status
+          - sensor.ap_cocina_externo_status
+          - sensor.ap_frente_status
+          - sensor.ap_master_status
+          - sensor.ap_musica_status
+          - sensor.ap_patio_status
+          - sensor.ap_plomeria_status
+          - sensor.er7206_router_status
+          - sensor.oc200_controller_status
+          - sensor.sagecom_router_status
+          - sensor.sg2210p_switch_musica_status
+          - sensor.sg3428xmp_switch_principal_status
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_omada_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ trigger.from_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          device_name: >
+            {% set name = state_attr(trigger.entity_id, 'friendly_name') | default(trigger.entity_id) %}
+            {{ name | replace(' Status', '') | replace(' status', '') }}
+          debounce_secs: "{{ (states('input_number.omada_debounce_minutes') | int(2) * 60) | int }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.network_devices_down_pending
+        data:
+          value: >
+            {% set current = states('input_text.network_devices_down_pending') %}
+            {% set current_list = current.split('|') | reject('eq', '') | list if current | length > 0 else [] %}
+            {% if device_name not in current_list %}
+              {% set new_list = current_list + [device_name] %}
+              {{ new_list | join('|') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      # Use debounce setting as batch window (minimum 15 seconds)
+      - action: timer.start
+        target:
+          entity_id: timer.network_outage_batch
+        data:
+          duration: "{{ debounce_secs if debounce_secs >= 15 else 15 }}"
+
+  # ============ NETWORK DEVICE FAILURE - SEND BATCH NOTIFICATION ============
+  - id: 'network_alert_send_failure_batch'
+    alias: 'Network Alert - Send Failure Batch'
+    description: >
+      When the batch timer expires, check if devices are STILL down,
+      then send a consolidated notification.
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.network_outage_batch
+    condition:
+      - condition: template
+        value_template: "{{ states('input_text.network_devices_down_pending') | length > 0 }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_omada_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+    action:
+      - variables:
+          devices_raw: "{{ states('input_text.network_devices_down_pending') }}"
+          device_list: "{{ devices_raw.split('|') | reject('eq', '') | list }}"
+          # Filter to only devices STILL down - use entity_id based lookup for reliability
+          still_down: >
+            {% set ok = ['up','online','ok','ready','healthy','on','true','1'] %}
+            {% set sensor_map = {
+              'AP 2do Piso': 'sensor.ap_2do_piso_status',
+              'AP Cocina': 'sensor.ap_cocina_status',
+              'AP Cocina Externo': 'sensor.ap_cocina_externo_status',
+              'AP Frente': 'sensor.ap_frente_status',
+              'AP Master': 'sensor.ap_master_status',
+              'AP Música': 'sensor.ap_musica_status',
+              'AP Patio': 'sensor.ap_patio_status',
+              'AP Plomería': 'sensor.ap_plomeria_status',
+              'ER7206 Router': 'sensor.er7206_router_status',
+              'OC200 Controller': 'sensor.oc200_controller_status',
+              'Sagecom Router': 'sensor.sagecom_router_status',
+              'SG2210P Switch Música': 'sensor.sg2210p_switch_musica_status',
+              'SG3428XMP Switch Principal': 'sensor.sg3428xmp_switch_principal_status'
+            } %}
+            {% set ns = namespace(down=[]) %}
+            {% for device in device_list %}
+              {% set sensor = sensor_map.get(device, '') %}
+              {% if sensor and states(sensor) | lower not in ok %}
+                {% set ns.down = ns.down + [device] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.down }}
+          count: "{{ still_down | length }}"
+      - condition: template
+        value_template: "{{ count | int > 0 }}"
+      - choose:
+          # Mass outage (3+ devices) - consolidated notification
+          - conditions: "{{ count | int >= 3 }}"
+            sequence:
+              - action: script.whatsapp_info
+                data:
+                  message: >
+                    📡🔴 *Network Outage Detected*
+                    *Devices Affected:* {{ count }}
+                    {% for device in still_down %}
+                    • {{ device }}
+                    {% endfor %}
+                    *Time:* {{ now().strftime('%H:%M') }}
+                    *Date:* {{ now().strftime('%B %d, %Y') }}
+        # Few devices (1-2) - per-device notification
+        default:
+          - repeat:
+              for_each: "{{ still_down }}"
+              sequence:
+                - action: script.whatsapp_info
+                  data:
+                    message: >
+                      📡🔴 *{{ repeat.item }} Down*
+                      *Time:* {{ now().strftime('%H:%M') }}
+                      *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Update tracking - merge with existing down devices (don't overwrite)
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.omada_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.omada_devices_down') %}
+            {% set current_list = current.split('|') | reject('eq', '') | list if current | length > 0 else [] %}
+            {% set combined = (current_list + still_down) | unique | list %}
+            {{ combined | join('|') | truncate(255, True, '') }}
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.omada_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.omada_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.network_devices_down_pending
+        data:
+          value: ""
+
+  # ============ NETWORK DEVICE RECOVERY - COLLECT INTO BATCH ============
+  - id: 'network_alert_collect_recoveries'
+    alias: 'Network Alert - Collect Recoveries'
+    description: >
+      When a network device recovers, add it to the pending list and start
+      a 15-second timer. This allows batching multiple recoveries into one notification.
+    trigger:
+      - platform: state
+        entity_id:
+          - sensor.ap_2do_piso_status
+          - sensor.ap_cocina_status
+          - sensor.ap_cocina_externo_status
+          - sensor.ap_frente_status
+          - sensor.ap_master_status
+          - sensor.ap_musica_status
+          - sensor.ap_patio_status
+          - sensor.ap_plomeria_status
+          - sensor.er7206_router_status
+          - sensor.oc200_controller_status
+          - sensor.sagecom_router_status
+          - sensor.sg2210p_switch_musica_status
+          - sensor.sg3428xmp_switch_principal_status
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_omada_enabled
+        state: 'on'
+      - condition: template
+        value_template: "{{ trigger.from_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          device_name: >
+            {% set name = state_attr(trigger.entity_id, 'friendly_name') | default(trigger.entity_id) %}
+            {{ name | replace(' Status', '') | replace(' status', '') }}
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.network_devices_recovery_pending
+        data:
+          value: >
+            {% set current = states('input_text.network_devices_recovery_pending') %}
+            {% set current_list = current.split('|') | reject('eq', '') | list if current | length > 0 else [] %}
+            {% if device_name not in current_list %}
+              {% set new_list = current_list + [device_name] %}
+              {{ new_list | join('|') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      - action: timer.start
+        target:
+          entity_id: timer.network_recovery_batch
+
+  # ============ NETWORK DEVICE RECOVERY - SEND BATCH NOTIFICATION ============
+  - id: 'network_alert_send_recovery_batch'
+    alias: 'Network Alert - Send Recovery Batch'
+    description: >
+      When the 15-second timer expires, wait 60 seconds for network to stabilize,
+      then send a consolidated notification for all devices that recovered.
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.network_recovery_batch
+    condition:
+      - condition: template
+        value_template: "{{ states('input_text.network_devices_recovery_pending') | length > 0 }}"
+      # Only send recovery if we sent a DOWN notification
+      - condition: state
+        entity_id: input_boolean.omada_alerted
+        state: 'on'
+    action:
+      - delay:
+          seconds: 60
+      - variables:
+          devices_raw: "{{ states('input_text.network_devices_recovery_pending') }}"
+          device_list_raw: "{{ devices_raw.split('|') | reject('eq', '') | list }}"
+          devices_down: "{{ states('input_text.omada_devices_down').split('|') | reject('eq', '') | list }}"
+          # Only notify for devices that were actually reported as down
+          device_list: "{{ device_list_raw | select('in', devices_down) | list }}"
+          count: "{{ device_list | length }}"
+      # Only proceed if there are devices to report
+      - condition: template
+        value_template: "{{ count | int > 0 }}"
+      - choose:
+          # Mass recovery (3+ devices) - consolidated notification
+          - conditions: "{{ count | int >= 3 }}"
+            sequence:
+              - action: script.whatsapp_info
+                data:
+                  message: >
+                    📡✅ *Network Restored*
+                    *Devices Recovered:* {{ count }}
+                    {% for device in device_list %}
+                    • {{ device }}
+                    {% endfor %}
+                    *Time:* {{ now().strftime('%H:%M') }}
+                    *Date:* {{ now().strftime('%B %d, %Y') }}
+        # Few devices (1-2) - per-device notification
+        default:
+          - repeat:
+              for_each: "{{ device_list }}"
+              sequence:
+                - action: script.whatsapp_info
+                  data:
+                    message: >
+                      📡✅ *{{ repeat.item }} Recovered*
+                      *Time:* {{ now().strftime('%H:%M') }}
+                      *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Remove recovered devices from down list
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.omada_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.omada_devices_down') %}
+            {% set recovered = states('input_text.network_devices_recovery_pending').split('|') | reject('eq', '') | list %}
+            {% set current_list = current.split('|') | reject('eq', '') | list if current | length > 0 else [] %}
+            {% set remaining = current_list | reject('in', recovered) | list %}
+            {{ remaining | join('|') }}
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.network_devices_recovery_pending
+        data:
+          value: ""
+      # Clear alerted state if no more devices down
+      - if:
+          - condition: template
+            value_template: "{{ states('input_text.omada_devices_down') | trim == '' }}"
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.omada_alerted
+
+  # ============ REPEAT REMINDER ============
+  - id: 'omada_alert_repeat'
+    alias: 'Omada Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_omada_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.omada_alerted
+        state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.omada_repeat_hours') | int(0) > 0 }}"
+      # Must have devices down
+      - condition: template
+        value_template: "{{ states('input_text.omada_devices_down') | trim != '' }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_omada_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.omada_last_alert') %}
+          {% set repeat_hrs = states('input_number.omada_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - variables:
+          devices_down: "{{ states('input_text.omada_devices_down') }}"
+          device_list: "{{ devices_down.split('|') | reject('eq', '') | list }}"
+          count: "{{ device_list | length }}"
+      - action: script.whatsapp_info
+        data:
+          message: >
+            📡🔴 *Network Devices Still Down*
+            *Devices:* {{ count }}
+            {% for device in device_list %}
+            • {{ device }}
+            {% endfor %}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.omada_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ MASS OUTAGE COUNTER ============
+  - id: network_mass_outage_counter_increment
+    alias: Network Mass Outage - Counter Increment
+    description: Increment counter when 3+ devices fail (mass outage)
+    triggers:
+      - trigger: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.network_outage_batch
+    conditions:
+      - condition: template
+        value_template: >
+          {% set devices_raw = states('input_text.network_devices_down_pending') %}
+          {% set device_list = devices_raw.split('|') | reject('eq', '') | list if devices_raw | length > 0 else [] %}
+          {{ device_list | length >= 3 }}
+    actions:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.network_mass_outages_today
+        data:
+          value: "{{ states('input_number.network_mass_outages_today') | int + 1 }}"
+
+  - id: network_mass_outage_counter_reset
+    alias: Network Mass Outage - Counter Reset
+    description: Reset mass outage counter at midnight
+    triggers:
+      - trigger: time
+        at: "00:00:00"
+    actions:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.network_mass_outages_today
+        data:
+          value: 0

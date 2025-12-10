@@ -1,0 +1,395 @@
+# =============================================================================
+# AC ACTIVITY LOGGING - OBSERVER PACKAGE
+# =============================================================================
+# Logs all AC activity across zones without modifying existing automations.
+# Watches for state changes on climate entities and records:
+#   - On/Off changes
+#   - Temperature setpoint changes
+#   - Current room temperature and target at time of change
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# INPUT TEXT - Stores log as JSON array (last 20 entries)
+# -----------------------------------------------------------------------------
+input_text:
+  ac_activity_log:
+    name: "AC Activity Log"
+    initial: "[]"
+    max: 255
+    icon: mdi:format-list-bulleted
+
+# -----------------------------------------------------------------------------
+# TEMPLATE SENSORS - Log display and per-zone last action
+# Uses existing input_select.presence_room_selector for filtering
+# -----------------------------------------------------------------------------
+template:
+  - sensor:
+      - name: "AC Activity List"
+        unique_id: ac_activity_list
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {{ log | length }} entradas
+        attributes:
+          markdown: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% if log | length == 0 %}
+            *Sin actividad registrada*
+            {% else %}
+            {% for entry in log %}
+            **{{ entry.time }}** [{{ entry.zone }}] {{ entry.message }}
+            {% endfor %}
+            {% endif %}
+          markdown_filtered: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set room = states('input_select.presence_room_selector') %}
+            {% set zone_map = {
+              'Cuarto Master': 'Master',
+              'Cuarto Andres': 'Andres',
+              'Cuarto Maria': 'María',
+              'Cine': 'Cine',
+              'Cocina': 'Cocina',
+              'Música': 'Música'
+            } %}
+            {% set filter = zone_map.get(room, none) %}
+            {% if filter %}
+              {% set log = log | selectattr('zone', 'eq', filter) | list %}
+            {% endif %}
+            {% if log | length == 0 %}
+            *Sin actividad registrada*
+            {% else %}
+            {% for entry in log %}
+            **{{ entry.time }}** {{ entry.message }}
+            {% endfor %}
+            {% endif %}
+          last_entry: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% if log | length > 0 %}
+            {{ log[0].zone }}: {{ log[0].message }}
+            {% else %}
+            Sin actividad
+            {% endif %}
+
+      # Per-zone last action sensors
+      - name: "AC Master Last Action"
+        unique_id: ac_master_last_action
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {% set zone_log = log | selectattr('zone', 'eq', 'Master') | list %}
+          {% if zone_log | length > 0 %}
+          {{ zone_log[0].message }}
+          {% else %}
+          Sin actividad
+          {% endif %}
+        attributes:
+          time: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set zone_log = log | selectattr('zone', 'eq', 'Master') | list %}
+            {% if zone_log | length > 0 %}
+            {{ zone_log[0].time }}
+            {% else %}
+            --:--
+            {% endif %}
+
+      - name: "AC Andres Last Action"
+        unique_id: ac_andres_last_action
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {% set zone_log = log | selectattr('zone', 'eq', 'Andres') | list %}
+          {% if zone_log | length > 0 %}
+          {{ zone_log[0].message }}
+          {% else %}
+          Sin actividad
+          {% endif %}
+        attributes:
+          time: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set zone_log = log | selectattr('zone', 'eq', 'Andres') | list %}
+            {% if zone_log | length > 0 %}
+            {{ zone_log[0].time }}
+            {% else %}
+            --:--
+            {% endif %}
+
+      - name: "AC María Last Action"
+        unique_id: ac_maria_last_action
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {% set zone_log = log | selectattr('zone', 'eq', 'María') | list %}
+          {% if zone_log | length > 0 %}
+          {{ zone_log[0].message }}
+          {% else %}
+          Sin actividad
+          {% endif %}
+        attributes:
+          time: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set zone_log = log | selectattr('zone', 'eq', 'María') | list %}
+            {% if zone_log | length > 0 %}
+            {{ zone_log[0].time }}
+            {% else %}
+            --:--
+            {% endif %}
+
+      - name: "AC Cine Last Action"
+        unique_id: ac_cine_last_action
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {% set zone_log = log | selectattr('zone', 'eq', 'Cine') | list %}
+          {% if zone_log | length > 0 %}
+          {{ zone_log[0].message }}
+          {% else %}
+          Sin actividad
+          {% endif %}
+        attributes:
+          time: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set zone_log = log | selectattr('zone', 'eq', 'Cine') | list %}
+            {% if zone_log | length > 0 %}
+            {{ zone_log[0].time }}
+            {% else %}
+            --:--
+            {% endif %}
+
+      - name: "AC Cocina Last Action"
+        unique_id: ac_cocina_last_action
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {% set zone_log = log | selectattr('zone', 'eq', 'Cocina') | list %}
+          {% if zone_log | length > 0 %}
+          {{ zone_log[0].message }}
+          {% else %}
+          Sin actividad
+          {% endif %}
+        attributes:
+          time: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set zone_log = log | selectattr('zone', 'eq', 'Cocina') | list %}
+            {% if zone_log | length > 0 %}
+            {{ zone_log[0].time }}
+            {% else %}
+            --:--
+            {% endif %}
+
+      - name: "AC Música Last Action"
+        unique_id: ac_musica_last_action
+        state: >
+          {% set log = states('input_text.ac_activity_log') | from_json %}
+          {% set zone_log = log | selectattr('zone', 'eq', 'Música') | list %}
+          {% if zone_log | length > 0 %}
+          {{ zone_log[0].message }}
+          {% else %}
+          Sin actividad
+          {% endif %}
+        attributes:
+          time: >
+            {% set log = states('input_text.ac_activity_log') | from_json %}
+            {% set zone_log = log | selectattr('zone', 'eq', 'Música') | list %}
+            {% if zone_log | length > 0 %}
+            {{ zone_log[0].time }}
+            {% else %}
+            --:--
+            {% endif %}
+
+# -----------------------------------------------------------------------------
+# SCRIPTS - Log activity helper
+# -----------------------------------------------------------------------------
+script:
+  ac_log_activity:
+    alias: "AC Log Activity"
+    description: "Add an entry to the AC activity log"
+    fields:
+      zone:
+        description: "Zone name (Master, Andres, María, Cine, Cocina, Música)"
+        example: "Master"
+      message:
+        description: "Log message"
+        example: "🟢 AC encendido a 20°C"
+    sequence:
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.ac_activity_log
+        data:
+          value: >
+            {% set current = states('input_text.ac_activity_log') | from_json %}
+            {% set new_entry = {
+              'time': now().strftime('%H:%M'),
+              'zone': zone,
+              'message': message
+            } %}
+            {% set updated = [new_entry] + current %}
+            {{ updated[:20] | to_json }}
+
+  ac_clear_activity_log:
+    alias: "AC Clear Activity Log"
+    description: "Clear all entries from the AC activity log"
+    sequence:
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.ac_activity_log
+        data:
+          value: "[]"
+
+# -----------------------------------------------------------------------------
+# AUTOMATIONS - Observer automations that watch climate entities
+# -----------------------------------------------------------------------------
+automation:
+  # Log when any AC turns ON
+  - id: ac_log_turned_on
+    alias: "AC Log - Turned On"
+    mode: queued
+    max: 10
+    trigger:
+      - platform: state
+        entity_id:
+          - climate.aire_master
+          - climate.aire_andres
+          - climate.aire_maria
+          - climate.aire_cine
+          - climate.aire_cocina
+          - climate.aire_musica
+        from: "off"
+        to:
+          - "cool"
+          - "heat"
+          - "auto"
+          - "dry"
+          - "fan_only"
+    action:
+      - variables:
+          zone_map:
+            climate.aire_master: "Master"
+            climate.aire_andres: "Andres"
+            climate.aire_maria: "María"
+            climate.aire_cine: "Cine"
+            climate.aire_cocina: "Cocina"
+            climate.aire_musica: "Música"
+          temp_sensor_map:
+            climate.aire_master: "sensor.cuarto_master_current_temperature"
+            climate.aire_andres: "sensor.cuarto_andres_current_temperature"
+            climate.aire_maria: "sensor.cuarto_maria_current_temperature"
+            climate.aire_cine: "sensor.cine_current_temperature"
+            climate.aire_cocina: "sensor.cocina_current_temperature"
+            climate.aire_musica: "sensor.musica_current_temperature"
+          target_sensor_map:
+            climate.aire_master: "input_number.cuarto_master_ac_target_temp"
+            climate.aire_andres: "input_number.cuarto_andres_ac_target_temp"
+            climate.aire_maria: "input_number.cuarto_maria_ac_target_temp"
+            climate.aire_cine: "input_number.cine_ac_target_temp"
+            climate.aire_cocina: "input_number.cocina_ac_target_temp"
+            climate.aire_musica: "input_number.musica_ac_target_temp"
+          zone: "{{ zone_map[trigger.entity_id] }}"
+          setpoint: "{{ state_attr(trigger.entity_id, 'temperature') | int }}"
+          room_temp: "{{ states(temp_sensor_map[trigger.entity_id]) | float | round(1) }}"
+          target_temp: "{{ states(target_sensor_map[trigger.entity_id]) | float | round(1) }}"
+      - service: script.ac_log_activity
+        data:
+          zone: "{{ zone }}"
+          message: "🟢 AC encendido a {{ setpoint }}°C (cuarto: {{ room_temp }}°C, meta: {{ target_temp }}°C)"
+
+  # Log when any AC turns OFF
+  - id: ac_log_turned_off
+    alias: "AC Log - Turned Off"
+    mode: queued
+    max: 10
+    trigger:
+      - platform: state
+        entity_id:
+          - climate.aire_master
+          - climate.aire_andres
+          - climate.aire_maria
+          - climate.aire_cine
+          - climate.aire_cocina
+          - climate.aire_musica
+        to: "off"
+        from:
+          - "cool"
+          - "heat"
+          - "auto"
+          - "dry"
+          - "fan_only"
+    action:
+      - variables:
+          zone_map:
+            climate.aire_master: "Master"
+            climate.aire_andres: "Andres"
+            climate.aire_maria: "María"
+            climate.aire_cine: "Cine"
+            climate.aire_cocina: "Cocina"
+            climate.aire_musica: "Música"
+          temp_sensor_map:
+            climate.aire_master: "sensor.cuarto_master_current_temperature"
+            climate.aire_andres: "sensor.cuarto_andres_current_temperature"
+            climate.aire_maria: "sensor.cuarto_maria_current_temperature"
+            climate.aire_cine: "sensor.cine_current_temperature"
+            climate.aire_cocina: "sensor.cocina_current_temperature"
+            climate.aire_musica: "sensor.musica_current_temperature"
+          target_sensor_map:
+            climate.aire_master: "input_number.cuarto_master_ac_target_temp"
+            climate.aire_andres: "input_number.cuarto_andres_ac_target_temp"
+            climate.aire_maria: "input_number.cuarto_maria_ac_target_temp"
+            climate.aire_cine: "input_number.cine_ac_target_temp"
+            climate.aire_cocina: "input_number.cocina_ac_target_temp"
+            climate.aire_musica: "input_number.musica_ac_target_temp"
+          zone: "{{ zone_map[trigger.entity_id] }}"
+          room_temp: "{{ states(temp_sensor_map[trigger.entity_id]) | float | round(1) }}"
+          target_temp: "{{ states(target_sensor_map[trigger.entity_id]) | float | round(1) }}"
+      - service: script.ac_log_activity
+        data:
+          zone: "{{ zone }}"
+          message: "🔴 AC apagado (cuarto: {{ room_temp }}°C, meta: {{ target_temp }}°C)"
+
+  # Log when AC setpoint changes (while AC is on)
+  - id: ac_log_setpoint_changed
+    alias: "AC Log - Setpoint Changed"
+    mode: queued
+    max: 10
+    trigger:
+      - platform: state
+        entity_id:
+          - climate.aire_master
+          - climate.aire_andres
+          - climate.aire_maria
+          - climate.aire_cine
+          - climate.aire_cocina
+          - climate.aire_musica
+        attribute: temperature
+    condition:
+      # Only log if AC is on and temperature actually changed
+      - condition: template
+        value_template: >
+          {{ trigger.from_state.attributes.temperature is defined and
+             trigger.to_state.attributes.temperature is defined and
+             trigger.from_state.attributes.temperature != trigger.to_state.attributes.temperature and
+             trigger.to_state.state != 'off' }}
+    action:
+      - variables:
+          zone_map:
+            climate.aire_master: "Master"
+            climate.aire_andres: "Andres"
+            climate.aire_maria: "María"
+            climate.aire_cine: "Cine"
+            climate.aire_cocina: "Cocina"
+            climate.aire_musica: "Música"
+          temp_sensor_map:
+            climate.aire_master: "sensor.cuarto_master_current_temperature"
+            climate.aire_andres: "sensor.cuarto_andres_current_temperature"
+            climate.aire_maria: "sensor.cuarto_maria_current_temperature"
+            climate.aire_cine: "sensor.cine_current_temperature"
+            climate.aire_cocina: "sensor.cocina_current_temperature"
+            climate.aire_musica: "sensor.musica_current_temperature"
+          target_sensor_map:
+            climate.aire_master: "input_number.cuarto_master_ac_target_temp"
+            climate.aire_andres: "input_number.cuarto_andres_ac_target_temp"
+            climate.aire_maria: "input_number.cuarto_maria_ac_target_temp"
+            climate.aire_cine: "input_number.cine_ac_target_temp"
+            climate.aire_cocina: "input_number.cocina_ac_target_temp"
+            climate.aire_musica: "input_number.musica_ac_target_temp"
+          zone: "{{ zone_map[trigger.entity_id] }}"
+          old_setpoint: "{{ trigger.from_state.attributes.temperature | int }}"
+          new_setpoint: "{{ trigger.to_state.attributes.temperature | int }}"
+          room_temp: "{{ states(temp_sensor_map[trigger.entity_id]) | float | round(1) }}"
+          target_temp: "{{ states(target_sensor_map[trigger.entity_id]) | float | round(1) }}"
+      - service: script.ac_log_activity
+        data:
+          zone: "{{ zone }}"
+          message: "🔄 AC {{ old_setpoint }}°C → {{ new_setpoint }}°C (cuarto: {{ room_temp }}°C, meta: {{ target_temp }}°C)"

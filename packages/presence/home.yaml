@@ -1,0 +1,224 @@
+# /config/packages/presence/home_presence.yaml
+# Bayesian Presence Detection for Andrés and Evelyn
+# With configurable delays via UI
+
+# ============ INPUT CONTROLS ============
+input_boolean:
+  alert_presence_enabled:
+    name: Presence Alert Enabled
+    icon: mdi:account-alert
+
+input_number:
+  presence_arrival_delay:
+    name: Arrival Delay
+    min: 0
+    max: 120
+    step: 5
+    initial: 15
+    unit_of_measurement: "sec"
+    icon: mdi:home-import-outline
+    
+  presence_departure_delay:
+    name: Departure Delay
+    min: 0
+    max: 120
+    step: 5
+    initial: 15
+    unit_of_measurement: "sec"
+    icon: mdi:home-export-outline
+
+# ============ BAYESIAN PRESENCE SENSORS ============
+binary_sensor:
+  - platform: bayesian
+    name: "Andres Home"
+    unique_id: bayesian_andres_home
+    prior: 0.5
+    probability_threshold: 0.8
+    observations:
+      # iCloud3 device tracker
+      - platform: state
+        entity_id: device_tracker.iphone_andres
+        to_state: "home"
+        prob_given_true: 0.9
+        prob_given_false: 0.2
+      # Companion app device tracker
+      - platform: state
+        entity_id: device_tracker.andress_iphone_air
+        to_state: "home"
+        prob_given_true: 0.9
+        prob_given_false: 0.2
+      # BLE Bermuda tracker
+      - platform: state
+        entity_id: device_tracker.iphone_andres_ble_bermuda_tracker
+        to_state: "home"
+        prob_given_true: 0.85
+        prob_given_false: 0.1
+      # Home distance = 0 (very strong signal)
+      - platform: numeric_state
+        entity_id: sensor.iphone_andres_home_distance
+        below: 0.1
+        prob_given_true: 0.95
+        prob_given_false: 0.05
+      # SSID connected to home WiFi (uncomment once working)
+      # - platform: state
+      #   entity_id: sensor.andress_iphone_air_ssid
+      #   to_state: "Pom"
+      #   prob_given_true: 0.98
+      #   prob_given_false: 0.02
+
+  - platform: bayesian
+    name: "Evelyn Home"
+    unique_id: bayesian_evelyn_home
+    prior: 0.5
+    probability_threshold: 0.8
+    observations:
+      # iCloud3 device tracker
+      - platform: state
+        entity_id: device_tracker.iphone_evelyn_2
+        to_state: "home"
+        prob_given_true: 0.9
+        prob_given_false: 0.2
+      # Companion app device tracker
+      - platform: state
+        entity_id: device_tracker.iphone_de_evelyn
+        to_state: "home"
+        prob_given_true: 0.9
+        prob_given_false: 0.2
+      # BLE Bermuda tracker
+      - platform: state
+        entity_id: device_tracker.iphone_evelyn_bermuda_tracker
+        to_state: "home"
+        prob_given_true: 0.85
+        prob_given_false: 0.1
+      # Home distance = 0 (very strong signal)
+      - platform: numeric_state
+        entity_id: sensor.iphone_evelyn_home_distance
+        below: 0.1
+        prob_given_true: 0.95
+        prob_given_false: 0.05
+      # SSID connected to home WiFi (uncomment once working)
+      # - platform: state
+      #   entity_id: sensor.iphone_de_evelyn_ssid
+      #   to_state: "Pom"
+      #   prob_given_true: 0.98
+      #   prob_given_false: 0.02
+
+# ============ TEST SCRIPT ============
+script:
+  test_presence_notification:
+    alias: Test Presence Notification
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🧪 *Presence Test*
+            *Andrés:* {{ states('binary_sensor.andres_home') }}
+            *Evelyn:* {{ states('binary_sensor.evelyn_home') }}
+            *Arrival Delay:* {{ states('input_number.presence_arrival_delay') }}s
+            *Departure Delay:* {{ states('input_number.presence_departure_delay') }}s
+
+# ============ PRESENCE AUTOMATIONS ============
+automation:
+  # ============ ANDRÉS - ARRIVED HOME ============
+  - id: presence_alert_andres_arrived
+    alias: Presence Alert - Andres Arrived
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.andres_home
+        to: "on"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.alert_presence_enabled
+        state: "on"
+      - condition: template
+        value_template: >
+          {{ (as_timestamp(now()) - as_timestamp(trigger.to_state.last_changed)) 
+             >= (states('input_number.presence_arrival_delay') | int) }}
+    actions:
+      - delay:
+          seconds: "{{ states('input_number.presence_arrival_delay') | int }}"
+      - condition: state
+        entity_id: binary_sensor.andres_home
+        state: "on"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏠✅ *Andrés Arrived Home*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ ANDRÉS - LEFT HOME ============
+  - id: presence_alert_andres_left
+    alias: Presence Alert - Andres Left
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.andres_home
+        to: "off"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.alert_presence_enabled
+        state: "on"
+    actions:
+      - delay:
+          seconds: "{{ states('input_number.presence_departure_delay') | int }}"
+      - condition: state
+        entity_id: binary_sensor.andres_home
+        state: "off"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏠👋 *Andrés Left Home*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ EVELYN - ARRIVED HOME ============
+  - id: presence_alert_evelyn_arrived
+    alias: Presence Alert - Evelyn Arrived
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.evelyn_home
+        to: "on"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.alert_presence_enabled
+        state: "on"
+    actions:
+      - delay:
+          seconds: "{{ states('input_number.presence_arrival_delay') | int }}"
+      - condition: state
+        entity_id: binary_sensor.evelyn_home
+        state: "on"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏠✅ *Evelyn Arrived Home*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ EVELYN - LEFT HOME ============
+  - id: presence_alert_evelyn_left
+    alias: Presence Alert - Evelyn Left
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.evelyn_home
+        to: "off"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.alert_presence_enabled
+        state: "on"
+    actions:
+      - delay:
+          seconds: "{{ states('input_number.presence_departure_delay') | int }}"
+      - condition: state
+        entity_id: binary_sensor.evelyn_home
+        state: "off"
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🏠👋 *Evelyn Left Home*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}

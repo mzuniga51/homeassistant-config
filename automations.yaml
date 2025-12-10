@@ -1,0 +1,914 @@
+- id: '1761156966504'
+  alias: Abre Cortinas Musica
+  description: ''
+  triggers:
+  - trigger: time
+    at: 07:00:00
+  conditions: []
+  actions:
+  - action: cover.set_cover_position
+    metadata: {}
+    data:
+      position: 0
+    target:
+      entity_id:
+      - cover.cortina_musica_derecha_curtain
+      - cover.cortina_musica_izquierda_curtain
+  mode: single
+- id: '1761158388275'
+  alias: Turn on luces traseras on door open
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.living_door_2
+    - binary_sensor.living_door_side
+    - binary_sensor.family_room_door
+    - binary_sensor.living_door_1
+    - binary_sensor.master_bedroom_door_contact
+    from: 'off'
+    to: 'on'
+  conditions:
+  - condition: time
+    after: '22:00:00'
+    before: 06:00:00
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.luces_exteriorestraseras
+  - delay:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.luces_exteriorestraseras
+  mode: restart
+- id: '1761165037971'
+  alias: 'Presence: Turn Aire Master off'
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.sensor_master_movimiento_motion
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions:
+  - condition: time
+    after: '12:00:00'
+    before: '22:00:00'
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.aire_master
+  mode: single
+- id: '1761165526067'
+  alias: 'Presence: Aire Cocina Off'
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.sensor_cocina_motion
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions: []
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.aire_cocina
+  mode: single
+- id: '1761165788749'
+  alias: 'Presence: Turn off aire musica'
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - switch.sensor_sala_de_musica_motion_sensor_enabled
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 30
+      seconds: 0
+  conditions: []
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.aire_musica
+  mode: single
+- id: '1761169791324'
+  alias: Cierra Cortinas Musica
+  description: ''
+  triggers:
+  - trigger: time
+    at: '16:00:00'
+  - trigger: numeric_state
+    entity_id:
+    - sensor.hp2564bu_pro_v1_9_9_solar_lux
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    below: 600
+  conditions: []
+  actions:
+  - action: cover.set_cover_position
+    metadata: {}
+    data:
+      position: 100
+    target:
+      entity_id:
+      - cover.cortina_musica_derecha_curtain
+      - cover.cortina_musica_izquierda_curtain
+  mode: single
+- id: '1761170996200'
+  alias: Luces Exteriores Evening
+  description: ''
+  triggers:
+  - trigger: time
+    at: '17:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+    id: evening
+  - trigger: numeric_state
+    entity_id:
+    - sensor.hp2564bu_pro_v1_9_9_solar_lux
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    below: 600
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - light.luces_exteriorestraseras
+      - light.faroles_delanteros
+  mode: single
+- id: '1761177659949'
+  alias: Luces Garage Auxiliary
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.living_door_side
+    - binary_sensor.front_door
+    from: 'off'
+    to: 'on'
+  - trigger: state
+    entity_id:
+    - binary_sensor.sensor_garage_motion
+    from: 'off'
+    to: 'on'
+  conditions:
+  - condition: time
+    after: '15:00:00'
+    before: 06:00:00
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.garage
+  - delay:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.garage
+  mode: restart
+- id: '1761193237801'
+  alias: Luces Exteriores Traseras Off
+  description: ''
+  triggers:
+  - trigger: time
+    at: '22:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+    id: evening
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.luces_exteriorestraseras
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.toma_doble_jardin_socket_1
+  mode: single
+- id: '1761193608077'
+  alias: Fuente Evelyn Timer
+  description: ''
+  triggers:
+  - trigger: time
+    at: '14:00:00'
+  conditions: []
+  actions:
+  - action: switch.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: switch.toma_doble_jardin_socket_2
+  - delay:
+      hours: 6
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: switch.toma_doble_jardin_socket_2
+  mode: single
+- id: '1761341102031'
+  alias: Luces Exteriores Delanteras Off
+  description: ''
+  triggers:
+  - trigger: time
+    at: 06:00:00
+    id: evening
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.faroles_delanteros
+  mode: single
+- id: '1761415422462'
+  alias: Aire Master Off on Door
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.master_bedroom_door_contact
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.aire_master
+  mode: single
+- id: '1761516508895'
+  alias: Aire Andres Off on Door
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.puerta_andres_contact
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  conditions: []
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.aire_andres
+  mode: restart
+- id: '1761516678547'
+  alias: 'Presence:  Cuarto Andres Off'
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.sensor_closet_de_andres_motion
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions:
+  - condition: time
+    after: '10:00:00'
+    before: '21:00:00'
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: climate.aire_andres
+  mode: single
+- id: '1761524357055'
+  alias: Aires Cocina Cine Door
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.family_room_door
+    - binary_sensor.side_main_entryway
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  conditions: []
+  actions:
+  - action: climate.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - climate.aire_cine
+      - climate.aire_cocina
+  mode: restart
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, open switch.llenado_piscina for (7
+    mm - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: '23:55:00'
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ fill_minutes > 0 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.llenado_piscina
+    - delay:
+        minutes: '{{ fill_minutes }}'
+    - action: switch.turn_off
+      target:
+        entity_id: switch.llenado_piscina
+  mode: single
+  variables:
+    daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') | float(0)
+      }}'
+    missing_mm: '{% set diff = 7 - daily_rain_mm %} {{ 0 if diff < 0 else diff }}
+
+      '
+    fill_minutes: '{{ missing_mm | round(0) }}'
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, open switch.llenado_piscina for (7
+    mm - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: '23:55:00'
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ fill_minutes > 0 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.llenado_piscina
+    - delay:
+        minutes: '{{ fill_minutes | int }}
+
+          '
+    - action: switch.turn_off
+      target:
+        entity_id: switch.llenado_piscina
+  mode: single
+  variables:
+    daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') | float(0)
+      }}'
+    missing_mm: '{% set diff = 7 - daily_rain_mm %} {{ [diff, 0] | max }}
+
+      '
+    fill_minutes: '{{ missing_mm | round(0) }}'
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, open switch.llenado_piscina for (7
+    mm - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - variables:
+      daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') |
+        float(0) }}'
+      missing_mm: '{% set diff = 7 - daily_rain_mm %} {{ [diff, 0] | max }}          #
+        nunca negativo
+
+        '
+      fill_minutes: '{{ missing_mm | round(0) }}'
+  - if:
+    - condition: template
+      value_template: '{{ fill_minutes | int > 0 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.llenado_piscina
+    - delay:
+        minutes: '{{ fill_minutes | int }}'
+    - action: switch.turn_off
+      target:
+        entity_id: switch.llenado_piscina
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, open switch.llenado_piscina for (7
+    mm - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - variables:
+      daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') |
+        float(0) }}'
+      missing_mm: '{% set diff = 7 - daily_rain_mm %} {{ [diff, 0] | max }}          #
+        nunca negativo
+
+        '
+      fill_minutes: '{{ missing_mm | round(0) }}'
+  - if:
+    - condition: template
+      value_template: '{{ fill_minutes | int > 0 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.llenado_piscina
+    - delay:
+        minutes: '{{ fill_minutes | int }}'
+    - action: switch.turn_off
+      target:
+        entity_id: switch.llenado_piscina
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, open switch.llenado_piscina for (7
+    mm - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - variables:
+      daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') |
+        float(0) }}'
+      missing_mm: '{% set diff = 7 - daily_rain_mm %} {{ [diff, 0] | max }}          #
+        nunca negativo
+
+        '
+      fill_minutes: '{{ missing_mm | round(0) }}'
+  - if:
+    - condition: template
+      value_template: '{{ fill_minutes | int > 0 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.llenado_piscina
+    - delay:
+        minutes: '{{ fill_minutes | int }}'
+    - action: switch.turn_off
+      target:
+        entity_id: switch.llenado_piscina
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - variables:
+      daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') |
+        float(0) }}'
+      fill_minutes: '{% set diff = 7 - daily_rain_mm %} {{ (0 if diff < 0 else diff)
+        | round(0) }}
+
+        '
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ fill_minutes | int > 0 }}'
+      sequence:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.llenado_piscina
+      - delay:
+          seconds: '{{ (fill_minutes | int) * 60 }}'
+      - action: switch.turn_off
+        target:
+          entity_id: switch.llenado_piscina
+    default: []
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - variables:
+      daily_rain_mm: '{{ states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'') |
+        float(0) }}'
+      fill_minutes: '{% set diff = 7 - daily_rain_mm %} {{ (0 if diff < 0 else diff)
+        | round(0) }}
+
+        '
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ fill_minutes | int > 0 }}'
+      sequence:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.llenado_piscina
+      - delay:
+          seconds: '{{ (fill_minutes | int) * 60 }}'
+      - action: switch.turn_off
+        target:
+          entity_id: switch.llenado_piscina
+    default: []
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+          | float(0))) | int) > 0 }}
+
+          '
+      sequence:
+      - target:
+          entity_id: switch.llenado_piscina
+        action: switch.turn_on
+      - delay:
+          seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+            | float(0))) | int) * 60 }}
+
+            '
+      - target:
+          entity_id: switch.llenado_piscina
+        action: switch.turn_off
+    default: []
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+          | float(0))) | int) > 0 }}
+
+          '
+      sequence:
+      - target:
+          entity_id: switch.llenado_piscina
+        action: switch.turn_on
+      - delay:
+          seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+            | float(0))) | int) * 60 }}
+
+            '
+      - target:
+          entity_id: switch.llenado_piscina
+        action: switch.turn_off
+    default: []
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - trigger: time
+    at: 02:00:00
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+          | float(0))) > 0 }}
+
+          '
+      sequence:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.llenado_piscina
+      - delay:
+          seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+            | float(0))) | int) * 60 }}
+
+            '
+      - action: switch.turn_off
+        target:
+          entity_id: switch.llenado_piscina
+    default: []
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single
+- id: pool_fill_based_on_daily_rain
+  alias: Pool Fill Based on Daily Rain
+  description: 'If today''s rain is below 7 mm, run switch.llenado_piscina for (7
+    - rain_mm) minutes.
+
+    '
+  triggers:
+  - at: 02:00:00
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ (7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+      | float(0))) > 0 }}
+
+      '
+  actions:
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_on
+  - delay:
+      seconds: '{{ ((7 - (states(''sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo'')
+        | float(0))) * 60) | int }}
+
+        '
+  - target:
+      entity_id: switch.llenado_piscina
+    action: switch.turn_off
+  mode: single

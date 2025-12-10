@@ -1,0 +1,384 @@
+# /config/packages/integrations/plomeria.yaml
+# Consolidated: Valve Modes + Device Monitoring Alerts
+# - Three mode sliders (0/1): Base, AyA Directo, Filter Bypass
+# - Mutually exclusive: selecting one turns the others to 0
+# - Device status alerts with debounce, repeat, and priority
+# NOTE: Uses plomeria_dev_ prefix to avoid conflict with water_alert_package.yaml
+
+input_boolean:
+  alert_plomeria_enabled:
+    name: Plomería Alert
+    icon: mdi:pipe-valve
+
+  # Alert tracking - only send recovery if DOWN was sent
+  plomeria_dev_alerted:
+    name: Plomería Device Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  valve_mode_base:
+    name: Base
+    icon: mdi:valve
+    min: 0
+    max: 1
+    step: 1
+    mode: slider
+
+  valve_mode_aya_directo:
+    name: AyA Directo
+    icon: mdi:valve
+    min: 0
+    max: 1
+    step: 1
+    mode: slider
+
+  valve_mode_filter_bypass:
+    name: Filter Bypass
+    icon: mdi:valve
+    min: 0
+    max: 1
+    step: 1
+    mode: slider
+
+  plomeria_debounce_minutes:
+    name: Plomería Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 5
+
+  plomeria_repeat_hours:
+    name: Plomería Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 0
+
+input_datetime:
+  plomeria_last_alert:
+    name: Plomería Last Alert
+    has_date: true
+    has_time: true
+
+input_text:
+  plomeria_devices_down:
+    name: Plomería Devices Down
+    max: 255
+    initial: ""
+
+script:
+  test_plomeria_notification:
+    alias: Test Plomería Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🚰 *Plomería Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+automation:
+  # ============ VALVE MODES SWITCHER ============
+  - id: valve_modes_switcher_2025_09_27
+    alias: Valve Modes Switcher (Base / AyA Directo / Filter Bypass)
+    description: Applies valve states when a mode slider (0/1) is set to 1, and keeps modes mutually exclusive.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_number.valve_mode_base
+        to: '1.0'
+        id: base
+      - platform: state
+        entity_id: input_number.valve_mode_aya_directo
+        to: '1.0'
+        id: aya
+      - platform: state
+        entity_id: input_number.valve_mode_filter_bypass
+        to: '1.0'
+        id: bypass
+    action:
+      - choose:
+          # -------- BASE --------
+          - conditions:
+              - condition: trigger
+                id: base
+            sequence:
+              - alias: "Select Base: set other sliders to 0"
+                action: input_number.set_value
+                target:
+                  entity_id:
+                    - input_number.valve_mode_aya_directo
+                    - input_number.valve_mode_filter_bypass
+                data:
+                  value: 0
+              - alias: "Base: switches ON"
+                action: switch.turn_on
+                target:
+                  entity_id:
+                    - switch.v_filtro_in_20_switch_1
+                    - switch.v_tanque_in_dd_switch_1
+                    - switch.v_filtro_out_e6_switch_1
+                    - switch.v_riego_5b_switch_1
+              - alias: "Base: switches OFF"
+                action: switch.turn_off
+                target:
+                  entity_id:
+                    - switch.v_aya_46_switch_1
+                    - switch.v_sin_filtro_out_37_switch_1
+
+          # -------- AyA DIRECTO --------
+          - conditions:
+              - condition: trigger
+                id: aya
+            sequence:
+              - alias: "Select AyA Directo: set other sliders to 0"
+                action: input_number.set_value
+                target:
+                  entity_id:
+                    - input_number.valve_mode_base
+                    - input_number.valve_mode_filter_bypass
+                data:
+                  value: 0
+              - alias: "AyA Directo: switches ON"
+                action: switch.turn_on
+                target:
+                  entity_id:
+                    - switch.v_filtro_in_20_switch_1
+                    - switch.v_aya_46_switch_1
+                    - switch.v_riego_5b_switch_1
+              - alias: "AyA Directo: switches OFF"
+                action: switch.turn_off
+                target:
+                  entity_id:
+                    - switch.v_tanque_in_dd_switch_1
+                    - switch.v_filtro_out_e6_switch_1
+                    - switch.v_sin_filtro_out_37_switch_1
+
+          # -------- FILTER BYPASS --------
+          - conditions:
+              - condition: trigger
+                id: bypass
+            sequence:
+              - alias: "Select Filter Bypass: set other sliders to 0"
+                action: input_number.set_value
+                target:
+                  entity_id:
+                    - input_number.valve_mode_base
+                    - input_number.valve_mode_aya_directo
+                data:
+                  value: 0
+              - alias: "Filter Bypass: switches ON"
+                action: switch.turn_on
+                target:
+                  entity_id:
+                    - switch.v_tanque_in_dd_switch_1
+                    - switch.v_sin_filtro_out_37_switch_1
+                    - switch.v_riego_5b_switch_1
+              - alias: "Filter Bypass: switches OFF"
+                action: switch.turn_off
+                target:
+                  entity_id:
+                    - switch.v_filtro_in_20_switch_1
+                    - switch.v_aya_46_switch_1
+                    - switch.v_filtro_out_e6_switch_1
+
+  # ============ PLOMERIA - FAILURE ============
+  - id: 'plomeria_alert_failure'
+    alias: 'Plomería Alert - Failure'
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_plomeria_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id in [
+            'sensor.breaker_bomba_de_agua_status',
+            'sensor.moen_flo_status',
+            'sensor.v_aya_status',
+            'sensor.v_filtro_in_status',
+            'sensor.v_filtro_out_status',
+            'sensor.v_riego_status',
+            'sensor.v_sin_filtro_out_status',
+            'sensor.v_tanque_in_status'
+          ] }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+    action:
+      - variables:
+          failed_entity: "{{ trigger.event.data.entity_id }}"
+          failed_name: "{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}"
+          debounce_mins: "{{ states('input_number.plomeria_debounce_minutes') | int(5) }}"
+      
+      # Wait for debounce period (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+          # Check if STILL down after debounce
+          - condition: template
+            value_template: "{{ states(failed_entity) | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_plomeria_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      # Add to devices down list (with duplicate check)
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.plomeria_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.plomeria_devices_down') %}
+            {% set current_list = current.split(',') | map('trim') | reject('eq', '') | list %}
+            {% if failed_name not in current_list %}
+              {% set new_list = current_list + [failed_name] %}
+              {{ new_list | join(',') | truncate(255, True, '') }}
+            {% else %}
+              {{ current }}
+            {% endif %}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🚰 *{{ failed_name }} Down*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Mark as alerted and record time
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.plomeria_dev_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.plomeria_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ PLOMERIA - RECOVERY ============
+  - id: 'plomeria_alert_recovery'
+    alias: 'Plomería Alert - Recovery'
+    trigger:
+      - platform: event
+        event_type: state_changed
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_plomeria_enabled
+        state: 'on'
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.entity_id in [
+            'sensor.breaker_bomba_de_agua_status',
+            'sensor.moen_flo_status',
+            'sensor.v_aya_status',
+            'sensor.v_filtro_in_status',
+            'sensor.v_filtro_out_status',
+            'sensor.v_riego_status',
+            'sensor.v_sin_filtro_out_status',
+            'sensor.v_tanque_in_status'
+          ] }}
+      - condition: template
+        value_template: "{{ trigger.event.data.old_state.state | lower not in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      - condition: template
+        value_template: "{{ trigger.event.data.new_state.state | lower in ['up','online','ok','ready','healthy','on','true','1'] }}"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.plomeria_dev_alerted
+        state: 'on'
+      # Only send recovery if THIS device was reported down
+      - condition: template
+        value_template: >
+          {% set recovered_name = state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') %}
+          {{ recovered_name in states('input_text.plomeria_devices_down').split(',') | map('trim') | list }}
+    action:
+      - variables:
+          recovered_name: "{{ state_attr(trigger.event.data.entity_id, 'friendly_name') | replace(' Status', '') }}"
+      
+      # Remove from devices down list
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.plomeria_devices_down
+        data:
+          value: >
+            {% set current = states('input_text.plomeria_devices_down') %}
+            {% set devices = current.split(',') | map('trim') | reject('eq', recovered_name) | reject('eq', '') | list %}
+            {{ devices | join(',') }}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 🚰 *{{ recovered_name }} Recovered*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Clear alerted state only if no more devices down
+      - if:
+          - condition: template
+            value_template: "{{ states('input_text.plomeria_devices_down') | trim == '' }}"
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.plomeria_dev_alerted
+
+  # ============ PLOMERIA - REPEAT REMINDER ============
+  - id: 'plomeria_alert_repeat'
+    alias: 'Plomería Alert - Repeat Reminder'
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_plomeria_enabled
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.plomeria_dev_alerted
+        state: 'on'
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.plomeria_repeat_hours') | int(0) > 0 }}"
+      # Must have devices down
+      - condition: template
+        value_template: "{{ states('input_text.plomeria_devices_down') | trim != '' }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_plomeria_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.plomeria_last_alert') %}
+          {% set repeat_hrs = states('input_number.plomeria_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 🚰 *Plomería Devices Still Down*
+            *Devices:* {{ states('input_text.plomeria_devices_down') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.plomeria_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

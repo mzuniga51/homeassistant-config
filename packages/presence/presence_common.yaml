@@ -1,0 +1,27 @@
+# =============================================================================
+# PRESENCE SYSTEM - COMMON/SHARED CONFIGURATION
+# =============================================================================
+# This file contains shared entities used across all presence zones.
+# When adding a new zone, add it to the room selector options below.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# ROOM SELECTOR - Shared across all zones
+# -----------------------------------------------------------------------------
+input_select:
+  presence_room_selector:
+    name: "Presence Room Selector"
+    options:
+      - Cuarto Master
+      - Baño Master
+      - Cuarto Andres
+      - Cuarto Maria
+      - Cine
+      - Cocina
+      - Música
+      - Area Social
+      - Garage
+      - Solario
+      - Jardines
+    initial: Cuarto Master
+    icon: mdi:home-floor-1

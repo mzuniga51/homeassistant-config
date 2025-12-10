@@ -1,0 +1,32 @@
+esphome:
+  name: room-tracker-musica
+  friendly_name: Room Tracker Música
+  project: { name: manuel.bermuda_room_tracker, version: "1.0.0" }
+
+esp32:
+  board: esp32dev
+  framework: { type: arduino }
+
+wifi:
+  ssid: "Pom IoT"
+  password: "Francis163069*"
+  fast_connect: true
+  power_save_mode: none
+  ap:
+    ssid: "RT-Musica Fallback"
+    password: "musica-setup-1234"
+captive_portal:
+
+logger:
+api:          # no encryption
+ota:
+web_server:
+
+# --- Bermuda essentials ---
+esp32_ble_tracker:
+bluetooth_proxy:
+  active: true
+
+wifi_signal:
+  name: "RT Música WiFi RSSI"
+  update_interval: 60s

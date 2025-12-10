@@ -1,0 +1,72 @@
+# /config/packages/badges/active_aircons.yaml
+# AC chip + helpers (binary sensor + template switch + script)
+
+template:
+  # Binary sensor: ON if any of the three ACs is not off
+  - binary_sensor:
+      - unique_id: ac_activos
+        name: "AC activos"
+        # Return a real boolean for binary_sensor state
+        state: >-
+          {{ states('climate.aire_cine')   != 'off' or
+             states('climate.aire_master') != 'off' or
+             states('climate.aire_cocina') != 'off' }}
+        icon: mdi:air-conditioner
+
+  # Modern template switch replacing the old platform: template definition
+  - switch:
+      - unique_id: aires_master_cine_cocina
+        name: "Aires"
+        icon: mdi:air-conditioner
+
+        # State: ON if any of the three ACs is not off
+        state: >-
+          {{ states('climate.aire_cine')   != 'off' or
+             states('climate.aire_master') != 'off' or
+             states('climate.aire_cocina') != 'off' }}
+
+        # We only care about OFF; ON is a no-op (safe)
+        turn_on:
+          - action: homeassistant.update_entity
+            target:
+              entity_id:
+                - climate.aire_cine
+                - climate.aire_master
+                - climate.aire_cocina
+
+        turn_off:
+          - action: script.turn_on
+            target:
+              entity_id: script.apagar_aires
+
+script:
+  apagar_aires:
+    alias: "Apagar A/C (Cine, Master, Cocina)"
+    mode: restart
+    sequence:
+      - variables:
+          targets:
+            - climate.aire_cine
+            - climate.aire_master
+            - climate.aire_cocina
+
+      # Prefer hvac_mode off first
+      - repeat:
+          for_each: "{{ targets }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: "{{ repeat.item }}"
+              data:
+                hvac_mode: "off"
+
+      # Short wait + fallback if any didn't go 'off'
+      - delay: "00:00:02"
+      - repeat:
+          for_each: "{{ targets }}"
+          sequence:
+            - condition: template
+              value_template: "{{ states(repeat.item) != 'off' }}"
+            - service: climate.turn_off
+              target:
+                entity_id: "{{ repeat.item }}"

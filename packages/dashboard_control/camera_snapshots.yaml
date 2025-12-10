@@ -1,0 +1,429 @@
+# /config/packages/dashboard_control/camera_snapshots.yaml
+# ---------------------------------------------------------
+# Two snapshot tracks for your Ring MQTT cameras:
+#
+# 1) GRID SNAPSHOTS – every 15 minutes
+#    Source:  camera.camara_*_mqtt_snapshot
+#    Target:  /config/www/ring/grid/<name>.jpg
+#
+# 2) MOTION SNAPSHOTS – on motion events
+#    Source:  camera.camara_*_mqtt_snapshot
+#    Target:  /config/www/ring/motion/<name>.jpg
+#
+# SAFETY:
+# - Every snapshot is first written to /config/www/ring/tmp/<name>_tmp.jpg
+# - A shell_command only MOVES it to the final file if it is non-empty.
+# - If the snapshot is broken/empty, the temp file is deleted and the
+#   old good JPG is preserved.
+
+shell_command:
+  ring_save_snapshot_if_nonempty: >
+    bash -c 'if [ -s "{{ temp }}" ]; then mv "{{ temp }}" "{{ final }}"; else rm -f "{{ temp }}"; fi'
+
+automation:
+
+  # ---------------------------------------------------------
+  # 1) GRID SNAPSHOTS – every 15 minutes (for fast camera grid)
+  # ---------------------------------------------------------
+  - id: ring_grid_snapshots_safe_15min
+    alias: Ring – Grid snapshots every 15 min (safe)
+    mode: single
+
+    triggers:
+      - trigger: time_pattern
+        minutes: "/15"
+
+    conditions: []
+
+    actions:
+      # ----- Garage -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_garage_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_garage_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/garage_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/garage_grid_tmp.jpg"
+              final: "/config/www/ring/grid/garage.jpg"
+
+      # ----- Frente Centro -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_frente_centro_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_frente_centro_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/frente_centro_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/frente_centro_grid_tmp.jpg"
+              final: "/config/www/ring/grid/frente_centro.jpg"
+
+      # ----- Frente Izquierda -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_frente_izquierda_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_frente_izquierda_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/frente_izquierda_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/frente_izquierda_grid_tmp.jpg"
+              final: "/config/www/ring/grid/frente_izquierda.jpg"
+
+      # ----- Frente Derecha -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_frente_derecha_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_frente_derecha_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/frente_derecha_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/frente_derecha_grid_tmp.jpg"
+              final: "/config/www/ring/grid/frente_derecha.jpg"
+
+      # ----- Casa de Máquinas -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_casa_de_maquinas_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_casa_de_maquinas_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/casa_de_maquinas_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/casa_de_maquinas_grid_tmp.jpg"
+              final: "/config/www/ring/grid/casa_de_maquinas.jpg"
+
+      # ----- Costado Piscina -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_costado_piscina_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_costado_piscina_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/costado_piscina_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/costado_piscina_grid_tmp.jpg"
+              final: "/config/www/ring/grid/costado_piscina.jpg"
+
+      # ----- Piscina -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_piscina_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_piscina_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/piscina_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/piscina_grid_tmp.jpg"
+              final: "/config/www/ring/grid/piscina.jpg"
+
+      # ----- Solario -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_solario_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_solario_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/solario_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/solario_grid_tmp.jpg"
+              final: "/config/www/ring/grid/solario.jpg"
+
+      # ----- Terraza -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_terraza_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_terraza_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/terraza_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/terraza_grid_tmp.jpg"
+              final: "/config/www/ring/grid/terraza.jpg"
+
+      # ----- Pom (grid only) -----
+      - if:
+          - condition: template
+            value_template: >
+              {{ states('camera.camara_pom_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+        then:
+          - action: camera.snapshot
+            target:
+              entity_id: camera.camara_pom_mqtt_snapshot
+            data:
+              filename: "/config/www/ring/tmp/pom_cam_grid_tmp.jpg"
+          - action: shell_command.ring_save_snapshot_if_nonempty
+            data:
+              temp: "/config/www/ring/tmp/pom_cam_grid_tmp.jpg"
+              final: "/config/www/ring/grid/pom_cam.jpg"
+
+
+  # ---------------------------------------------------------
+  # 2) MOTION SNAPSHOTS – per motion event (for conditional stack)
+  # ---------------------------------------------------------
+  - id: ring_motion_snapshots_realtime
+    alias: Ring – Motion snapshots (per event, safe)
+    mode: queued
+
+    triggers:
+      # Garage
+      - trigger: state
+        entity_id: binary_sensor.garage_motion
+        to: "on"
+        id: garage
+
+      # Frente Centro
+      - trigger: state
+        entity_id: binary_sensor.frente_centro_motion
+        to: "on"
+        id: frente_centro
+
+      # Casa de Máquinas
+      - trigger: state
+        entity_id: binary_sensor.casa_de_maquinas_motion
+        to: "on"
+        id: casa_de_maquinas
+
+      # Frente Derecha
+      - trigger: state
+        entity_id: binary_sensor.frente_derecha_motion
+        to: "on"
+        id: frente_derecha
+
+      # Frente Izquierda
+      - trigger: state
+        entity_id: binary_sensor.frente_izquierda_motion
+        to: "on"
+        id: frente_izquierda
+
+      # Piscina
+      - trigger: state
+        entity_id: binary_sensor.piscina_motion
+        to: "on"
+        id: piscina
+
+      # Solario
+      - trigger: state
+        entity_id: binary_sensor.solarium_motion
+        to: "on"
+        id: solario
+
+      # Terraza
+      - trigger: state
+        entity_id: binary_sensor.terraza_motion
+        to: "on"
+        id: terraza
+
+      # Costado Piscina
+      - trigger: state
+        entity_id: binary_sensor.costado_piscina_motion
+        to: "on"
+        id: costado_piscina
+
+    conditions: []
+
+    actions:
+      - choose:
+
+          # ----- Garage -----
+          - conditions:
+              - condition: trigger
+                id: garage
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_garage_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_garage_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/garage_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/garage_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/garage.jpg"
+
+          # ----- Frente Centro -----
+          - conditions:
+              - condition: trigger
+                id: frente_centro
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_frente_centro_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_frente_centro_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/frente_centro_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/frente_centro_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/frente_centro.jpg"
+
+          # ----- Casa de Máquinas -----
+          - conditions:
+              - condition: trigger
+                id: casa_de_maquinas
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_casa_de_maquinas_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_casa_de_maquinas_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/casa_de_maquinas_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/casa_de_maquinas_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/casa_de_maquinas.jpg"
+
+          # ----- Frente Derecha -----
+          - conditions:
+              - condition: trigger
+                id: frente_derecha
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_frente_derecha_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_frente_derecha_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/frente_derecha_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/frente_derecha_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/frente_derecha.jpg"
+
+          # ----- Frente Izquierda -----
+          - conditions:
+              - condition: trigger
+                id: frente_izquierda
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_frente_izquierda_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_frente_izquierda_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/frente_izquierda_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/frente_izquierda_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/frente_izquierda.jpg"
+
+          # ----- Piscina -----
+          - conditions:
+              - condition: trigger
+                id: piscina
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_piscina_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_piscina_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/piscina_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/piscina_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/piscina.jpg"
+
+          # ----- Solario -----
+          - conditions:
+              - condition: trigger
+                id: solario
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_solario_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_solario_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/solario_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/solario_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/solario.jpg"
+
+          # ----- Terraza -----
+          - conditions:
+              - condition: trigger
+                id: terraza
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_terraza_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_terraza_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/terraza_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/terraza_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/terraza.jpg"
+
+          # ----- Costado Piscina -----
+          - conditions:
+              - condition: trigger
+                id: costado_piscina
+              - condition: template
+                value_template: >
+                  {{ states('camera.camara_costado_piscina_mqtt_snapshot') not in ['unavailable', 'unknown'] }}
+            sequence:
+              - action: camera.snapshot
+                target:
+                  entity_id: camera.camara_costado_piscina_mqtt_snapshot
+                data:
+                  filename: "/config/www/ring/tmp/costado_piscina_motion_tmp.jpg"
+              - action: shell_command.ring_save_snapshot_if_nonempty
+                data:
+                  temp: "/config/www/ring/tmp/costado_piscina_motion_tmp.jpg"
+                  final: "/config/www/ring/motion/costado_piscina.jpg"
+
+        default: []

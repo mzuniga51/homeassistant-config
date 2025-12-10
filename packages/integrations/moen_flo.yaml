@@ -1,0 +1,364 @@
+# /config/packages/moen_flo_package.yaml
+# Moen Flo water pressure and flow monitoring
+# With debounce, repeat, and priority
+
+input_boolean:
+  alert_moen_flo_enabled:
+    name: Moen Flo Alert
+    icon: mdi:water-pump
+
+  water_flow_alert_active:
+    name: Water Flow Alert Active
+    icon: mdi:water-alert
+
+  water_flow_shutoff_pending:
+    name: Water Shutoff Pending
+    icon: mdi:timer-sand
+
+  # Alert tracking - only send recovery if DOWN was sent
+  moen_flo_pressure_alerted:
+    name: Moen Flo Pressure Alerted
+    icon: mdi:alert-circle
+
+  moen_flo_flow_alerted:
+    name: Moen Flo Flow Alerted
+    icon: mdi:alert-circle
+
+input_number:
+  moen_flo_debounce_minutes:
+    name: Moen Flo Debounce
+    icon: mdi:timer-sand
+    min: 0
+    max: 30
+    step: 1
+    unit_of_measurement: "min"
+    initial: 5
+
+  moen_flo_repeat_hours:
+    name: Moen Flo Repeat
+    icon: mdi:repeat
+    min: 0
+    max: 24
+    step: 1
+    unit_of_measurement: "hrs"
+    initial: 1
+
+input_datetime:
+  moen_flo_last_alert:
+    name: Moen Flo Last Alert
+    has_date: true
+    has_time: true
+
+# ====== Template Sensors ======
+template:
+  - binary_sensor:
+      - name: "Water Flowing Over 1 Hour"
+        unique_id: water_flowing_over_1_hour
+        icon: mdi:water-alert
+        state: >
+          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) > 0 }}
+        delay_on:
+          hours: 1
+
+      - name: "Flo Valve Closed By Alert"
+        unique_id: flo_valve_closed_by_alert
+        icon: mdi:valve-closed
+        state: >
+          {{ is_state('input_boolean.water_flow_alert_active', 'on') and is_state('switch.flo_shutoff_shut_off_valve', 'off') }}
+
+# ====== Scripts ======
+script:
+  test_moen_flo_notification:
+    alias: Test Moen Flo Notification
+    mode: single
+    sequence:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 💧 *Moen Flo Alert - TEST*
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  cancel_water_shutoff:
+    alias: Cancel Water Shutoff
+    mode: single
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.water_flow_shutoff_pending
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            ⚠️ 💧 *Water Shutoff Cancelled*
+            *Status:* Auto-shutoff was cancelled manually
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  reopen_flo_valve:
+    alias: Reopen Flo Valve
+    mode: single
+    sequence:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.flo_shutoff_shut_off_valve
+      - action: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.water_flow_alert_active
+            - input_boolean.water_flow_shutoff_pending
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🟢 💧 *Flo Valve Reopened*
+            *Status:* Valve manually reopened
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+# ====== Automations ======
+automation:
+  # ============ LOW WATER PRESSURE - ALERT ============
+  - id: "moen_flo_alert_low_pressure"
+    alias: "Moen Flo Alert - Low Pressure"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.flo_shutoff_water_pressure
+        below: 25
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_moen_flo_enabled
+        state: "on"
+    action:
+      - variables:
+          debounce_mins: "{{ states('input_number.moen_flo_debounce_minutes') | int(5) }}"
+      
+      # Wait for debounce period (skip if 0)
+      - if:
+          - condition: template
+            value_template: "{{ debounce_mins > 0 }}"
+        then:
+          - delay:
+              minutes: "{{ debounce_mins }}"
+          # Check if STILL low after debounce
+          - condition: numeric_state
+            entity_id: sensor.flo_shutoff_water_pressure
+            below: 25
+      
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_moen_flo_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 💧 *Low Water Pressure*
+            *Pressure:* {{ states('sensor.flo_shutoff_water_pressure') }} psi
+            *Threshold:* 25 psi
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Mark as alerted and record time
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.moen_flo_pressure_alerted
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.moen_flo_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ LOW WATER PRESSURE - REPEAT REMINDER ============
+  - id: "moen_flo_alert_low_pressure_repeat"
+    alias: "Moen Flo Alert - Low Pressure Repeat"
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_moen_flo_enabled
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.moen_flo_pressure_alerted
+        state: "on"
+      - condition: numeric_state
+        entity_id: sensor.flo_shutoff_water_pressure
+        below: 25
+      # Repeat hours must be > 0
+      - condition: template
+        value_template: "{{ states('input_number.moen_flo_repeat_hours') | int(0) > 0 }}"
+      # Check priority/window
+      - condition: template
+        value_template: >
+          {{ is_state('input_select.alert_moen_flo_priority', 'Critical') or
+             is_state('binary_sensor.alert_window_active', 'on') }}
+      # Check if enough time has passed since last alert
+      - condition: template
+        value_template: >
+          {% set last = states('input_datetime.moen_flo_last_alert') %}
+          {% set repeat_hrs = states('input_number.moen_flo_repeat_hours') | int(0) %}
+          {% if last and last not in ['unknown', 'unavailable'] %}
+            {{ (now() - last | as_datetime).total_seconds() >= (repeat_hrs * 3600) }}
+          {% else %}
+            false
+          {% endif %}
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🔴 💧 *Low Water Pressure (Reminder)*
+            *Pressure:* {{ states('sensor.flo_shutoff_water_pressure') }} psi
+            *Threshold:* 25 psi
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      
+      # Update last alert time
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.moen_flo_last_alert
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  # ============ LOW WATER PRESSURE - RECOVERY ============
+  - id: "moen_flo_alert_low_pressure_recovery"
+    alias: "Moen Flo Alert - Low Pressure Recovery"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.flo_shutoff_water_pressure
+        above: 25
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_moen_flo_enabled
+        state: "on"
+      # Only send recovery if DOWN was sent
+      - condition: state
+        entity_id: input_boolean.moen_flo_pressure_alerted
+        state: "on"
+    action:
+      - action: script.whatsapp_info
+        data:
+          message: |
+            🟢 💧 *Water Pressure Recovered*
+            *Pressure:* {{ states('sensor.flo_shutoff_water_pressure') }} psi
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+      # Clear alerted state
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.moen_flo_pressure_alerted
+
+  # ============ CONTINUOUS FLOW - INITIAL ALERT & START COUNTDOWN ============
+  # Note: Water flow alerts are ALWAYS critical (auto-shutoff safety feature)
+  - id: "moen_flo_alert_continuous_flow_start"
+    alias: "Moen Flo Alert - Continuous Flow Start"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.water_flowing_over_1_hour
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_moen_flo_enabled
+        state: "on"
+    action:
+      - action: input_boolean.turn_on
+        target:
+          entity_id:
+            - input_boolean.water_flow_alert_active
+            - input_boolean.water_flow_shutoff_pending
+            - input_boolean.moen_flo_flow_alerted
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 💧 *Continuous Water Flow Alert*
+            *Duration:* Over 1 hour
+            *Flow Rate:* {{ states('sensor.flo_shutoff_water_flow_rate') }} GPM
+            *WARNING:* Valve will close in 15 minutes!
+            *Action:* Tap "Flo Alerta" on dashboard to cancel
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ CONTINUOUS FLOW - REPEATING (every 15 min while active) ============
+  - id: "moen_flo_alert_continuous_flow_repeat"
+    alias: "Moen Flo Alert - Continuous Flow Repeat"
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_moen_flo_enabled
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.water_flow_alert_active
+        state: "on"
+      - condition: state
+        entity_id: binary_sensor.water_flowing_over_1_hour
+        state: "on"
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🔴 💧 *Continuous Water Flow Alert*
+            *Duration:* Over 1 hour
+            *Flow Rate:* {{ states('sensor.flo_shutoff_water_flow_rate') }} GPM
+            *Shutoff Pending:* {{ is_state('input_boolean.water_flow_shutoff_pending', 'on') }}
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ AUTO SHUTOFF AFTER 15 MIN ============
+  - id: "moen_flo_alert_auto_shutoff"
+    alias: "Moen Flo Alert - Auto Shutoff"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.water_flow_shutoff_pending
+        to: "on"
+        for:
+          minutes: 15
+    condition:
+      - condition: state
+        entity_id: input_boolean.water_flow_shutoff_pending
+        state: "on"
+    action:
+      - action: switch.turn_off
+        target:
+          entity_id: switch.flo_shutoff_shut_off_valve
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.water_flow_shutoff_pending
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🛑 💧 *Flo Valve auto-closed*
+            *Reason:* Continuous flow for over 1 hour 15 minutes
+            *Action:* Tap "Flo Cerrada" on dashboard to reopen
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}
+
+  # ============ CONTINUOUS FLOW - RECOVERY ============
+  - id: "moen_flo_alert_continuous_flow_recovery"
+    alias: "Moen Flo Alert - Continuous Flow Recovery"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.water_flowing_over_1_hour
+        to: "off"
+    condition:
+      - condition: state
+        entity_id: input_boolean.alert_moen_flo_enabled
+        state: "on"
+      # Only send recovery if alert was active
+      - condition: state
+        entity_id: input_boolean.moen_flo_flow_alerted
+        state: "on"
+    action:
+      - action: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.water_flow_alert_active
+            - input_boolean.water_flow_shutoff_pending
+            - input_boolean.moen_flo_flow_alerted
+      - action: notify.whatsapp_critical
+        data:
+          message: |
+            🟢 💧 *Water Flow Stopped*
+            *Status:* Flow returned to normal
+            *Time:* {{ now().strftime('%H:%M') }}
+            *Date:* {{ now().strftime('%B %d, %Y') }}

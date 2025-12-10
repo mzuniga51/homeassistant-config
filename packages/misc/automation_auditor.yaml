@@ -1,0 +1,345 @@
+# /config/packages/automation_monitor_package.yaml
+# Comprehensive automation/script failure monitoring with WhatsApp alerts
+
+input_text:
+  last_automation_error:
+    name: Last Automation Error
+    max: 255
+    icon: mdi:alert-circle
+  
+  last_automation_warning:
+    name: Last Automation Warning
+    max: 255
+    icon: mdi:alert-outline
+  
+  automation_error_log_1:
+    name: Error Log 1
+    max: 255
+  automation_error_log_2:
+    name: Error Log 2
+    max: 255
+  automation_error_log_3:
+    name: Error Log 3
+    max: 255
+  automation_error_log_4:
+    name: Error Log 4
+    max: 255
+  automation_error_log_5:
+    name: Error Log 5
+    max: 255
+  automation_error_log_6:
+    name: Error Log 6
+    max: 255
+  automation_error_log_7:
+    name: Error Log 7
+    max: 255
+  automation_error_log_8:
+    name: Error Log 8
+    max: 255
+  automation_error_log_9:
+    name: Error Log 9
+    max: 255
+  automation_error_log_10:
+    name: Error Log 10
+    max: 255
+
+input_boolean:
+  automation_monitor_warnings:
+    name: Monitor Automation Warnings
+    icon: mdi:alert-outline
+    initial: true
+  
+  automation_monitor_errors:
+    name: Monitor Automation Errors
+    icon: mdi:alert-circle
+    initial: true
+
+counter:
+  automation_errors_today:
+    name: Automation Errors Today
+    icon: mdi:counter
+    restore: false
+  
+  automation_warnings_today:
+    name: Automation Warnings Today
+    icon: mdi:counter
+    restore: false
+
+template:
+  - sensor:
+      - name: "Automation Errors Today"
+        unique_id: automation_errors_today
+        state: "{{ states('counter.automation_errors_today') }}"
+        icon: mdi:alert-circle-outline
+      
+      - name: "Automation Warnings Today"
+        unique_id: automation_warnings_today
+        state: "{{ states('counter.automation_warnings_today') }}"
+        icon: mdi:alert-outline
+
+script:
+  # Script to rotate error logs (keeps last 10 errors)
+  rotate_error_logs:
+    sequence:
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_10
+        data:
+          value: "{{ states('input_text.automation_error_log_9') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_9
+        data:
+          value: "{{ states('input_text.automation_error_log_8') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_8
+        data:
+          value: "{{ states('input_text.automation_error_log_7') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_7
+        data:
+          value: "{{ states('input_text.automation_error_log_6') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_6
+        data:
+          value: "{{ states('input_text.automation_error_log_5') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_5
+        data:
+          value: "{{ states('input_text.automation_error_log_4') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_4
+        data:
+          value: "{{ states('input_text.automation_error_log_3') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_3
+        data:
+          value: "{{ states('input_text.automation_error_log_2') }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_2
+        data:
+          value: "{{ states('input_text.automation_error_log_1') }}"
+
+automation:
+  # ========================================
+  # ERROR LEVEL MONITORING (Enhanced with logging)
+  # ========================================
+  - id: 'automation_error_comprehensive_monitor'
+    alias: 'Automation Error - Comprehensive Monitor'
+    trigger:
+      - platform: event
+        event_type: system_log_event
+        event_data:
+          level: ERROR
+    condition:
+      - condition: state
+        entity_id: input_boolean.automation_monitor_errors
+        state: 'on'
+      - condition: template
+        value_template: >
+          {% set msg = trigger.event.data.message.lower() %}
+          {% set name = trigger.event.data.name | default('') | lower %}
+          {{ 'automation' in msg or 
+             'script' in msg or
+             'action' in msg or
+             'trigger' in msg or
+             'condition' in msg or
+             'template' in msg or
+             'service' in msg or
+             'automation' in name or
+             'script' in name }}
+    action:
+      # Rotate error logs
+      - action: script.rotate_error_logs
+      
+      # Store new error in log 1 with timestamp
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_1
+        data:
+          value: >
+            {{ now().strftime('%Y-%m-%d %H:%M:%S') }} | ERROR | {{ trigger.event.data.name | default('Unknown') }} | {{ trigger.event.data.message[:150] }}
+      
+      # Increment error counter
+      - action: counter.increment
+        target:
+          entity_id: counter.automation_errors_today
+      
+      # Store last error
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.last_automation_error
+        data:
+          value: "{{ trigger.event.data.message[:255] }}"
+      
+      # Send WhatsApp notification
+      - action: notify.whatsapp_critical
+        data:
+          message: >
+            🚨 *AUTOMATION ERROR* (#{{ states('counter.automation_errors_today') }})
+            
+            ⏰ *Time:* {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+            
+            📍 *Source:* {{ trigger.event.data.name | default('Unknown') }}
+            
+            ❌ *Error:*
+            {{ trigger.event.data.message }}
+            
+            ---
+            Warnings today: {{ states('counter.automation_warnings_today') }}
+      
+      # Create persistent notification
+      - action: persistent_notification.create
+        data:
+          title: "🚨 Automation ERROR (#{{ states('counter.automation_errors_today') }})"
+          message: >
+            **Time:** {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+            
+            **Source:** {{ trigger.event.data.name | default('Unknown') }}
+            
+            **Error:** {{ trigger.event.data.message }}
+            
+            **Exception:** {{ trigger.event.data.exception | default('N/A') }}
+          notification_id: "auto_error_{{ now().timestamp() | int }}"
+
+  # ========================================
+  # WARNING LEVEL MONITORING (Enhanced with logging)
+  # ========================================
+  - id: 'automation_warning_comprehensive_monitor'
+    alias: 'Automation Warning - Comprehensive Monitor'
+    trigger:
+      - platform: event
+        event_type: system_log_event
+        event_data:
+          level: WARNING
+    condition:
+      - condition: state
+        entity_id: input_boolean.automation_monitor_warnings
+        state: 'on'
+      - condition: template
+        value_template: >
+          {% set msg = trigger.event.data.message.lower() %}
+          {% set name = trigger.event.data.name | default('') | lower %}
+          {{ 'automation' in msg or 
+             'script' in msg or
+             'action' in msg or
+             'trigger' in msg or
+             'condition' in msg or
+             'template' in msg or
+             'service' in msg or
+             'automation' in name or
+             'script' in name }}
+    action:
+      # Rotate error logs (warnings go into same log)
+      - action: script.rotate_error_logs
+      
+      # Store new warning in log 1 with timestamp
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.automation_error_log_1
+        data:
+          value: >
+            {{ now().strftime('%Y-%m-%d %H:%M:%S') }} | WARNING | {{ trigger.event.data.name | default('Unknown') }} | {{ trigger.event.data.message[:150] }}
+      
+      # Increment warning counter
+      - action: counter.increment
+        target:
+          entity_id: counter.automation_warnings_today
+      
+      # Store last warning
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.last_automation_warning
+        data:
+          value: "{{ trigger.event.data.message[:255] }}"
+      
+      # Send WhatsApp notification
+      - action: notify.whatsapp_critical
+        data:
+          message: >
+            ⚠️ *AUTOMATION WARNING* (#{{ states('counter.automation_warnings_today') }})
+            
+            ⏰ *Time:* {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+            
+            📍 *Source:* {{ trigger.event.data.name | default('Unknown') }}
+            
+            ⚠️ *Warning:*
+            {{ trigger.event.data.message }}
+            
+            ---
+            Errors today: {{ states('counter.automation_errors_today') }}
+      
+      # Create persistent notification
+      - action: persistent_notification.create
+        data:
+          title: "⚠️ Automation WARNING (#{{ states('counter.automation_warnings_today') }})"
+          message: >
+            **Time:** {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+            
+            **Source:** {{ trigger.event.data.name | default('Unknown') }}
+            
+            **Warning:** {{ trigger.event.data.message }}
+          notification_id: "auto_warning_{{ now().timestamp() | int }}"
+
+  # ========================================
+  # DAILY SUMMARY
+  # ========================================
+  - id: 'automation_monitor_daily_summary'
+    alias: 'Automation Monitor - Daily Summary'
+    trigger:
+      - platform: time
+        at: "23:55:00"
+    condition:
+      - condition: template
+        value_template: >
+          {{ states('counter.automation_errors_today') | int > 0 or
+             states('counter.automation_warnings_today') | int > 0 }}
+    action:
+      - action: notify.whatsapp_critical
+        data:
+          message: >
+            📊 *DAILY AUTOMATION REPORT*
+            
+            📅 *Date:* {{ now().strftime('%Y-%m-%d') }}
+            
+            🚨 *Errors:* {{ states('counter.automation_errors_today') }}
+            ⚠️ *Warnings:* {{ states('counter.automation_warnings_today') }}
+            
+            {% if states('input_text.last_automation_error') != 'unknown' and states('input_text.last_automation_error') != '' %}
+            *Last Error:*
+            {{ states('input_text.last_automation_error') }}
+            {% endif %}
+            
+            Check Home Assistant for full details.
+
+  # ========================================
+  # RESET COUNTERS DAILY
+  # ========================================
+  - id: 'reset_automation_monitor_counters'
+    alias: 'Reset Automation Monitor Counters'
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    action:
+      - action: counter.reset
+        target:
+          entity_id: 
+            - counter.automation_errors_today
+            - counter.automation_warnings_today
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.last_automation_error
+        data:
+          value: ""
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.last_automation_warning
+        data:
+          value: ""
