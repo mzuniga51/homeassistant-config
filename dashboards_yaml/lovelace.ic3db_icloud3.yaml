@@ -1,0 +1,911 @@
+views:
+- title: Main
+  path: main
+  type: sections
+  max_columns: 2
+  icon: ''
+  cards: []
+  sections:
+  - type: grid
+    cards:
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_evelyn
+            name: iPhone Evelyn
+          - entity: sensor.iphone_evelyn_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_evelyn_home_distance
+            name: Distance
+          - entity: sensor.iphone_evelyn_travel_time
+            name: TravTime
+          - entity: sensor.iphone_evelyn_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_maria
+            name: iPhone Maria
+          - entity: sensor.iphone_maria_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_maria_home_distance
+            name: Distance
+          - entity: sensor.iphone_maria_travel_time
+            name: TravTime
+          - entity: sensor.iphone_maria_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_andres
+            name: iPhone Andres
+          - entity: sensor.iphone_andres_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_andres_home_distance
+            name: Distance
+          - entity: sensor.iphone_andres_travel_time
+            name: TravTime
+          - entity: sensor.iphone_andres_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_manuel
+            name: iPhone Manuel
+          - entity: sensor.iphone_manuel_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_manuel_home_distance
+            name: Distance
+          - entity: sensor.iphone_manuel_travel_time
+            name: TravTime
+          - entity: sensor.iphone_manuel_next_update
+            name: NextUpdt
+          state_color: true
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_evelyn_battery
+        name: iPhone Evelyn
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_maria_battery
+        name: iPhone Maria
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_andres_battery
+        name: iPhone Andres
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_manuel_battery
+        name: iPhone Manuel
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+  - type: grid
+    cards:
+    - type: custom:icloud3-event-log-card
+- title: Other Devices
+  path: other-devices
+  type: sections
+  max_columns: 2
+  icon: ''
+  cards: []
+  sections:
+  - type: grid
+    cards:
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_evelyn
+          name: iPhone Evelyn
+        - entity: sensor.iphone_evelyn_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_evelyn_home_distance
+          name: Distance
+        - entity: sensor.iphone_evelyn_travel_time
+          name: TravTime
+        - entity: sensor.iphone_evelyn_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_evelyn_battery
+          name: Battery
+        - entity: sensor.iphone_evelyn_interval
+          name: Interval
+        - entity: sensor.iphone_evelyn_moved_distance
+          name: Moved
+        - entity: sensor.iphone_evelyn_last_located
+          name: Located
+        - entity: sensor.iphone_evelyn_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_evelyn_info
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_maria
+          name: iPhone Maria
+        - entity: sensor.iphone_maria_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_maria_home_distance
+          name: Distance
+        - entity: sensor.iphone_maria_travel_time
+          name: TravTime
+        - entity: sensor.iphone_maria_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_maria_battery
+          name: Battery
+        - entity: sensor.iphone_maria_interval
+          name: Interval
+        - entity: sensor.iphone_maria_moved_distance
+          name: Moved
+        - entity: sensor.iphone_maria_last_located
+          name: Located
+        - entity: sensor.iphone_maria_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_maria_info
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_andres
+          name: iPhone Andres
+        - entity: sensor.iphone_andres_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_andres_home_distance
+          name: Distance
+        - entity: sensor.iphone_andres_travel_time
+          name: TravTime
+        - entity: sensor.iphone_andres_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_andres_battery
+          name: Battery
+        - entity: sensor.iphone_andres_interval
+          name: Interval
+        - entity: sensor.iphone_andres_moved_distance
+          name: Moved
+        - entity: sensor.iphone_andres_last_located
+          name: Located
+        - entity: sensor.iphone_andres_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_andres_info
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_manuel
+          name: iPhone Manuel
+        - entity: sensor.iphone_manuel_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_manuel_home_distance
+          name: Distance
+        - entity: sensor.iphone_manuel_travel_time
+          name: TravTime
+        - entity: sensor.iphone_manuel_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_manuel_battery
+          name: Battery
+        - entity: sensor.iphone_manuel_interval
+          name: Interval
+        - entity: sensor.iphone_manuel_moved_distance
+          name: Moved
+        - entity: sensor.iphone_manuel_last_located
+          name: Located
+        - entity: sensor.iphone_manuel_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_manuel_info
+    column_span: 2
+- title: '*All Info'
+  path: ic3db-tracking
+  type: sections
+  max_columns: 2
+  cards: []
+  header:
+    card:
+      type: markdown
+      text_only: true
+      content: <h3>Device Information (Tracking Results & Status, Device Info Msg)</h3>This screen shows Device Information
+        sensors that can be copied and pasted to other dashboards as a combined group or as group sections.
+    layout: start
+    badges_position: bottom
+  sections:
+  - type: grid
+    cards:
+    - type: markdown
+      text_only: true
+      content: <h4><br>🀫 Combined Group (results+status+info) → iPhone Evelyn</h4>
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_evelyn
+          name: iPhone Evelyn
+        - entity: sensor.iphone_evelyn_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_evelyn_home_distance
+          name: Distance
+        - entity: sensor.iphone_evelyn_travel_time
+          name: TravTime
+        - entity: sensor.iphone_evelyn_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_evelyn_battery
+          name: Battery
+        - entity: sensor.iphone_evelyn_interval
+          name: Interval
+        - entity: sensor.iphone_evelyn_moved_distance
+          name: Moved
+        - entity: sensor.iphone_evelyn_last_located
+          name: Located
+        - entity: sensor.iphone_evelyn_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_evelyn_info
+    - type: markdown
+      text_only: true
+      content: <h4><br>[Ⲷ] Separate Groups (results, status, info) → iPhone Evelyn</h4>
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_evelyn
+            name: iPhone Evelyn
+          - entity: sensor.iphone_evelyn_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_evelyn_home_distance
+            name: Distance
+          - entity: sensor.iphone_evelyn_travel_time
+            name: TravTime
+          - entity: sensor.iphone_evelyn_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: sensor.iphone_evelyn_battery
+            name: Battery
+          - entity: sensor.iphone_evelyn_interval
+            name: Interval
+          - entity: sensor.iphone_evelyn_moved_distance
+            name: Moved
+          - entity: sensor.iphone_evelyn_last_located
+            name: Located
+          - entity: sensor.iphone_evelyn_last_update
+            name: LastUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: sensor.iphone_evelyn_info
+    column_span: 1
+  - type: grid
+    cards:
+    - type: markdown
+      text_only: true
+      content: <h4><br>🀫 Combined Group (results+status+info) → iPhone Maria</h4>
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_maria
+          name: iPhone Maria
+        - entity: sensor.iphone_maria_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_maria_home_distance
+          name: Distance
+        - entity: sensor.iphone_maria_travel_time
+          name: TravTime
+        - entity: sensor.iphone_maria_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_maria_battery
+          name: Battery
+        - entity: sensor.iphone_maria_interval
+          name: Interval
+        - entity: sensor.iphone_maria_moved_distance
+          name: Moved
+        - entity: sensor.iphone_maria_last_located
+          name: Located
+        - entity: sensor.iphone_maria_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_maria_info
+    - type: markdown
+      text_only: true
+      content: <h4><br>[Ⲷ] Separate Groups (results, status, info) → iPhone Maria</h4>
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_maria
+            name: iPhone Maria
+          - entity: sensor.iphone_maria_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_maria_home_distance
+            name: Distance
+          - entity: sensor.iphone_maria_travel_time
+            name: TravTime
+          - entity: sensor.iphone_maria_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: sensor.iphone_maria_battery
+            name: Battery
+          - entity: sensor.iphone_maria_interval
+            name: Interval
+          - entity: sensor.iphone_maria_moved_distance
+            name: Moved
+          - entity: sensor.iphone_maria_last_located
+            name: Located
+          - entity: sensor.iphone_maria_last_update
+            name: LastUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: sensor.iphone_maria_info
+    column_span: 1
+  - type: grid
+    cards:
+    - type: markdown
+      text_only: true
+      content: <h4><br>🀫 Combined Group (results+status+info) → iPhone Andres</h4>
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_andres
+          name: iPhone Andres
+        - entity: sensor.iphone_andres_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_andres_home_distance
+          name: Distance
+        - entity: sensor.iphone_andres_travel_time
+          name: TravTime
+        - entity: sensor.iphone_andres_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_andres_battery
+          name: Battery
+        - entity: sensor.iphone_andres_interval
+          name: Interval
+        - entity: sensor.iphone_andres_moved_distance
+          name: Moved
+        - entity: sensor.iphone_andres_last_located
+          name: Located
+        - entity: sensor.iphone_andres_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_andres_info
+    - type: markdown
+      text_only: true
+      content: <h4><br>[Ⲷ] Separate Groups (results, status, info) → iPhone Andres</h4>
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_andres
+            name: iPhone Andres
+          - entity: sensor.iphone_andres_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_andres_home_distance
+            name: Distance
+          - entity: sensor.iphone_andres_travel_time
+            name: TravTime
+          - entity: sensor.iphone_andres_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: sensor.iphone_andres_battery
+            name: Battery
+          - entity: sensor.iphone_andres_interval
+            name: Interval
+          - entity: sensor.iphone_andres_moved_distance
+            name: Moved
+          - entity: sensor.iphone_andres_last_located
+            name: Located
+          - entity: sensor.iphone_andres_last_update
+            name: LastUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: sensor.iphone_andres_info
+    column_span: 1
+  - type: grid
+    cards:
+    - type: markdown
+      text_only: true
+      content: <h4><br>🀫 Combined Group (results+status+info) → iPhone Manuel</h4>
+    - type: vertical-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: device_tracker.iphone_manuel
+          name: iPhone Manuel
+        - entity: sensor.iphone_manuel_arrival_time
+          name: Arrive
+        - entity: sensor.iphone_manuel_home_distance
+          name: Distance
+        - entity: sensor.iphone_manuel_travel_time
+          name: TravTime
+        - entity: sensor.iphone_manuel_next_update
+          name: NextUpdt
+        state_color: false
+      - type: glance
+        entities:
+        - entity: sensor.iphone_manuel_battery
+          name: Battery
+        - entity: sensor.iphone_manuel_interval
+          name: Interval
+        - entity: sensor.iphone_manuel_moved_distance
+          name: Moved
+        - entity: sensor.iphone_manuel_last_located
+          name: Located
+        - entity: sensor.iphone_manuel_last_update
+          name: LastUpdt
+      - type: entities
+        entities:
+        - entity: sensor.iphone_manuel_info
+    - type: markdown
+      text_only: true
+      content: <h4><br>[Ⲷ] Separate Groups (results, status, info) → iPhone Manuel</h4>
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_manuel
+            name: iPhone Manuel
+          - entity: sensor.iphone_manuel_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_manuel_home_distance
+            name: Distance
+          - entity: sensor.iphone_manuel_travel_time
+            name: TravTime
+          - entity: sensor.iphone_manuel_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: sensor.iphone_manuel_battery
+            name: Battery
+          - entity: sensor.iphone_manuel_interval
+            name: Interval
+          - entity: sensor.iphone_manuel_moved_distance
+            name: Moved
+          - entity: sensor.iphone_manuel_last_located
+            name: Located
+          - entity: sensor.iphone_manuel_last_update
+            name: LastUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: sensor.iphone_manuel_info
+    column_span: 1
+- title: '*Track Results'
+  path: ic3db-summary
+  type: sections
+  max_columns: 2
+  header:
+    card:
+      type: markdown
+      text_only: true
+      content: <h3>Device Information - Tracking Results</h3>This screen shows the Tracking Results group for all devices.
+    layout: start
+    badges_position: bottom
+  sections:
+  - type: grid
+    cards:
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_evelyn
+            name: iPhone Evelyn
+          - entity: sensor.iphone_evelyn_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_evelyn_home_distance
+            name: Distance
+          - entity: sensor.iphone_evelyn_travel_time
+            name: TravTime
+          - entity: sensor.iphone_evelyn_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_maria
+            name: iPhone Maria
+          - entity: sensor.iphone_maria_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_maria_home_distance
+            name: Distance
+          - entity: sensor.iphone_maria_travel_time
+            name: TravTime
+          - entity: sensor.iphone_maria_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_andres
+            name: iPhone Andres
+          - entity: sensor.iphone_andres_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_andres_home_distance
+            name: Distance
+          - entity: sensor.iphone_andres_travel_time
+            name: TravTime
+          - entity: sensor.iphone_andres_next_update
+            name: NextUpdt
+          state_color: true
+    - type: horizontal-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: glance
+          entities:
+          - entity: device_tracker.iphone_manuel
+            name: iPhone Manuel
+          - entity: sensor.iphone_manuel_arrival_time
+            name: Arrive
+          - entity: sensor.iphone_manuel_home_distance
+            name: Distance
+          - entity: sensor.iphone_manuel_travel_time
+            name: TravTime
+          - entity: sensor.iphone_manuel_next_update
+            name: NextUpdt
+          state_color: true
+    column_span: 2
+- title: '*Badge, Battery'
+  path: ic3db-badge-battery
+  type: sections
+  max_columns: 2
+  header:
+    card:
+      type: markdown
+      text_only: true
+      content: <h3>Device Badge and Battery Sensors</h3>This screen shows t,he Device’s Badge and Battery sensors in several
+        formats that can be copied and pasted to other dashboards
+    layout: start
+    badges_position: bottom
+  sections:
+  - type: grid
+    cards:
+    - type: horizontal-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: sensor.iphone_evelyn_badge
+          name: iPhone Evelyn
+        - entity: sensor.iphone_evelyn_battery
+          name: iPhone Evelyn
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_evelyn_badge
+        name: iPhone Evelyn
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      - type: tile
+        entity: sensor.iphone_evelyn_battery
+        name: iPhone Evelyn
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: horizontal-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: sensor.iphone_maria_badge
+          name: iPhone Maria
+        - entity: sensor.iphone_maria_battery
+          name: iPhone Maria
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_maria_badge
+        name: iPhone Maria
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      - type: tile
+        entity: sensor.iphone_maria_battery
+        name: iPhone Maria
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: horizontal-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: sensor.iphone_andres_badge
+          name: iPhone Andres
+        - entity: sensor.iphone_andres_battery
+          name: iPhone Andres
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_andres_badge
+        name: iPhone Andres
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      - type: tile
+        entity: sensor.iphone_andres_battery
+        name: iPhone Andres
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: horizontal-stack
+      cards:
+      - type: glance
+        entities:
+        - entity: sensor.iphone_manuel_badge
+          name: iPhone Manuel
+        - entity: sensor.iphone_manuel_battery
+          name: iPhone Manuel
+      grid_options:
+        columns: 6
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_manuel_badge
+        name: iPhone Manuel
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      - type: tile
+        entity: sensor.iphone_manuel_battery
+        name: iPhone Manuel
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 6
+        rows: auto
+    column_span: 2
+  - type: grid
+    cards:
+    - type: markdown
+      text_only: true
+      content: <br><h3>Device Badge Sensors</h3>
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_evelyn_badge
+        name: iPhone Evelyn
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_maria_badge
+        name: iPhone Maria
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_andres_badge
+        name: iPhone Andres
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_manuel_badge
+        name: iPhone Manuel
+        features_position: bottom
+        vertical: false
+        show_entity_picture: true
+      grid_options:
+        columns: 4
+        rows: auto
+  - type: grid
+    cards:
+    - type: markdown
+      text_only: true
+      content: <br><h3>Device Battery Sensors</h3>
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_evelyn_battery
+        name: iPhone Evelyn
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_maria_battery
+        name: iPhone Maria
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_andres_battery
+        name: iPhone Andres
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+    - type: vertical-stack
+      cards:
+      - type: tile
+        entity: sensor.iphone_manuel_battery
+        name: iPhone Manuel
+        features_position: bottom
+        vertical: false
+      grid_options:
+        columns: 4
+        rows: auto
+- title: Event Log
+  path: event-log
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: custom:icloud3-event-log-card
+  - type: grid
+    cards:
+    - type: heading
+      icon: mdi:select-group
+      heading: 'Main-View-Template-Style: result-summary;all-devices;2583'
+      heading_style: subtitle
+- title: Main (Backup)
+  path: main-backup
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      icon: mdi:select-group
+      heading: Main Screen - Before Last Recreate Action
+      heading_style: subtitle

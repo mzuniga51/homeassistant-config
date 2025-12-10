@@ -1,0 +1,1672 @@
+views:
+- title: Home
+  sections:
+  - type: grid
+    cards:
+    - type: grid
+      title: Tele Cocina
+      columns: 4
+      square: false
+      cards:
+      - type: button
+        entity: media_player.tele_cocina
+        name: Tele Cocina Power
+        icon: mdi:power
+        show_name: true
+        show_icon: true
+        tap_action:
+          action: toggle
+      - type: button
+        name: Vol +
+        icon: mdi:volume-plus
+        tap_action:
+          action: call-service
+          service: media_player.volume_up
+          target:
+            entity_id: media_player.tele_cocina
+      - type: button
+        name: Vol -
+        icon: mdi:volume-minus
+        tap_action:
+          action: call-service
+          service: media_player.volume_down
+          target:
+            entity_id: media_player.tele_cocina
+      - type: button
+        name: Mute
+        icon: mdi:volume-mute
+        tap_action:
+          action: call-service
+          service: media_player.volume_mute
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            is_volume_muted: true
+      - type: button
+        name: Cable
+        icon: mdi:set-top-box
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          target:
+            entity_id: remote.tele_cocina
+          data:
+            command:
+            - KEY_SOURCE
+            - KEY_RIGHT
+            - KEY_ENTER
+            delay_secs: 0.35
+      - type: button
+        name: Apple TV
+        icon: mdi:apple
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            media_content_type: app
+            media_content_id: '3201807016597'
+      - type: button
+        name: Netflix
+        icon: mdi:netflix
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            media_content_type: app
+            media_content_id: '3201907018807'
+      - type: button
+        name: Prime
+        icon: mdi:amazon
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            media_content_type: app
+            media_content_id: '3201910019365'
+      - type: button
+        name: YouTube
+        icon: mdi:youtube
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            media_content_type: app
+            media_content_id: '111299001912'
+      - type: button
+        name: Disney
+        icon: mdi:castle
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            media_content_type: app
+            media_content_id: '3201901017640'
+      - type: button
+        name: HBO
+        icon: mdi:alpha-h-circle
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cocina
+          data:
+            media_content_type: app
+            media_content_id: '3202301029760'
+    - type: grid
+      title: Tele Cine
+      columns: 4
+      square: false
+      cards:
+      - type: button
+        entity: media_player.tele_cine
+        name: Tele Cine Power
+        icon: mdi:power
+        show_name: true
+        show_icon: true
+        tap_action:
+          action: toggle
+      - type: button
+        name: Cable
+        icon: mdi:set-top-box
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          target:
+            entity_id: remote.tele_cine
+          data:
+            command:
+            - KEY_TV
+            - KEY_SOURCE
+            - KEY_RIGHT
+            - KEY_ENTER
+            delay_secs: 0.45
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Bose
+        icon: mdi:speaker
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          target:
+            entity_id: remote.tele_cine
+          data:
+            command:
+            - KEY_TV
+            - KEY_SOURCE
+            - KEY_RIGHT
+            - KEY_RIGHT
+            - KEY_ENTER
+            delay_secs: 0.45
+      - type: button
+        name: Netflix
+        icon: mdi:netflix
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cine
+          data:
+            media_content_type: app
+            media_content_id: '3201907018807'
+      - type: button
+        name: HBO
+        icon: mdi:alpha-h-circle
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cine
+          data:
+            media_content_type: app
+            media_content_id: '3202301029760'
+      - type: button
+        name: Apple+
+        icon: mdi:apple
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cine
+          data:
+            media_content_type: app
+            media_content_id: '3201807016597'
+      - type: button
+        name: Disney
+        icon: mdi:castle
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cine
+          data:
+            media_content_type: app
+            media_content_id: '3201901017640'
+      - type: button
+        name: Prime
+        icon: mdi:package-variant
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cine
+          data:
+            media_content_type: app
+            media_content_id: '3201910019365'
+      - type: button
+        name: YouTube
+        icon: mdi:youtube
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_cine
+          data:
+            media_content_type: app
+            media_content_id: '111299001912'
+    - type: grid
+      title: Tele Master
+      columns: 4
+      square: false
+      cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Power
+        icon: mdi:power
+        tap_action:
+          action: call-service
+          service: script.tele_master_power
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Vol +
+        icon: mdi:volume-plus
+        tap_action:
+          action: call-service
+          service: media_player.volume_up
+          target:
+            entity_id: media_player.tele_master
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Vol -
+        icon: mdi:volume-minus
+        tap_action:
+          action: call-service
+          service: media_player.volume_down
+          target:
+            entity_id: media_player.tele_master
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Mute
+        icon: mdi:volume-mute
+        tap_action:
+          action: call-service
+          service: media_player.volume_mute
+          target:
+            entity_id: media_player.tele_master
+          data:
+            is_volume_muted: true
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Cable (HDMI1)
+        icon: mdi:set-top-box
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          target:
+            entity_id: remote.tele_master
+          data:
+            command:
+            - KEY_SOURCE
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_RIGHT
+            - KEY_RIGHT
+            - KEY_ENTER
+            delay_secs: 0.35
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Apple TV
+        icon: mdi:apple
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          target:
+            entity_id: remote.tele_master
+          data:
+            command:
+            - KEY_SOURCE
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_LEFT
+            - KEY_RIGHT
+            - KEY_RIGHT
+            - KEY_RIGHT
+            - KEY_ENTER
+            delay_secs: 0.35
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Netflix
+        icon: mdi:netflix
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_master
+          data:
+            media_content_type: app
+            media_content_id: '3201907018807'
+      - show_name: true
+        show_icon: true
+        type: button
+        name: HBO
+        icon: mdi:alpha-h-circle
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_master
+          data:
+            media_content_type: app
+            media_content_id: '3202301029760'
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Apple+
+        icon: mdi:apple
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_master
+          data:
+            media_content_type: app
+            media_content_id: '3201807016597'
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Disney
+        icon: mdi:castle
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_master
+          data:
+            media_content_type: app
+            media_content_id: '3201901017640'
+      - show_name: true
+        show_icon: true
+        type: button
+        name: Prime
+        icon: mdi:package-variant
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_master
+          data:
+            media_content_type: app
+            media_content_id: '3201910019365'
+      - show_name: true
+        show_icon: true
+        type: button
+        name: YouTube
+        icon: mdi:youtube
+        tap_action:
+          action: call-service
+          service: media_player.play_media
+          target:
+            entity_id: media_player.tele_master
+          data:
+            media_content_type: app
+            media_content_id: '111299001912'
+  - type: grid
+    cards:
+    - type: heading
+      heading: New section
+  type: sections
+  max_columns: 2
+  cards: []
+- type: sections
+  max_columns: 4
+  title: borrar
+  path: borrar
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Cuarto Master
+      heading_style: title
+    - type: custom:mod-card
+      style: 'ha-card { position: relative; overflow: visible; }
+
+        '
+      card:
+        type: custom:stack-in-card
+        cards:
+        - type: custom:universal-remote-card
+          haptics: true
+          platform: Samsung
+          media_player_id: media_player.tele_master
+          keyboard_id: media_player.tele_master
+          styles: ":host {\n  max-width: 390px;\n  margin: 0 auto;\n  --size: 35px;           /* icon size */\n  --icon-color:\
+            \ #9EA3AA;  /* default light gray */\n}\n"
+          rows:
+          - - tv_hdmi1
+            - cable_guide
+            - netflix
+            - max
+          - - appletv
+            - disney
+            - youtube
+            - primevideo
+          - - tv_home
+            - back_dynamic
+            - exit_dynamic
+            - tv_settings
+          - - cable_rewind
+            - cable_play_pause
+            - cable_ff
+            - cable_next
+            - cable_prev
+          - - nav_circlepad_min
+          - - tv_vol_up
+            - null
+            - cable_chan_up
+          - - tv_vol_down
+            - tv_mute_toggle
+            - cable_chan_down
+          - - numpad_123
+            - power_both
+            - keyboard
+          custom_actions:
+          - type: button
+            name: tv_hdmi1
+            icon: mdi:television
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_tv_button
+            styles: ':host { margin: 8px 10px; --icon-color: #00BCD4; }
+
+              '
+          - type: button
+            name: cable_guide
+            icon: mdi:television-guide
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.cable_master_guide
+            styles: ':host { margin: 8px 10px; --icon-color: #00BCD4; }
+
+              '
+          - type: button
+            name: netflix
+            icon: mdi:netflix
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_open_netflix
+            styles: ':host { margin: 8px 10px; --icon-color: #E50914; }
+
+              '
+          - type: button
+            name: max
+            icon: max
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_open_hbo_max
+            styles: ':host { margin: 8px 10px; --icon-color: #FFFFFF; }
+
+              '
+          - type: button
+            name: appletv
+            icon: appletv
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_open_apple_tv
+            styles: ':host { margin: 8px 10px; --icon-color: #FFFFFF; }
+
+              '
+          - type: button
+            name: disney
+            icon: disney
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_open_disney_plus
+            styles: ':host { margin: 8px 10px; --icon-color: #113CCF; }
+
+              '
+          - type: button
+            name: youtube
+            icon: mdi:youtube
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_open_youtube
+            styles: ':host { margin: 8px 10px; --icon-color: #FF0000; }
+
+              '
+          - type: button
+            name: primevideo
+            icon: primevideo
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_open_prime_video
+            styles: ':host { margin: 8px 10px; --icon-color: #00A8E1; }
+
+              '
+          - type: button
+            name: tv_home
+            icon: mdi:home
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_home_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: back_dynamic
+            icon: mdi:reload
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_back_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: exit_dynamic
+            icon: mdi:location-exit
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_exit_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: tv_settings
+            icon: mdi:cog
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_menu_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: cable_rewind
+            icon: mdi:rewind
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_transport_rewind
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_play_pause
+            icon: mdi:play-pause
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_transport_play_pause
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_ff
+            icon: mdi:fast-forward
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_transport_fast_forward
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_next
+            icon: mdi:skip-next
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_transport_next
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_prev
+            icon: mdi:skip-previous
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_master_transport_previous
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: circlepad
+            name: nav_circlepad_min
+            center:
+              tap_action:
+                action: call-service
+                service: script.remote_master_route_enter
+              hold_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_master_route_enter
+            up:
+              icon: mdi:chevron-up
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_master_route_up
+              hold_action:
+                action: repeat
+            right:
+              icon: mdi:chevron-right
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_master_route_right
+              hold_action:
+                action: repeat
+            down:
+              icon: mdi:chevron-down
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_master_route_down
+              hold_action:
+                action: repeat
+            left:
+              icon: mdi:chevron-left
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_master_route_left
+              hold_action:
+                action: repeat
+            styles: ":host {\n  width: 190px;\n  margin: 12px auto 10px;\n}\n.circlepad,\n.circlepad *,\n.circlepad::before,\n\
+              .circlepad::after {\n  border: none !important;\n  outline: none !important;\n  background: transparent !important;\n\
+              \  box-shadow: none !important;\n}\n#center::part(button) {\n  width: 64px !important;\n  height: 64px !important;\n\
+              \  border-radius: 50% !important;\n  background: #CFCFCF !important; /* gray center */\n  border: none !important;\n\
+              \  box-shadow: none !important;\n  display: inline-flex !important;\n  align-items: center !important;\n  justify-content:\
+              \ center !important;\n}\n"
+          - type: button
+            name: tv_vol_up
+            icon: mdi:volume-plus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_master_volume_up
+            styles: ':host { margin: 8px 10px; --icon-color: #4CAF50; }
+
+              '
+          - type: button
+            name: cable_chan_up
+            icon: mdi:plus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.cable_master_channel_up
+            styles: ':host { margin: 8px 10px; --icon-color: #E53935; }
+
+              '
+          - type: button
+            name: tv_vol_down
+            icon: mdi:volume-minus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_master_volume_down
+            styles: ':host { margin: 8px 10px; --icon-color: #4CAF50; }
+
+              '
+          - type: button
+            name: tv_mute_toggle
+            icon: mdi:volume-mute
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_master_mute_toggle
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: cable_chan_down
+            icon: mdi:minus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.cable_master_channel_down
+            styles: ':host { margin: 8px 10px; --icon-color: #E53935; }
+
+              '
+          - type: button
+            name: numpad_123
+            icon: mdi:dialpad
+            tap_action:
+              action: perform-action
+              perform_action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.tele_master_dialpad_open
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: power_both
+            icon: mdi:power
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_master_power
+            styles: ':host { margin: 8px 10px; --icon-color: #E53935; }
+
+              '
+          - type: button
+            name: keyboard
+            icon: mdi:keyboard
+            tap_action:
+              action: keyboard
+            styles: ':host { margin: 8px 10px; }
+
+              '
+        - type: conditional
+          conditions:
+          - entity: input_boolean.tele_master_dialpad_open
+            state: 'on'
+          card:
+            type: custom:mod-card
+            style: "ha-card {\n  position: absolute;\n  inset: 0;\n  z-index: 9999;\n  background: rgba(0,0,0,0.95);\n  backdrop-filter:\
+              \ blur(2px);\n  border-radius: var(--ha-card-border-radius, 12px);\n  display: flex;\n  align-items: flex-start;\n\
+              \  justify-content: center;\n  padding-top: 0;\n  overflow: auto;\n}\n"
+            card:
+              type: vertical-stack
+              cards: []
+  - type: grid
+    cards:
+    - type: heading
+      heading: New section
+    - type: custom:universal-remote-card
+      haptics: true
+      platform: Samsung
+      media_player_id: media_player.tele_master
+      styles: ':host { max-width: 380px; margin: 0 auto; --size: 32px; }
+
+        '
+      rows:
+      - - key_enter
+        - perform_target
+        - call_data
+        - call_service_data
+      - - direct_tv_enter
+        - direct_cable_enter
+        - script_service_name
+      - - circlepad_test
+      custom_actions:
+      - type: button
+        name: key_enter
+        icon: mdi:circle
+        tap_action:
+          action: key
+          key: ENTER
+      - type: button
+        name: perform_target
+        icon: mdi:numeric-1-box
+        tap_action:
+          action: perform-action
+          perform_action: script.turn_on
+          target:
+            entity_id: script.remote_master_route_enter
+      - type: button
+        name: call_data
+        icon: mdi:numeric-2-box
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          data:
+            entity_id: script.remote_master_route_enter
+      - type: button
+        name: call_service_data
+        icon: mdi:numeric-3-box
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          service_data:
+            entity_id: script.remote_master_route_enter
+      - type: button
+        name: direct_tv_enter
+        icon: mdi:television
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          service_data:
+            entity_id: remote.tele_master
+            command: KEY_ENTER
+      - type: button
+        name: direct_cable_enter
+        icon: mdi:set-top-box
+        tap_action:
+          action: call-service
+          service: remote.send_command
+          service_data:
+            entity_id: remote.cable_master
+            command: DPAD_CENTER
+      - type: button
+        name: script_service_name
+        icon: mdi:script-text
+        tap_action:
+          action: call-service
+          service: script.remote_master_route_enter
+      - type: circlepad
+        name: circlepad_test
+        center:
+          tap_action:
+            action: call-service
+            service: remote.send_command
+            service_data:
+              entity_id: remote.tele_master
+              command: KEY_ENTER
+        up:
+          icon: mdi:chevron-up
+          tap_action:
+            action: none
+        right:
+          icon: mdi:chevron-right
+          tap_action:
+            action: none
+        down:
+          icon: mdi:chevron-down
+          tap_action:
+            action: none
+        left:
+          icon: mdi:chevron-left
+          tap_action:
+            action: none
+- type: sections
+  max_columns: 4
+  title: d
+  path: d
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Tele Piscina
+      heading_style: title
+    - type: custom:mod-card
+      style: "ha-card {\n  position: relative;\n  overflow: visible;\n}\n"
+      card:
+        type: custom:stack-in-card
+        cards:
+        - type: custom:universal-remote-card
+          haptics: true
+          platform: LG webOS
+          media_player_id: media_player.tele_piscina
+          keyboard_id: media_player.tele_piscina
+          styles: ":host {\n  max-width: 390px;\n  margin: 0 auto;\n  --size: 35px;          /* icon size */\n  --icon-color:\
+            \ #9EA3AA; /* default light gray */\n}\n"
+          rows:
+          - - tv_hdmi1
+            - cable_guide
+            - netflix
+            - max
+          - - appletv
+            - disney
+            - youtube
+            - primevideo
+          - - tv_home
+            - back_dynamic
+            - exit_dynamic
+            - tv_settings
+          - - cable_rewind
+            - cable_play_pause
+            - cable_ff
+            - cable_next
+            - cable_prev
+          - - nav_circlepad_min
+          - - tv_vol_up
+            - null
+            - cable_chan_up
+          - - tv_vol_down
+            - tv_mute_toggle
+            - cable_chan_down
+          - - numpad_123
+            - power_both
+            - keyboard
+          custom_actions:
+          - type: button
+            name: tv_hdmi1
+            icon: mdi:television
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_tv_button
+            styles: ':host { margin: 8px 10px; --icon-color: #00BCD4; }
+
+              '
+          - type: button
+            name: cable_guide
+            icon: mdi:television-guide
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.cable_piscina_guide
+            styles: ':host { margin: 8px 10px; --icon-color: #00BCD4; }
+
+              '
+          - type: button
+            name: netflix
+            icon: mdi:netflix
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_open_netflix
+            styles: ':host { margin: 8px 10px; --icon-color: #E50914; }
+
+              '
+          - type: button
+            name: max
+            icon: max
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_open_hbo_max
+            styles: ':host { margin: 8px 10px; --icon-color: #FFFFFF; }
+
+              '
+          - type: button
+            name: appletv
+            icon: appletv
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_open_apple_tv
+            styles: ':host { margin: 8px 10px; --icon-color: #FFFFFF; }
+
+              '
+          - type: button
+            name: disney
+            icon: disney
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_open_disney_plus
+            styles: ':host { margin: 8px 10px; --icon-color: #113CCF; }
+
+              '
+          - type: button
+            name: youtube
+            icon: mdi:youtube
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_open_youtube
+            styles: ':host { margin: 8px 10px; --icon-color: #FF0000; }
+
+              '
+          - type: button
+            name: primevideo
+            icon: primevideo
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_open_prime_video
+            styles: ':host { margin: 8px 10px; --icon-color: #00A8E1; }
+
+              '
+          - type: button
+            name: tv_home
+            icon: mdi:home
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_home_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: back_dynamic
+            icon: mdi:reload
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_back_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: exit_dynamic
+            icon: mdi:location-exit
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_exit_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: tv_settings
+            icon: mdi:cog
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_menu_dynamic
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: cable_rewind
+            icon: mdi:rewind
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_transport_rewind
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_play_pause
+            icon: mdi:play-pause
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_transport_play_pause
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_ff
+            icon: mdi:fast-forward
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_transport_fast_forward
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_next
+            icon: mdi:skip-next
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_transport_next
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: button
+            name: cable_prev
+            icon: mdi:skip-previous
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_transport_previous
+            styles: ':host { margin: 6px 6px; }
+
+              '
+          - type: circlepad
+            name: nav_circlepad_min
+            center:
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_piscina_route_enter
+            up:
+              icon: mdi:chevron-up
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_piscina_route_up
+              hold_action:
+                action: repeat
+            right:
+              icon: mdi:chevron-right
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_piscina_route_right
+              hold_action:
+                action: repeat
+            down:
+              icon: mdi:chevron-down
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_piscina_route_down
+              hold_action:
+                action: repeat
+            left:
+              icon: mdi:chevron-left
+              tap_action:
+                action: perform-action
+                perform_action: script.turn_on
+                target:
+                  entity_id: script.remote_piscina_route_left
+              hold_action:
+                action: repeat
+            styles: ":host {\n  width: 190px;\n  margin: 12px auto 10px;\n}\n/* Nuke any outer ring/background, even from\
+              \ nested parts */\n.circlepad,\n.circlepad *,\n.circlepad::before,\n.circlepad::after {\n  border: none !important;\n\
+              \  outline: none !important;\n  background: transparent !important;\n  box-shadow: none !important;\n}\n#center::part(button)\
+              \ {\n  width: 64px !important;\n  height: 64px !important;\n  border-radius: 50% !important;\n  background:\
+              \ #CFCFCF !important;\n  border: none !important;\n  box-shadow: none !important;\n  display: inline-flex !important;\n\
+              \  align-items: center !important;\n  justify-content: center !important;\n}\n"
+          - type: button
+            name: tv_vol_up
+            icon: mdi:volume-plus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_piscina_volume_up
+            styles: ':host { margin: 8px 10px; --icon-color: #4CAF50; }
+
+              '
+          - type: button
+            name: cable_chan_up
+            icon: mdi:plus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.cable_piscina_channel_up
+            styles: ':host { margin: 8px 10px; --icon-color: #E53935; }
+
+              '
+          - type: button
+            name: tv_vol_down
+            icon: mdi:volume-minus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_piscina_volume_down
+            styles: ':host { margin: 8px 10px; --icon-color: #4CAF50; }
+
+              '
+          - type: button
+            name: tv_mute_toggle
+            icon: mdi:volume-mute
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.tele_piscina_mute_toggle
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: cable_chan_down
+            icon: mdi:minus
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.cable_piscina_channel_down
+            styles: ':host { margin: 8px 10px; --icon-color: #E53935; }
+
+              '
+          - type: button
+            name: numpad_123
+            icon: mdi:dialpad
+            tap_action:
+              action: perform-action
+              perform_action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.tele_piscina_dialpad_open
+            styles: ':host { margin: 8px 10px; }
+
+              '
+          - type: button
+            name: power_both
+            icon: mdi:power
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on
+              target:
+                entity_id: script.remote_piscina_power_toggle
+            styles: ':host { margin: 8px 10px; --icon-color: #E53935; }
+
+              '
+          - type: button
+            name: keyboard
+            icon: mdi:keyboard
+            tap_action:
+              action: keyboard
+            styles: ':host { margin: 8px 10px; }
+
+              '
+        - type: conditional
+          conditions:
+          - entity: input_boolean.tele_piscina_dialpad_open
+            state: 'on'
+          card:
+            type: custom:mod-card
+            style: "ha-card {\n  position: absolute;\n  inset: 0;\n  z-index: 9999;\n  background: rgba(0,0,0,0.87);   /*\
+              \ much less transparent */\n  backdrop-filter: blur(2px);\n  border-radius: var(--ha-card-border-radius, 12px);\n\
+              \  display: flex;\n  align-items: flex-start;\n  justify-content: center;\n  padding-top: 0;               \
+              \  /* high on screen */\n  overflow: auto;                  /* scroll if needed */\n}\n"
+            card:
+              type: vertical-stack
+              cards:
+              - type: horizontal-stack
+                cards:
+                - type: custom:button-card
+                  show_icon: false
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - box-shadow: none
+                    - border: none
+                - type: custom:button-card
+                  icon: mdi:close
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - box-shadow: none
+                    - border: none
+                    - width: 56px
+                    - height: 56px
+                    - margin: 0 8px 0 auto
+                    icon:
+                    - color: '#9EA3AA'
+                  tap_action:
+                    action: call-service
+                    service: input_boolean.turn_off
+                    data:
+                      entity_id: input_boolean.tele_piscina_dialpad_open
+              - type: grid
+                columns: 3
+                square: true
+                cards:
+                - type: custom:button-card
+                  show_icon: false
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                - type: custom:button-card
+                  icon: mdi:chevron-up
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.remote_piscina_route_up
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                - type: custom:button-card
+                  show_icon: false
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                - type: custom:button-card
+                  icon: mdi:chevron-left
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.remote_piscina_route_left
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                - type: custom:button-card
+                  icon: mdi:circle
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - border-radius: 0
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                    - padding: 0
+                    - margin: 0
+                    - display: flex
+                    - align-items: center
+                    - justify-content: center
+                    icon:
+                    - color: '#FFFFFF !important'
+                    - width: 46px
+                    - height: 46px
+                    - margin: 0
+                    - filter: drop-shadow(0 0 1px rgba(0,0,0,0.8))
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.remote_piscina_digit_enter
+                - type: custom:button-card
+                  icon: mdi:chevron-right
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.remote_piscina_route_right
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                - type: custom:button-card
+                  show_icon: false
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                - type: custom:button-card
+                  icon: mdi:chevron-down
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.remote_piscina_route_down
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                - type: custom:button-card
+                  show_icon: false
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - width: 72px
+                    - height: 72px
+                    - min-width: 72px
+                    - min-height: 72px
+              - type: grid
+                columns: 3
+                square: false
+                cards:
+                - type: custom:button-card
+                  icon: mdi:numeric-1
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_1
+                - type: custom:button-card
+                  icon: mdi:numeric-2
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_2
+                - type: custom:button-card
+                  icon: mdi:numeric-3
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_3
+                - type: custom:button-card
+                  icon: mdi:numeric-4
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_4
+                - type: custom:button-card
+                  icon: mdi:numeric-5
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_5
+                - type: custom:button-card
+                  icon: mdi:numeric-6
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_6
+                - type: custom:button-card
+                  icon: mdi:numeric-7
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_7
+                - type: custom:button-card
+                  icon: mdi:numeric-8
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_8
+                - type: custom:button-card
+                  icon: mdi:numeric-9
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_9
+                - type: custom:button-card
+                  show_icon: false
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                - type: custom:button-card
+                  icon: mdi:numeric-0
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_digit_0
+                - type: custom:button-card
+                  icon: mdi:keyboard-backspace
+                  show_name: false
+                  styles:
+                    card:
+                    - background: transparent
+                    - border: none
+                    - box-shadow: none
+                    - min-height: 70px
+                    icon:
+                    - width: 42px
+                    - height: 42px
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    data:
+                      entity_id: script.cable_piscina_backspace

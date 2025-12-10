@@ -1,0 +1,3382 @@
+views:
+- title: Network
+  sections:
+  - type: grid
+    cards:
+    - type: horizontal-stack
+      cards:
+      - type: custom:button-card
+        entity: script.run_speedtest
+        show_icon: false
+        show_name: false
+        show_state: false
+        show_label: true
+        label: "[[[\n  const dl = states['sensor.speedtest_real_download']?.state || '-';\n  const ul = states['sensor.speedtest_real_upload']?.state\
+          \ || '-';\n  const last = states['sensor.speedtest_real_download']?.last_updated;\n\n  let timeAgo = '-';\n  if\
+          \ (last) {\n    const mins = Math.round((Date.now() - new Date(last)) / 60000);\n    if (mins < 60) timeAgo = mins\
+          \ + 'm ago';\n    else if (mins < 1440) timeAgo = Math.round(mins/60) + 'h ago';\n    else timeAgo = Math.round(mins/1440)\
+          \ + 'd ago';\n  }\n\n  return `↓${dl} ↑${ul} · ${timeAgo}`;\n]]]\n"
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            entity_id: script.run_speedtest
+        hold_action:
+          action: more-info
+          entity: sensor.speedtest_real_download
+        triggers_update:
+        - script.run_speedtest
+        - sensor.speedtest_real_download
+        - sensor.speedtest_real_upload
+        - sensor.speedtest_real_ping
+        styles:
+          card:
+          - height: 120px
+          - margin: 0
+          - padding: 0
+          - box-shadow: none
+          - border-radius: 10px
+          - border: "[[[\n  return entity.state === 'on'\n    ? '6px solid #21c466'\n    : '1px solid #D3D3D3';\n]]]\n"
+          - background-image: url("/local/logos/logo-speedtest.png")
+          - background-size: 40%
+          - background-position: center
+          - background-repeat: no-repeat
+          - background-color: '#ffffff'
+          - animation: "[[[\n  return entity.state === 'on'\n    ? 'pulse 0.9s ease-in-out infinite'\n    : 'none';\n]]]\n"
+          label:
+          - position: absolute
+          - bottom: 6px
+          - left: 0
+          - right: 0
+          - text-align: center
+          - font-size: 11px
+          - font-weight: 600
+          - color: '#666'
+        card_mod:
+          style: ":host { flex: 1 1 0; }\nha-card { width: 100%; margin: 0; }\n@keyframes pulse {\n  0%   { transform: scale(1);\
+            \ filter: brightness(1); }\n  50%  { transform: scale(1.03); filter: brightness(1.3); }\n  100% { transform: scale(1);\
+            \ filter: brightness(1); }\n}\n"
+      - type: custom:button-card
+        entity: script.reboot_mac_mini
+        icon: mdi:desktop-classic
+        show_icon: true
+        show_name: false
+        show_state: false
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            entity_id: script.reboot_mac_mini
+          confirmation:
+            text: ¿Reiniciar el Mac mini ahora?
+        hold_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            entity_id: script.ping_mac_mini_reboot_server
+        styles:
+          grid:
+          - grid-template-areas: '"i"'
+          - grid-template-columns: 1fr
+          - grid-template-rows: 1fr
+          - align-items: center
+          - justify-items: center
+          icon:
+          - width: 56px
+          - height: 56px
+          card:
+          - height: 120px
+          - margin: 0
+          - padding: 0
+          - box-shadow: none
+          - border-radius: 10px
+          - border: "[[[\n  return entity.state === 'on'\n    ? '6px solid #21c466'\n    : '1px solid #D3D3D3';\n]]]\n"
+          - background-color: '#ffffff'
+        card_mod:
+          style: ':host { flex: 1 1 0; }
+
+            ha-card { width: 100%; margin: 0; }
+
+            '
+      - type: custom:button-card
+        entity: input_boolean.omada_reboot_in_progress
+        show_icon: false
+        show_name: false
+        show_state: false
+        tap_action:
+          action: call-service
+          service: browser_mod.popup
+          data:
+            title: Reiniciar dispositivo Omada
+            dismissable: true
+            card_mod:
+              style:
+                ha-dialog$: ".mdc-dialog__surface {\n  min-height: 800px !important;\n  overflow: visible !important;\n}\n"
+            content:
+              type: horizontal-stack
+              cards:
+              - type: entities
+                entities:
+                - entity: input_select.omada_reboot_picker
+                  name: Dispositivo
+                card_mod:
+                  style: "ha-card {\n  overflow: visible !important;\n  box-shadow: none;\n  background: transparent;\n}\n\
+                    .card-content {\n  overflow: visible !important;\n}\nha-select {\n  --mdc-menu-max-height: 600px !important;\n\
+                    }\n"
+              - type: custom:button-card
+                name: Reiniciar
+                icon: mdi:restart
+                styles:
+                  card:
+                  - width: 140px
+                  - height: 48px
+                  - padding: 8px 16px
+                  - margin: auto
+                  - border-radius: 24px
+                  - background: 'linear-gradient(135deg, #21c466 0%, #1ba854 100%)'
+                  - box-shadow: 0 4px 12px rgba(33, 196, 102, 0.3)
+                  name:
+                  - font-size: 15px
+                  - font-weight: 600
+                  - color: '#fff'
+                  icon:
+                  - width: 20px
+                  - height: 20px
+                  - color: '#fff'
+                tap_action:
+                  action: call-service
+                  service: script.omada_reboot_selected
+                confirmation:
+                  text: ¿Reiniciar dispositivo seleccionado?
+        hold_action:
+          action: more-info
+          entity: input_select.omada_reboot_picker
+        triggers_update:
+        - input_boolean.omada_reboot_in_progress
+        - input_text.omada_reboot_target
+        - timer.omada_reboot
+        styles:
+          card:
+          - height: 120px
+          - margin: 0
+          - padding: 0
+          - box-shadow: none
+          - border-radius: 10px
+          - border: "[[[\n  return entity.state === 'on'\n    ? '6px solid #21c466'\n    : '1px solid #D3D3D3';\n]]]\n"
+          - background-image: url("/local/logos/omada.png")
+          - background-size: 65%
+          - background-position: center
+          - background-repeat: no-repeat
+          - background-color: '#ffffff'
+          - animation: "[[[\n  return entity.state === 'on'\n    ? 'pulse 0.9s ease-in-out infinite'\n    : 'none';\n]]]\n"
+        card_mod:
+          style: ":host { flex: 1 1 0; }\nha-card { width: 100%; margin: 0; }\n@keyframes pulse {\n  0%   { transform: scale(1);\
+            \ filter: brightness(1); }\n  50%  { transform: scale(1.03); filter: brightness(1.3); }\n  100% { transform: scale(1);\
+            \ filter: brightness(1); }\n}\n"
+    - type: horizontal-stack
+      cards:
+      - type: gauge
+        name: Down
+        entity: sensor.speedtest_real_download
+        unit: ' '
+        min: 0
+        max: 1000
+        needle: true
+        severity:
+          green: 600
+          yellow: 400
+          red: 0
+      - type: gauge
+        name: Up
+        entity: sensor.speedtest_real_upload
+        unit: ' '
+        min: 0
+        max: 1000
+        needle: true
+        severity:
+          green: 600
+          yellow: 400
+          red: 0
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: Download Speed (1 Day)
+      graph_span: 1d
+      yaxis:
+      - id: speed
+        min: 0
+        max: 1000
+        apex_config:
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val); }
+
+              '
+      - id: downtime
+        opposite: true
+        min: 0
+        max: 10
+        apex_config:
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val) + ''%''; }
+
+              '
+      series:
+      - entity: sensor.speedtest_real_download
+        name: Download
+        type: line
+        stroke_width: 2
+        color: '#4CAF50'
+        yaxis_id: speed
+        show:
+          legend_value: false
+      apex_config:
+        legend:
+          show: false
+        chart:
+          height: 180
+        plotOptions:
+          bar:
+            columnWidth: 70%
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: Download Speed & Downtime (5 Days)
+      graph_span: 5d
+      yaxis:
+      - id: speed
+        min: 0
+        max: 1000
+        apex_config:
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val); }
+
+              '
+      - id: downtime
+        opposite: true
+        min: 0
+        max: 2
+        apex_config:
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val) + ''%''; }
+
+              '
+      series:
+      - entity: sensor.speedtest_real_download
+        name: Download
+        type: line
+        stroke_width: 2
+        color: '#4CAF50'
+        yaxis_id: speed
+        show:
+          legend_value: false
+      apex_config:
+        legend:
+          show: false
+        chart:
+          height: 180
+        plotOptions:
+          bar:
+            columnWidth: 90%
+        xaxis:
+          type: datetime
+    - type: markdown
+      title: Recent Internet Outages
+      content: '{% set val = states(''sensor.internet_outage_log'') %}
+
+        {% if val in [''unknown'', ''unavailable'', ''''] %}
+
+        **Sin caídas registradas aún.**
+
+        {% else %}
+
+        {% set today = now().date() %}
+
+        {% set ayer = today - timedelta(days=1) %}
+
+        {% set months = [''Enero'',''Febrero'',''Marzo'',''Abril'',''Mayo'',''Junio'',''Julio'',''Agosto'',''Septiembre'',''Octubre'',''Noviembre'',''Diciembre'']
+        %}
+
+        {% for line in val.split(''\n'') if ''|'' in line %}
+
+        {% set parts = line.split(''|'') %}
+
+        {% set dt = strptime(parts[0], ''%Y-%m-%d %H:%M'') %}
+
+        {% set d = dt.date() %}
+
+        {% if d == today %}
+
+        {% set date_str = ''Hoy'' %}
+
+        {% elif d == ayer %}
+
+        {% set date_str = ''Ayer'' %}
+
+        {% else %}
+
+        {% set date_str = d.day ~ '' de '' ~ months[d.month - 1] %}
+
+        {% endif %}
+
+        - {{ date_str }} {{ dt.strftime(''%H:%M'') }} – {{ parts[1] }}
+
+        {% endfor %}
+
+        {% endif %}
+
+        '
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: Internet & Network Outages (30 Days)
+      graph_span: 30d
+      yaxis:
+      - id: outages
+        min: 0
+        apex_config:
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val); }
+
+              '
+      series:
+      - entity: sensor.internet_outages_today
+        name: Internet
+        type: column
+        color: '#FF9800'
+        opacity: 0.7
+        yaxis_id: outages
+        group_by:
+          func: max
+          duration: 1d
+      - entity: input_number.network_mass_outages_today
+        name: Network (3+ devices)
+        type: column
+        color: '#f44336'
+        opacity: 0.7
+        yaxis_id: outages
+        group_by:
+          func: max
+          duration: 1d
+      apex_config:
+        legend:
+          show: true
+        chart:
+          height: 200
+        plotOptions:
+          bar:
+            columnWidth: 40%
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: Internet Downtime %
+      graph_span: 30d
+      span:
+        end: day
+      yaxis:
+      - id: downtime
+        min: 0
+        max: 0.04
+        apex_config:
+          labels:
+            formatter: 'EVAL:function(val) { return val.toFixed(3) + ''%''; }
+
+              '
+      series:
+      - entity: sensor.internet_downtime_daily_history
+        name: Downtime
+        type: column
+        color: '#f44336'
+        yaxis_id: downtime
+        data_generator: "const attr = entity.attributes.daily_values || {};\nreturn Object.entries(attr).map(([date, val])\
+          \ => {\n  return [new Date(date).getTime(), val];\n});\n"
+        show:
+          legend_value: false
+      apex_config:
+        legend:
+          show: false
+        chart:
+          height: 180
+        tooltip:
+          y:
+            formatter: 'EVAL:function(val) { return val.toFixed(4) + ''%''; }
+
+              '
+        plotOptions:
+          bar:
+            columnWidth: 60%
+  cards: []
+  badges:
+  - type: custom:mushroom-chips-card
+    alignment: center
+    card_mod:
+      style: "ha-card {\n  display: flex;\n  justify-content: center;\n}\n.chip-container {\n  justify-content: center !important;\n\
+        \  width: 100%;\n}\n"
+    chips:
+    - type: template
+      content: Omada
+      icon: mdi:router-network-wireless
+      icon_color: '{{ ''green'' if states(''sensor.omada_devices_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Omada
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set devices = state_attr(''sensor.omada_devices_down'', ''devices'') or [] %}
+
+                **ISP Router**
+
+                {% if ''Sagecom Router'' in (devices | join('','')) %} &nbsp;&nbsp;&nbsp;&nbsp;❌ Sagecom Router {% else %}
+                &nbsp;&nbsp;&nbsp;&nbsp;✅ Sagecom router OK {% endif %}
+
+                **Router & Controller**
+
+                {% set rc = [''ER7206 Router'', ''OC200 Controller''] %} {% set rc_down = devices | select(''in'', rc) | list
+                %} {% if rc_down | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ Router & controller OK {% else %} {% for name
+                in rc_down %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                **Switches**
+
+                {% set sw = [''SG2210P Switch Musica'', ''SG3428XMP Switch Principal''] %} {% set sw_down = devices | select(''in'',
+                sw) | list %} {% if sw_down | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All switches OK {% else %} {% for name
+                in sw_down %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                **Access Points**
+
+                {% set ap_down = devices | reject(''in'', rc) | reject(''in'', sw) | reject(''search'', ''Sagecom'') | list
+                %} {% if ap_down | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All access points OK {% else %} {% for name in
+                ap_down %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.omada_devices_down
+    - type: template
+      content: BLE Beacons
+      icon: mdi:lighthouse-on
+      icon_color: '{{ ''green'' if states(''sensor.ble_devices_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: BLE Beacons
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set esphome = state_attr(''sensor.ble_devices_down'', ''esphome_down'') or [] %} {% set kuma =
+                state_attr(''sensor.ble_devices_down'', ''kuma_down'') or [] %}
+
+                **BLE Integrations (ESPHome)**
+
+                {% if esphome | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All integrations OK {% else %} {% for name in esphome
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }} Integration
+
+                {% endfor %} {% endif %}
+
+                **BLE Beacons (Uptime Kuma)**
+
+                {% if kuma | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All beacons OK {% else %} {% for name in kuma %} &nbsp;&nbsp;&nbsp;&nbsp;❌
+                {{ name }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.ble_devices_down
+    - type: template
+      content: Camaras
+      icon: mdi:cctv
+      icon_color: '{{ ''green'' if states(''sensor.cameras_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Camaras
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set devices = state_attr(''sensor.cameras_down'', ''devices'') or [] %}
+
+                **Camaras**
+
+                {% if devices | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All cameras OK {% else %} {% for name in devices
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.cameras_down
+    - type: template
+      content: Plomería
+      icon: mdi:pipe-valve
+      icon_color: '{{ ''green'' if states(''sensor.plomeria_devices_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Plomería
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set devices = state_attr(''sensor.plomeria_devices_down'', ''devices'') or [] %}
+
+                **Plomería**
+
+                {% if devices | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All devices OK {% else %} {% for name in devices
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.plomeria_devices_down
+    - type: template
+      content: Riego
+      icon: mdi:sprinkler-variant
+      icon_color: '{{ ''red'' if is_state(''binary_sensor.riego_controller_down'', ''on'') else ''green'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Riego (Hydrawise)
+            dismissable: true
+            content:
+              type: markdown
+              content: '**Riego (Hydrawise)**
+
+                {% if is_state(''binary_sensor.riego_controller_down'', ''on'') %} &nbsp;&nbsp;&nbsp;&nbsp;❌ Hydrawise controller
+                offline {% else %} &nbsp;&nbsp;&nbsp;&nbsp;✅ Hydrawise OK {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: binary_sensor.hydrawise_controller_connectivity
+    - type: template
+      content: Ecowitt
+      icon: mdi:radio-tower
+      icon_color: '{% set ok = [''up'',''online'',''ok'',''ready'',''healthy''] %} {% set s = states(''sensor.ecowitt_status'')
+        | lower %} {{ ''green'' if s in ok else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Ecowitt
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set status = states(''sensor.ecowitt_status'') %} {% set ok = [''up'',''online'',''ok'',''ready'',''healthy'']
+                %}
+
+                **Ecowitt Gateway**
+
+                {% if status | lower in ok %} &nbsp;&nbsp;&nbsp;&nbsp;✅ Online ({{ status }}) {% else %} &nbsp;&nbsp;&nbsp;&nbsp;❌
+                Problem detected – status: {{ status }} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.ecowitt_status
+    - type: template
+      content: Pentair
+      icon: mdi:approximately-equal-box
+      icon_color: '{% set ok = [''up'',''online'',''ok'',''ready'',''healthy''] %} {% set s = states(''sensor.pentair_intellicenter_status'')
+        | lower %} {{ ''green'' if s in ok else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Pentair IntelliCenter
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set status = states(''sensor.pentair_intellicenter_status'') %} {% set ok = [''up'',''online'',''ok'',''ready'',''healthy'']
+                %}
+
+                **Pentair IntelliCenter**
+
+                {% if status | lower in ok %} &nbsp;&nbsp;&nbsp;&nbsp;✅ Online ({{ status }}) {% else %} &nbsp;&nbsp;&nbsp;&nbsp;❌
+                Problem detected – status: {{ status }} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.pentair_intellicenter_status
+    - type: template
+      content: Hue
+      icon: mdi:lightbulb-group-outline
+      icon_color: '{{ ''green'' if states(''sensor.hue_devices_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Hue
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set bridges = state_attr(''sensor.hue_devices_down'', ''bridges_down'') or [] %} {% set entities
+                = state_attr(''sensor.hue_devices_down'', ''entities_down'') or [] %}
+
+                **Bridges**
+
+                {% if bridges | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All bridges OK {% else %} {% for name in bridges
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                **Entities**
+
+                {% if entities | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All entities OK {% else %} {% for e in entities
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ state_attr(e, ''friendly_name'') or e }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.hue_devices_down
+    - type: template
+      content: TV
+      icon: mdi:television
+      icon_color: '{{ ''green'' if states(''sensor.tv_devices_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: TV
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set devices = state_attr(''sensor.tv_devices_down'', ''devices'') or [] %}
+
+                **TV Devices**
+
+                {% if devices | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All devices OK {% else %} {% for name in devices
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.tv_devices_down
+    - type: template
+      content: Batteries
+      icon: mdi:battery-alert
+      icon_color: '{{ ''green'' if states(''sensor.batteries_low'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Batteries
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set devices = state_attr(''sensor.batteries_low'', ''devices'') or [] %}
+
+                **Low Batteries** (≤{{ states(''input_number.battery_alert_threshold'')|int(20) }}%)
+
+                {% if devices | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All batteries above threshold {% else %} {% for item
+                in devices %} &nbsp;&nbsp;&nbsp;&nbsp;🔋 {{ item.name }}: {{ item.level }}%
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.batteries_low
+    - type: template
+      content: Alarm
+      icon: mdi:shield-lock-outline
+      icon_color: '{{ ''green'' if states(''sensor.contact_labeled_on_count_3'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Alarm
+            dismissable: true
+            content:
+              type: markdown
+              content: "{% set md = state_attr('sensor.contact_labeled_on_count_3','markdown') or '' %} {% set ns = namespace(lines=[])\
+                \ %} {% for line in md.split('\\n') %}\n  {% set t = line|trim %}\n  {% if t == '' %}{% continue %}{% endif\
+                \ %}\n  {% if t.startswith('**') and t.endswith('**') %}{% continue %}{% endif %}\n  {% if t[:2] == '- ' %}{%\
+                \ set t = t[2:] %}{% endif %}\n  {% set ns.lines = ns.lines + [t] %}\n{% endfor %}\n**Alarm Sensors**\n{%\
+                \ if ns.lines | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All sensors closed {% else %} {% for item in ns.lines\
+                \ %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ item }}\n{% endfor %} {% endif %}\n"
+      hold_action:
+        action: more-info
+        entity: sensor.contact_labeled_on_count_3
+    - type: template
+      content: Tuya
+      icon: mdi:power-plug-outline
+      icon_color: '{{ ''green'' if states(''sensor.tuya_devices_down'')|int(0) == 0 else ''red'' }}
+
+        '
+      tap_action:
+        action: fire-dom-event
+        browser_mod:
+          service: browser_mod.popup
+          data:
+            title: Tuya
+            dismissable: true
+            content:
+              type: markdown
+              content: '{% set devices = state_attr(''sensor.tuya_devices_down'', ''devices'') or [] %}
+
+                **Tuya Devices**
+
+                {% if devices | length == 0 %} &nbsp;&nbsp;&nbsp;&nbsp;✅ All devices OK {% else %} {% for name in devices
+                %} &nbsp;&nbsp;&nbsp;&nbsp;❌ {{ name }}
+
+                {% endfor %} {% endif %}
+
+                '
+      hold_action:
+        action: more-info
+        entity: sensor.tuya_devices_down
+  type: sections
+  max_columns: 4
+  icon: mdi:server-network
+  visible:
+  - user: b0a9c23921db411e8a51da3b46685f84
+  path: maintenance
+- type: sections
+  title: Chemistry
+  icon: mdi:pool-thermometer
+  cards: []
+  sections:
+  - type: grid
+    cards:
+    - type: grid
+      columns: 2
+      square: false
+      cards:
+      - type: custom:mushroom-entity-card
+        entity: switch.llenado_piscina
+        name: Llenado Piscina
+        icon: mdi:water-plus
+        layout: horizontal
+        primary_info: name
+        secondary_info: none
+        use_state_color: true
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  --mush-icon-size: 26px;\n  --mush-spacing: 6px;\n  --mush-card-primary-font-size: 12px;\n \
+            \ padding: 6px 8px;\n}\n"
+      - type: custom:mushroom-entity-card
+        entity: switch.llenado_spa
+        name: Llenado Spa
+        icon: mdi:water-plus
+        layout: horizontal
+        primary_info: name
+        secondary_info: none
+        use_state_color: true
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  --mush-icon-size: 26px;\n  --mush-spacing: 6px;\n  --mush-card-primary-font-size: 12px;\n \
+            \ padding: 6px 8px;\n}\n"
+      - type: custom:mushroom-entity-card
+        entity: switch.limpieza_piscin
+        name: Limpieza Piscina
+        icon: mdi:pool
+        layout: horizontal
+        primary_info: name
+        secondary_info: none
+        use_state_color: true
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  --mush-icon-size: 26px;\n  --mush-spacing: 6px;\n  --mush-card-primary-font-size: 12px;\n \
+            \ padding: 6px 8px;\n}\n"
+      - type: custom:mushroom-entity-card
+        entity: switch.limpieza_spa
+        name: Limpieza Spa
+        icon: mdi:pool
+        layout: horizontal
+        primary_info: name
+        secondary_info: none
+        use_state_color: true
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        card_mod:
+          style: "ha-card {\n  --mush-icon-size: 26px;\n  --mush-spacing: 6px;\n  --mush-card-primary-font-size: 12px;\n \
+            \ padding: 6px 8px;\n}\n"
+    - type: horizontal-stack
+      cards:
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: custom:mushroom-title-card
+          title: Pool Salt Cell
+          icon: mdi:pool
+        - type: custom:mushroom-number-card
+          entity: number.ichlor_pool_pool_setpoint
+          name: Pool Setpoint
+          display_mode: buttons
+        - type: custom:mushroom-entity-card
+          entity: switch.pool_chlor_super_chlorinate
+          name: Super Chlorinate
+          tap_action:
+            action: toggle
+        - type: custom:mushroom-number-card
+          entity: number.pool_chlor_superchlor_hours
+          name: SuperChlor Hours
+          display_mode: buttons
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+        - type: custom:mushroom-title-card
+          title: Spa Salt Cell
+          icon: mdi:spa
+        - type: custom:mushroom-number-card
+          entity: number.spa_chlor_pool_setpoint
+          name: Spa Setpoint
+          display_mode: buttons
+        - type: custom:mushroom-entity-card
+          entity: switch.spa_chlor_super_chlorinate
+          name: Super Chlorinate
+          tap_action:
+            action: toggle
+        - type: custom:mushroom-number-card
+          entity: number.spa_chlor_superchlor_hours
+          name: SuperChlor Hours
+          display_mode: buttons
+    - type: horizontal-stack
+      cards:
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.pool_chlor_salt_level
+        name: Pool Salt
+        hours_to_show: 168
+        lower_bound: 0
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.spa_chlor_salt_level
+        name: Spa Salt
+        hours_to_show: 168
+        lower_bound: 0
+    - type: horizontal-stack
+      cards:
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.waterguru_cerro_alto_51_free_chlorine
+        name: Pool FC
+        hours_to_show: 168
+        lower_bound: 0
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.waterguru_cerro_alto_51_ph
+        name: Pool pH
+        hours_to_show: 48
+        lower_bound: 0
+    - type: horizontal-stack
+      cards:
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.waterguru_cerro_alto_51_total_alkalinity
+        name: Pool TA
+        hours_to_show: 48
+        lower_bound: 0
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.waterguru_cerro_alto_51_calcium_hardness
+        name: Pool CH
+        hours_to_show: 168
+        lower_bound: 0
+    - type: horizontal-stack
+      cards:
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.waterguru_cerro_alto_51_cyanuric_acid_stabilizer
+        name: Pool CYA
+        hours_to_show: 48
+        lower_bound: 0
+      - type: custom:mini-graph-card
+        entities:
+        - sensor.waterguru_cerro_alto_51_cassette_days_remaining
+        name: Cassette Days
+        show:
+          graph: false
+        hours_to_show: 168
+        lower_bound: 0
+  - type: grid
+    cards:
+    - type: entities
+      title: Pool & Spa Alerts
+      show_header_toggle: false
+      entities:
+      - entity: input_boolean.alert_pool_all_enabled
+        name: All Pool Alerts
+      - type: buttons
+        entities:
+        - entity: script.enable_all_pool_alerts
+          name: Enable All
+          icon: mdi:check-all
+        - entity: script.disable_all_pool_alerts
+          name: Disable All
+          icon: mdi:close-circle-outline
+        - entity: script.test_all_pool_notifications
+          name: Test All
+          icon: mdi:bell-ring
+      - type: section
+        label: Global Timing
+      - entity: input_number.pool_repeat_critical
+        name: Critical Repeat (min)
+      - entity: input_number.pool_repeat_non_critical
+        name: Non-Critical Repeat (hr)
+      - entity: input_number.pool_debounce_recovery
+        name: Recovery Confirm (min)
+    - type: entities
+      title: Critical Alerts (24/7)
+      show_header_toggle: false
+      entities:
+      - type: section
+        label: Pool Fill
+      - entity: input_boolean.alert_pool_fill_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_fill
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_fill_notification
+      - type: section
+        label: Spa Fill
+      - entity: input_boolean.alert_spa_fill_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_fill
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_fill_notification
+    - type: entities
+      title: Pool Non-Critical
+      show_header_toggle: false
+      entities:
+      - type: section
+        label: Pool Salt
+      - entity: input_boolean.alert_pool_salt_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_salt
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_salt_notification
+      - type: section
+        label: Pool Chlorine
+      - entity: input_boolean.alert_pool_chlorine_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_chlorine
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_chlorine_notification
+      - type: section
+        label: Pool pH
+      - entity: input_boolean.alert_pool_ph_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_ph
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_ph_notification
+      - type: section
+        label: Pool Chlorinator
+      - entity: input_boolean.alert_pool_chlor_status_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_chlorinator
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_chlor_status_notification
+      - type: section
+        label: Pool Pump Off
+      - entity: input_boolean.alert_pool_pump_off_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_pump_off
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_pump_off_notification
+      - type: section
+        label: Pool Flow
+      - entity: input_boolean.alert_pool_flow_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_flow
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_flow_notification
+  - type: grid
+    cards:
+    - type: entities
+      title: Pool Auto-Fill
+      show_header_toggle: false
+      entities:
+      - entity: input_boolean.alert_pool_fill_sequence_enabled
+        name: Auto-Fill Enabled
+      - entity: input_number.pool_yesterday_rain_mm
+        name: Yesterday's Rain
+      - entity: input_number.pool_fill_duration_minutes
+        name: Last Fill Duration
+      - type: button
+        name: Test Fill Sequence
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pool_fill_sequence_notification
+    - type: entities
+      title: Equipment
+      show_header_toggle: false
+      entities:
+      - type: section
+        label: WaterGuru Cassette
+      - entity: input_boolean.alert_waterguru_cassette_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_waterguru
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_waterguru_cassette_notification
+      - type: section
+        label: Pentair Status
+      - entity: input_boolean.alert_pentair_status_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_pentair
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_pentair_status_notification
+    - type: entities
+      title: Spa Non-Critical
+      show_header_toggle: false
+      entities:
+      - type: section
+        label: Spa Ready
+      - entity: input_boolean.alert_spa_temp_enabled
+        name: Enabled (≥35°C)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_temp_notification
+      - type: section
+        label: Spa Salt
+      - entity: input_boolean.alert_spa_salt_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_salt
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_salt_notification
+      - type: section
+        label: Spa pH
+      - entity: input_boolean.alert_spa_ph_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_ph
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_ph_notification
+      - type: section
+        label: Spa Chlorinator
+      - entity: input_boolean.alert_spa_chlor_status_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_chlorinator
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_chlor_status_notification
+      - type: section
+        label: Spa Pump Off
+      - entity: input_boolean.alert_spa_pump_off_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_pump_off
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_pump_off_notification
+      - type: section
+        label: Spa Flow
+      - entity: input_boolean.alert_spa_flow_enabled
+        name: Enabled
+      - entity: input_number.pool_debounce_flow
+        name: Debounce (min)
+      - type: button
+        name: Test
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_spa_flow_notification
+  max_columns: 3
+  badges:
+  - type: entity
+    show_name: true
+    show_state: true
+    show_icon: true
+    entity: sensor.pentair_intellicenter_status
+    name: Intellicenter
+  - type: entity
+    show_name: true
+    show_state: true
+    show_icon: true
+    entity: sensor.pool_pump_flow
+    show_entity_picture: false
+    name: Pool Pump
+  - type: entity
+    show_name: true
+    show_state: true
+    show_icon: true
+    entity: sensor.spa_pump_flow
+    name: Spa Pump
+  visible:
+  - user: b0a9c23921db411e8a51da3b46685f84
+  path: chemistry
+- type: sections
+  max_columns: 2
+  title: Irrigation
+  path: irrigation-2
+  icon: mdi:sprinkler-variant
+  sections:
+  - type: grid
+    cards:
+    - type: horizontal-stack
+      cards:
+      - type: custom:mushroom-template-card
+        primary: Suspend
+        secondary: Quick
+        icon: mdi:pause-circle
+        icon_color: '{{ ''green'' if is_state(''input_boolean.hydrawise_suspended'', ''on'') else ''orange'' }}'
+        tap_action:
+          action: call-service
+          service: script.hydrawise_controller_suspend_quick
+      - type: custom:mushroom-template-card
+        primary: Resume
+        secondary: Now
+        icon: mdi:play-circle
+        icon_color: '{{ ''green'' if is_state(''input_boolean.hydrawise_suspended'', ''off'') else ''orange'' }}'
+        tap_action:
+          action: call-service
+          service: script.hydrawise_controller_resume_now
+      - type: custom:mushroom-template-card
+        primary: Suspend
+        secondary: "{% set d = states('input_datetime.hydrawise_suspend_end') %} {% if d not in ['unknown', 'unavailable',\
+          \ ''] %}\n  Until {{ as_timestamp(d) | timestamp_custom('%-d/%m') }}\n{% else %}\n  Until Date\n{% endif %}\n"
+        icon: mdi:calendar-check
+        icon_color: '{{ ''green'' if is_state(''input_boolean.hydrawise_suspended'', ''on'') else ''orange'' }}'
+        tap_action:
+          action: call-service
+          service: browser_mod.popup
+          data:
+            title: Suspend Until Date
+            dismissable: true
+            content:
+              type: vertical-stack
+              cards:
+              - type: entities
+                entities:
+                - entity: input_datetime.hydrawise_suspend_end
+                  name: Select Date
+              - type: custom:mushroom-template-card
+                primary: Apply Suspension
+                icon: mdi:check-circle
+                icon_color: green
+                layout: horizontal
+                tap_action:
+                  action: call-service
+                  service: script.hydrawise_controller_suspend_until
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: Zone Consumption – Last 4 Days (per zone)
+      series:
+      - entity: sensor.riego_frente_period
+        name: D-3
+        type: column
+        color: '#B0BEC5'
+        data_generator: "const zones = [\n  { name: 'Frente',      helper: 'input_number.riego_frente_day_3',       color:\
+          \ '#4CAF50' },\n  { name: 'Cocina',      helper: 'input_number.riego_cocina_day_3',       color: '#2196F3' },\n\
+          \  { name: 'P. Derecha',  helper: 'input_number.riego_patio_derecha_day_3',color: '#FF9800' },\n  { name: 'P. Central',\
+          \  helper: 'input_number.riego_patio_central_day_3',color: '#9C27B0' },\n  { name: 'P. Arbustos', helper: 'input_number.riego_patio_arbustos_day_3',color:'#00BCD4'\
+          \ },\n  { name: 'P. Izquierda',helper: 'input_number.riego_patio_izquierda_day_3',color:'#E91E63' },\n  { name:\
+          \ 'J. Japones',  helper: 'input_number.riego_jardin_japones_day_3',color:'#8BC34A' },\n];\nreturn zones.map((z)\
+          \ => {\n  const st = hass.states[z.helper];\n  const val = st ? parseFloat(st.state) || 0 : 0;\n  return {\n   \
+          \ x: z.name,\n    y: val,\n    fillColor: z.color,\n  };\n});\n"
+      - entity: sensor.riego_frente_period
+        name: D-2
+        type: column
+        color: '#90A4AE'
+        data_generator: "const zones = [\n  { name: 'Frente',      helper: 'input_number.riego_frente_day_2',       color:\
+          \ '#4CAF50' },\n  { name: 'Cocina',      helper: 'input_number.riego_cocina_day_2',       color: '#2196F3' },\n\
+          \  { name: 'P. Derecha',  helper: 'input_number.riego_patio_derecha_day_2',color: '#FF9800' },\n  { name: 'P. Central',\
+          \  helper: 'input_number.riego_patio_central_day_2',color: '#9C27B0' },\n  { name: 'P. Arbustos', helper: 'input_number.riego_patio_arbustos_day_2',color:'#00BCD4'\
+          \ },\n  { name: 'P. Izquierda',helper: 'input_number.riego_patio_izquierda_day_2',color:'#E91E63' },\n  { name:\
+          \ 'J. Japones',  helper: 'input_number.riego_jardin_japones_day_2',color:'#8BC34A' },\n];\nreturn zones.map((z)\
+          \ => {\n  const st = hass.states[z.helper];\n  const val = st ? parseFloat(st.state) || 0 : 0;\n  return {\n   \
+          \ x: z.name,\n    y: val,\n    fillColor: z.color,\n  };\n});\n"
+      - entity: sensor.riego_frente_period
+        name: D-1
+        type: column
+        color: '#78909C'
+        data_generator: "const zones = [\n  { name: 'Frente',      helper: 'input_number.riego_frente_day_1',       color:\
+          \ '#4CAF50' },\n  { name: 'Cocina',      helper: 'input_number.riego_cocina_day_1',       color: '#2196F3' },\n\
+          \  { name: 'P. Derecha',  helper: 'input_number.riego_patio_derecha_day_1',color: '#FF9800' },\n  { name: 'P. Central',\
+          \  helper: 'input_number.riego_patio_central_day_1',color: '#9C27B0' },\n  { name: 'P. Arbustos', helper: 'input_number.riego_patio_arbustos_day_1',color:'#00BCD4'\
+          \ },\n  { name: 'P. Izquierda',helper: 'input_number.riego_patio_izquierda_day_1',color:'#E91E63' },\n  { name:\
+          \ 'J. Japones',  helper: 'input_number.riego_jardin_japones_day_1',color:'#8BC34A' },\n];\nreturn zones.map((z)\
+          \ => {\n  const st = hass.states[z.helper];\n  const val = st ? parseFloat(st.state) || 0 : 0;\n  return {\n   \
+          \ x: z.name,\n    y: val,\n    fillColor: z.color,\n  };\n});\n"
+      - entity: sensor.riego_frente_period
+        name: Hoy
+        type: column
+        color: '#546E7A'
+        data_generator: "const zones = [\n  { name: 'Frente',      sensor: 'sensor.riego_frente_period',       color: '#4CAF50'\
+          \ },\n  { name: 'Cocina',      sensor: 'sensor.riego_cocina_period',       color: '#2196F3' },\n  { name: 'P. Derecha',\
+          \  sensor: 'sensor.riego_patio_derecha_period',color: '#FF9800' },\n  { name: 'P. Central',  sensor: 'sensor.riego_patio_central_period',color:\
+          \ '#9C27B0' },\n  { name: 'P. Arbustos', sensor: 'sensor.riego_patio_arbustos_period',color:'#00BCD4' },\n  { name:\
+          \ 'P. Izquierda',sensor: 'sensor.riego_patio_izquierda_period',color:'#E91E63' },\n  { name: 'J. Japones',  sensor:\
+          \ 'sensor.riego_jardin_japones_period',color:'#8BC34A' },\n];\nreturn zones.map((z) => {\n  const st = hass.states[z.sensor];\n\
+          \  const val = st ? parseFloat(st.state) || 0 : 0;\n  return {\n    x: z.name,\n    y: val,\n    fillColor: z.color,\n\
+          \  };\n});\n"
+      apex_config:
+        chart:
+          type: bar
+          height: 300
+          stacked: false
+          toolbar:
+            show: false
+        plotOptions:
+          bar:
+            columnWidth: 65%
+            borderRadius: 4
+        dataLabels:
+          enabled: true
+          formatter: 'EVAL:function(val) { return val > 0 ? Math.round(val) + '' L'' : ''''; }
+
+            '
+          style:
+            fontSize: 9px
+        legend:
+          show: true
+          position: top
+          horizontalAlign: center
+        xaxis:
+          type: category
+          labels:
+            rotate: -30
+            rotateAlways: true
+            trim: false
+            hideOverlappingLabels: false
+            style:
+              fontSize: 11px
+            offsetY: 5
+        yaxis:
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val) + '' L''; }
+
+              '
+        tooltip:
+          y:
+            formatter: 'EVAL:function(val) { return val + '' L''; }
+
+              '
+    - type: custom:apexcharts-card
+      header:
+        show: true
+        title: Irrigation/Rain (7AM-7AM)
+      series:
+      - entity: sensor.riego_total_period
+        name: Agua
+        type: column
+        color: '#1f77b4'
+        show:
+          legend_value: false
+        data_generator: "const days = [\n  { label: 'D-7', helper: 'input_number.riego_total_day_7' },\n  { label: 'D-6',\
+          \ helper: 'input_number.riego_total_day_6' },\n  { label: 'D-5', helper: 'input_number.riego_total_day_5' },\n \
+          \ { label: 'D-4', helper: 'input_number.riego_total_day_4' },\n  { label: 'D-3', helper: 'input_number.riego_total_day_3'\
+          \ },\n  { label: 'D-2', helper: 'input_number.riego_total_day_2' },\n  { label: 'D-1', helper: 'input_number.riego_total_day_1'\
+          \ },\n  { label: 'Hoy', sensor: 'sensor.riego_total_period' },\n];\nreturn days.map((d) => {\n  const st = d.sensor\
+          \ ? hass.states[d.sensor] : hass.states[d.helper];\n  const val = st ? parseFloat(st.state) || 0 : 0;\n  return\
+          \ { x: d.label, y: val };\n});\n"
+      - entity: sensor.lluvia_period
+        name: Lluvia
+        type: column
+        color: '#ff7f0e'
+        show:
+          legend_value: false
+        data_generator: "const days = [\n  { label: 'D-7', helper: 'input_number.lluvia_day_7' },\n  { label: 'D-6', helper:\
+          \ 'input_number.lluvia_day_6' },\n  { label: 'D-5', helper: 'input_number.lluvia_day_5' },\n  { label: 'D-4', helper:\
+          \ 'input_number.lluvia_day_4' },\n  { label: 'D-3', helper: 'input_number.lluvia_day_3' },\n  { label: 'D-2', helper:\
+          \ 'input_number.lluvia_day_2' },\n  { label: 'D-1', helper: 'input_number.lluvia_day_1' },\n  { label: 'Hoy', sensor:\
+          \ 'sensor.lluvia_period' },\n];\nreturn days.map((d) => {\n  const st = d.sensor ? hass.states[d.sensor] : hass.states[d.helper];\n\
+          \  const val = st ? parseFloat(st.state) || 0 : 0;\n  return { x: d.label, y: val };\n});\n"
+      apex_config:
+        chart:
+          type: bar
+          height: 200
+          toolbar:
+            show: false
+        plotOptions:
+          bar:
+            columnWidth: 70%
+        dataLabels:
+          enabled: false
+        legend:
+          show: true
+          position: bottom
+          horizontalAlign: center
+        xaxis:
+          type: category
+        yaxis:
+        - seriesName: Agua
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val) + '' L''; }
+
+              '
+        - seriesName: Lluvia
+          opposite: true
+          max: 30
+          labels:
+            formatter: 'EVAL:function(val) { return Math.round(val) + '' mm''; }
+
+              '
+        tooltip:
+          y:
+            formatter: "EVAL:function(val, opts) { \n  const unit = opts.seriesIndex === 0 ? ' L' : ' mm';\n  return Math.round(val)\
+              \ + unit;\n}\n"
+    - type: vertical-stack
+      cards:
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_frente_manual_watering
+          name: Frente
+          vertical: false
+          tap_action:
+            action: toggle
+          features_position: bottom
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_frente.jpeg\") center/cover no-repeat;\n\
+                \  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n  opacity: 0.6;\n\
+                \  {% endif %}\n  {% if is_state('switch.riego_frente_manual_watering', 'on') %}\n  animation: green-glow\
+                \ 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\";\n  position: absolute;\n\
+                \  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.15)\
+                \ 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_frente_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_frente_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_frente_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_frente_daily_active_watering_time'') | float / 60) | round(1) }} min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_frente_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_cocina_manual_watering
+          name: Cocina
+          vertical: false
+          tap_action:
+            action: toggle
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_cocina.jpeg\") center/cover no-repeat;\n\
+                \  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n  opacity: 0.6;\n\
+                \  {% endif %}\n  {% if is_state('switch.riego_cocina_manual_watering', 'on') %}\n  animation: green-glow\
+                \ 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\";\n  position: absolute;\n\
+                \  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.15)\
+                \ 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_cocina_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_cocina_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_cocina_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_cocina_daily_active_watering_time'') | float / 60) | round(1) }} min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_cocina_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_patio_derecha_manual_watering
+          name: Patio Derecha
+          vertical: false
+          tap_action:
+            action: toggle
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_patio_derecha.jpeg\") center/cover no-repeat;\n\
+                \  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n  opacity: 0.6;\n\
+                \  {% endif %}\n  {% if is_state('switch.riego_patio_derecha_manual_watering', 'on') %}\n  animation: green-glow\
+                \ 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\";\n  position: absolute;\n\
+                \  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.15)\
+                \ 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_patio_derecha_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_patio_derecha_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_patio_derecha_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_patio_derecha_daily_active_watering_time'') | float / 60) | round(1) }}
+              min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_patio_derecha_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_patio_central_manual_watering
+          name: Patio Central
+          vertical: false
+          tap_action:
+            action: toggle
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_patio_central.jpeg\") center/cover no-repeat;\n\
+                \  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n  opacity: 0.6;\n\
+                \  {% endif %}\n  {% if is_state('switch.riego_patio_central_manual_watering', 'on') %}\n  animation: green-glow\
+                \ 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\";\n  position: absolute;\n\
+                \  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.15)\
+                \ 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_patio_central_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_patio_central_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_patio_central_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_patio_central_daily_active_watering_time'') | float / 60) | round(1) }}
+              min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_patio_central_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_patio_arbustos_manual_watering
+          name: Patio Arbustos
+          vertical: false
+          tap_action:
+            action: toggle
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_patio_arbustos.jpeg\") center/cover no-repeat;\n\
+                \  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n  opacity: 0.6;\n\
+                \  {% endif %}\n  {% if is_state('switch.riego_patio_arbustos_manual_watering', 'on') %}\n  animation: green-glow\
+                \ 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\";\n  position: absolute;\n\
+                \  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.15)\
+                \ 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_patio_arbustos_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_patio_arbustos_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_patio_arbustos_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_patio_arbustos_daily_active_watering_time'') | float / 60) | round(1) }}
+              min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_patio_arbustos_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_patio_izquierda_manual_watering
+          name: Patio Izquierda
+          vertical: false
+          tap_action:
+            action: toggle
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_patio_izquierda.jpeg\") center/cover\
+                \ no-repeat;\n  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n\
+                \  opacity: 0.6;\n  {% endif %}\n  {% if is_state('switch.riego_patio_izquierda_manual_watering', 'on') %}\n\
+                \  animation: green-glow 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\"\
+                ;\n  position: absolute;\n  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55),\
+                \ rgba(0,0,0,0.15) 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_patio_izquierda_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_patio_izquierda_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_patio_izquierda_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_patio_izquierda_daily_active_watering_time'') | float / 60) | round(1) }}
+              min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_patio_izquierda_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+      - type: vertical-stack
+        cards:
+        - type: tile
+          entity: switch.riego_jardin_japones_manual_watering
+          name: Jardin Japones
+          vertical: false
+          tap_action:
+            action: toggle
+          features_position: bottom
+          card_mod:
+            style:
+              .: ":host {\n  --tile-color: white;\n  --state-icon-color: white;\n  --primary-text-color: white;\n  --secondary-text-color:\
+                \ rgba(255,255,255,0.9);\n}\n@keyframes green-glow {\n  0%, 100% { box-shadow: 0 0 15px 5px rgba(76, 175,\
+                \ 80, 0.7); }\n  50% { box-shadow: 0 0 25px 10px rgba(76, 175, 80, 0.9); }\n}\nha-card {\n  border-radius:\
+                \ 16px;\n  overflow: hidden;\n  background: url(\"/local/riego/riego_jardin_japones.jpeg\") center/cover no-repeat;\n\
+                \  {% if is_state('input_boolean.hydrawise_suspended', 'on') %}\n  filter: grayscale(100%);\n  opacity: 0.6;\n\
+                \  {% endif %}\n  {% if is_state('switch.riego_jardin_japones_manual_watering', 'on') %}\n  animation: green-glow\
+                \ 1.5s ease-in-out infinite;\n  {% endif %}\n}\nha-card::before {\n  content: \"\";\n  position: absolute;\n\
+                \  top: 0; left: 0; right: 0; bottom: 0;\n  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.15)\
+                \ 60%);\n  pointer-events: none;\n}\n"
+              hui-tile-card$ha-tile$ha-tile-icon$: "ha-state-icon {\n  color: {% if is_state('switch.riego_jardin_japones_manual_watering',\
+                \ 'on') %}#4caf50{% else %}white{% endif %} !important;\n  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.6));\n\
+                }\n"
+              hui-tile-card$ha-tile$ha-tile-info$: '.primary { color: white !important; font-weight: 700; text-shadow: 0 2px
+                4px rgba(0,0,0,0.6); }
+
+                .secondary { color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+                '
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Restante
+            secondary: '{{ states(''sensor.riego_jardin_japones_remaining_watering_time'') }} min'
+            icon: mdi:timer-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Siguiente
+            secondary: "{% set next = states('sensor.riego_jardin_japones_next_cycle') %} {% if next not in ['unknown', 'unavailable',\
+              \ ''] %}\n  {% set t = as_timestamp(next) - as_timestamp(now()) %}\n  {% if t > 0 %}\n    {% set d = (t // 86400)\
+              \ | int %}\n    {% set h = ((t % 86400) // 3600) | int %}\n    {% set m = ((t % 3600) // 60) | int %}\n    {%\
+              \ if d > 0 %}{{ d }}d {{ h }}h{% elif h > 0 %}{{ h }}h {{ m }}m{% else %}{{ m }}m{% endif %}\n  {% else %}\n\
+              \    Now\n  {% endif %}\n{% else %}\n  --\n{% endif %}\n"
+            icon: mdi:calendar-clock
+            icon_color: blue
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-template-card
+            primary: Tiempo 24h
+            secondary: '{{ (states(''sensor.riego_jardin_japones_daily_active_watering_time'') | float / 60) | round(1) }}
+              min'
+            icon: mdi:clock-outline
+            icon_color: blue
+          - type: custom:mushroom-template-card
+            primary: Litros 24h
+            secondary: '{{ states(''sensor.riego_jardin_japones_daily_active_water_use'') | float | round(1) }} L'
+            icon: mdi:water
+            icon_color: blue
+  - type: grid
+    cards:
+    - type: vertical-stack
+      cards:
+      - type: entities
+        title: Irrigation Configurator
+        entities:
+        - entity: input_boolean.irrigation_master_enable
+        - entity: input_number.rain_threshold
+        - entity: sensor.hp2564bu_pro_v1_9_9_daily_rain_piezo
+          name: Current Rain
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: input_boolean.slot_1_enabled
+            name: Schedule A
+          - entity: input_number.slot_1_hour
+            name: Hour
+        - type: conditional
+          conditions:
+          - entity: input_boolean.slot_1_enabled
+            state: 'on'
+          card:
+            type: horizontal-stack
+            cards:
+            - type: vertical-stack
+              cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_cocina_duration
+                name: Cocina
+                icon: mdi:silverware-fork-knife
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_cocina_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_frente_duration
+                name: Frente
+                icon: mdi:flower
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_frente_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_jardin_japones_duration
+                name: Jardin Japones
+                icon: mdi:ideogram-cjk-variant
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_jardin_japones_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_patio_arbustos_duration
+                name: Patio Arbustos
+                icon: mdi:grass
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_patio_arbustos_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_patio_central_duration
+                name: Patio Central
+                icon: mdi:square
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_patio_central_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_patio_derecha_duration
+                name: Patio Derecha
+                icon: mdi:arrow-right-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_patio_derecha_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_1_patio_izquierda_duration
+                name: Patio Izquierda
+                icon: mdi:arrow-left-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_1_patio_izquierda_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+            - type: entities
+              show_header_toggle: false
+              entities:
+              - entity: input_boolean.slot_1_monday
+              - entity: input_boolean.slot_1_tuesday
+              - entity: input_boolean.slot_1_wednesday
+              - entity: input_boolean.slot_1_thursday
+              - entity: input_boolean.slot_1_friday
+              - entity: input_boolean.slot_1_saturday
+              - entity: input_boolean.slot_1_sunday
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: input_boolean.slot_2_enabled
+            name: Schedule B
+          - entity: input_number.slot_2_hour
+            name: Hour
+        - type: conditional
+          conditions:
+          - entity: input_boolean.slot_2_enabled
+            state: 'on'
+          card:
+            type: horizontal-stack
+            cards:
+            - type: vertical-stack
+              cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_cocina_duration
+                name: Cocina
+                icon: mdi:silverware-fork-knife
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_cocina_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_frente_duration
+                name: Frente
+                icon: mdi:flower
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_frente_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_jardin_japones_duration
+                name: Jardin Japones
+                icon: mdi:ideogram-cjk-variant
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_jardin_japones_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_patio_arbustos_duration
+                name: Patio Arbustos
+                icon: mdi:grass
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_patio_arbustos_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_patio_central_duration
+                name: Patio Central
+                icon: mdi:square
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_patio_central_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_patio_derecha_duration
+                name: Patio Derecha
+                icon: mdi:arrow-right-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_patio_derecha_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_2_patio_izquierda_duration
+                name: Patio Izquierda
+                icon: mdi:arrow-left-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_2_patio_izquierda_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+            - type: entities
+              show_header_toggle: false
+              entities:
+              - entity: input_boolean.slot_2_monday
+              - entity: input_boolean.slot_2_tuesday
+              - entity: input_boolean.slot_2_wednesday
+              - entity: input_boolean.slot_2_thursday
+              - entity: input_boolean.slot_2_friday
+              - entity: input_boolean.slot_2_saturday
+              - entity: input_boolean.slot_2_sunday
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: input_boolean.slot_3_enabled
+            name: Schedule C
+          - entity: input_number.slot_3_hour
+            name: Hour
+        - type: conditional
+          conditions:
+          - entity: input_boolean.slot_3_enabled
+            state: 'on'
+          card:
+            type: horizontal-stack
+            cards:
+            - type: vertical-stack
+              cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_cocina_duration
+                name: Cocina
+                icon: mdi:silverware-fork-knife
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_cocina_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_frente_duration
+                name: Frente
+                icon: mdi:flower
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_frente_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_jardin_japones_duration
+                name: Jardin Japones
+                icon: mdi:ideogram-cjk-variant
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_jardin_japones_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_patio_arbustos_duration
+                name: Patio Arbustos
+                icon: mdi:grass
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_patio_arbustos_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_patio_central_duration
+                name: Patio Central
+                icon: mdi:square
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_patio_central_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_patio_derecha_duration
+                name: Patio Derecha
+                icon: mdi:arrow-right-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_patio_derecha_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_3_patio_izquierda_duration
+                name: Patio Izquierda
+                icon: mdi:arrow-left-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_3_patio_izquierda_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+            - type: entities
+              show_header_toggle: false
+              entities:
+              - entity: input_boolean.slot_3_monday
+              - entity: input_boolean.slot_3_tuesday
+              - entity: input_boolean.slot_3_wednesday
+              - entity: input_boolean.slot_3_thursday
+              - entity: input_boolean.slot_3_friday
+              - entity: input_boolean.slot_3_saturday
+              - entity: input_boolean.slot_3_sunday
+      - type: vertical-stack
+        cards:
+        - type: entities
+          entities:
+          - entity: input_boolean.slot_4_enabled
+            name: Schedule D
+          - entity: input_number.slot_4_hour
+            name: Hour
+        - type: conditional
+          conditions:
+          - entity: input_boolean.slot_4_enabled
+            state: 'on'
+          card:
+            type: horizontal-stack
+            cards:
+            - type: vertical-stack
+              cards:
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_cocina_duration
+                name: Cocina
+                icon: mdi:silverware-fork-knife
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_cocina_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_frente_duration
+                name: Frente
+                icon: mdi:flower
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_frente_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_jardin_japones_duration
+                name: Jardin Japones
+                icon: mdi:ideogram-cjk-variant
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_jardin_japones_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_patio_arbustos_duration
+                name: Patio Arbustos
+                icon: mdi:grass
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_patio_arbustos_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_patio_central_duration
+                name: Patio Central
+                icon: mdi:square
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_patio_central_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_patio_derecha_duration
+                name: Patio Derecha
+                icon: mdi:arrow-right-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_patio_derecha_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: input_number.slot_4_patio_izquierda_duration
+                name: Patio Izquierda
+                icon: mdi:arrow-left-bold
+                show_state: true
+                sub_button:
+                - entity: input_boolean.slot_4_patio_izquierda_enabled
+                  icon: mdi:power
+                  show_name: false
+                  tap_action:
+                    action: toggle
+            - type: entities
+              show_header_toggle: false
+              entities:
+              - entity: input_boolean.slot_4_monday
+              - entity: input_boolean.slot_4_tuesday
+              - entity: input_boolean.slot_4_wednesday
+              - entity: input_boolean.slot_4_thursday
+              - entity: input_boolean.slot_4_friday
+              - entity: input_boolean.slot_4_saturday
+              - entity: input_boolean.slot_4_sunday
+  visible:
+  - user: b0a9c23921db411e8a51da3b46685f84
+  cards: []
+  badges:
+  - type: custom:mushroom-chips-card
+    alignment: start
+    chips:
+    - type: template
+      entity: binary_sensor.hydrawise_controller_connectivity
+      icon: "{% if is_state('binary_sensor.hydrawise_controller_connectivity','on') %}\n  mdi:wifi-check\n{% else %}\n  mdi:wifi-off\n\
+        {% endif %}\n"
+      icon_color: "{% if is_state('binary_sensor.hydrawise_controller_connectivity','on') %}\n  green\n{% else %}\n  red\n\
+        {% endif %}\n"
+      content: "{% if is_state('binary_sensor.hydrawise_controller_connectivity','on') %}\n  Conectado\n{% else %}\n  Sin\
+        \ conexión\n{% endif %}\n"
+      tap_action:
+        action: more-info
+- type: sections
+  max_columns: 4
+  title: Plumbing
+  path: plumbing
+  icon: mdi:pipe-valve
+  sections:
+  - type: grid
+    cards:
+    - type: horizontal-stack
+      cards:
+      - type: sensor
+        entity: sensor.flo_shutoff_water_pressure
+        name: Pressure
+        graph: line
+        detail: 2
+        card_mod:
+          style: "ha-card {\n  height: 120px;            /* match center tile */\n  box-shadow: none;\n  padding: 8px;\n \
+            \ display: flex;\n  align-items: center;\n}\n.icon { display: none; }    /* hide icon */\n"
+      - type: custom:button-card
+        entity: switch.flo_shutoff_shut_off_valve
+        show_icon: false
+        show_name: false
+        show_state: false
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        styles:
+          card:
+          - width: 150px
+          - height: 150px
+          - margin: 0 auto
+          - padding: 0
+          - box-shadow: none
+          - border-radius: 20px
+          - border: "[[[\n  return entity.state === 'on'\n    ? '6px solid #21c466'   // ON = green\n    : '6px solid #e53935';\
+              \  // OFF = red\n]]]"
+          - background-image: url("/local/flo_logo.jpg?v=16")
+          - background-size: cover
+          - background-position: center
+          - background-repeat: no-repeat
+      - type: sensor
+        entity: sensor.flo_shutoff_water_flow_rate
+        name: Flow
+        graph: line
+        detail: 2
+        card_mod:
+          style: "ha-card {\n  height: 120px;\n  box-shadow: none;\n  padding: 8px;\n  display: flex;\n  align-items: center;\n\
+            }\n.icon { display: none; }\n"
+    - type: vertical-stack
+      cards:
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+        - type: custom:mushroom-number-card
+          entity: input_number.valve_mode_base
+          name: Base
+          icon: mdi:water-well
+          display_mode: slider
+          fill_container: true
+          show_value: false
+          unit: ''
+          primary_info: name
+          secondary_info: none
+          card_mod:
+            style: 'ha-card .value,
+
+              ha-card .measure { display: none !important; }
+
+              '
+        - type: custom:mushroom-number-card
+          entity: input_number.valve_mode_aya_directo
+          name: AyA Directo
+          icon: mdi:pipe-valve
+          display_mode: slider
+          fill_container: true
+          show_value: false
+          unit: ''
+          primary_info: name
+          secondary_info: none
+          card_mod:
+            style: 'ha-card .value,
+
+              ha-card .measure { display: none !important; }
+
+              '
+        - type: custom:mushroom-number-card
+          entity: input_number.valve_mode_filter_bypass
+          name: Filter Bypass
+          icon: mdi:filter
+          display_mode: slider
+          fill_container: true
+          show_value: false
+          unit: ''
+          primary_info: name
+          secondary_info: none
+          card_mod:
+            style: 'ha-card .value,
+
+              ha-card .measure { display: none !important; }
+
+              '
+    - type: grid
+      columns: 2
+      square: false
+      cards:
+      - type: custom:mushroom-entity-card
+        entity: switch.v_aya_46_switch_1
+        name: V AyA 46
+        tap_action:
+          action: toggle
+      - type: custom:mushroom-entity-card
+        entity: switch.v_filtro_in_20_switch_1
+        name: V Filtro In 20
+        tap_action:
+          action: toggle
+      - type: custom:mushroom-entity-card
+        entity: switch.v_filtro_out_e6_switch_1
+        name: V Filtro Out E6
+        tap_action:
+          action: toggle
+      - type: custom:mushroom-entity-card
+        entity: switch.v_tanque_in_dd_switch_1
+        name: V Tanque In DD
+        tap_action:
+          action: toggle
+      - type: custom:mushroom-entity-card
+        entity: switch.v_riego_5b_switch_1
+        name: V Riego 5B
+        tap_action:
+          action: toggle
+      - type: custom:mushroom-entity-card
+        entity: switch.v_sin_filtro_out_37_switch_1
+        name: V. Sin filtro Out 37
+        tap_action:
+          action: toggle
+  cards: []
+  badges:
+  - type: custom:mushroom-chips-card
+    alignment: center
+    chips:
+    - type: template
+      entity: sensor.flo_shutoff_current_system_mode
+      tap_action:
+        action: more-info
+      hold_action:
+        action: more-info
+      content: '{{ states(''sensor.flo_shutoff_current_system_mode'') | title }}'
+      icon: "{% set v = (states('sensor.flo_shutoff_current_system_mode') | lower) %} {% if 'home' in v %}\n  mdi:home-account\n\
+        {% elif 'away' in v %}\n  mdi:home-export-outline\n{% elif 'sleep' in v %}\n  mdi:moon-waning-crescent\n{% else %}\n\
+        \  mdi:water\n{% endif %}"
+      icon_color: "{% set v = (states('sensor.flo_shutoff_current_system_mode') | lower) %} {% if 'home' in v %}\n  green\n\
+        {% elif 'away' in v %}\n  amber\n{% elif 'sleep' in v %}\n  blue\n{% else %}\n  grey\n{% endif %}"
+  - type: custom:mushroom-chips-card
+    alignment: center
+    chips:
+    - type: template
+      entity: binary_sensor.flo_shutoff_pending_system_alerts
+      content: Alerts
+      icon: '{{ ''mdi:alert-circle'' if is_state(entity, ''on'') else ''mdi:check-circle'' }}'
+      icon_color: '{{ ''red'' if is_state(entity, ''on'') else ''green'' }}'
+      badge: '{{ ''!'' if is_state(entity, ''on'') else '''' }}'
+      badge_color: '{{ ''red'' if is_state(entity, ''on'') else '''' }}'
+      tap_action:
+        action: more-info
+      hold_action:
+        action: more-info
+- type: sections
+  max_columns: 4
+  title: Notifications
+  path: notifications
+  icon: mdi:mailbox-open
+  visible:
+  - user: b0a9c23921db411e8a51da3b46685f84
+  sections:
+  - type: grid
+    cards:
+    - type: markdown
+      title: Notifications Today
+      content: '{% set delivered = state_attr(''sensor.whatsapp_notification_log'', ''delivered_count'') | int(0) %} {% set
+        queued = state_attr(''sensor.whatsapp_notification_log'', ''queued_count'') | int(0) %} {% set notifications = state_attr(''sensor.whatsapp_notification_log'',
+        ''notifications'') or [] %} <p>✅ {{ delivered }} delivered | ⏸️ {{ queued }} queued</p> <hr> {% for n in notifications[:15]
+        %} <details> <summary>{% if n.status == ''delivered'' %}✅{% elif n.status == ''queued'' %}⏸️{% else %}🔄{% endif %}
+        {{ n.time }} · {{ n.summary }}</summary> <p>{{ n.full_message | replace(''*'', '''') | replace(''\n'', ''<br>'') }}</p>
+        </details> {% endfor %}
+
+        '
+      card_mod:
+        style: "ha-markdown p, ha-markdown summary, ha-markdown details {\n  font-size: 14px !important;\n}\n"
+    - type: custom:state-switch
+      entity: input_select.alert_package_selector
+      default: Tuya
+      states:
+        Tuya:
+          type: entities
+          title: Alert Settings
+          icon: mdi:power-plug-outline
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:power-plug-outline
+          - entity: input_boolean.alert_tuya_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_tuya_priority
+            name: Priority
+          - entity: input_number.tuya_debounce_minutes
+            name: Debounce
+          - entity: input_number.tuya_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_tuya_notification
+        TV:
+          type: entities
+          title: Alert Settings
+          icon: mdi:television
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:television
+          - entity: input_boolean.alert_tv_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_tv_priority
+            name: Priority
+          - entity: input_number.tv_debounce_minutes
+            name: Debounce
+          - entity: input_number.tv_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_tv_notification
+        Omada:
+          type: entities
+          title: Alert Settings
+          icon: mdi:router-network-wireless
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:router-network-wireless
+          - entity: input_boolean.alert_omada_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_omada_priority
+            name: Priority
+          - entity: input_number.omada_debounce_minutes
+            name: Debounce
+          - entity: input_number.omada_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_omada_notification
+        BLE:
+          type: entities
+          title: Alert Settings
+          icon: mdi:bluetooth
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:bluetooth
+          - entity: input_boolean.alert_ble_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_ble_priority
+            name: Priority
+          - entity: input_number.ble_debounce_minutes
+            name: Debounce
+          - entity: input_number.ble_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_ble_notification
+        Cameras:
+          type: entities
+          title: Alert Settings
+          icon: mdi:cctv
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:cctv
+          - entity: input_boolean.alert_cameras_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_cameras_priority
+            name: Priority
+          - entity: input_number.cameras_debounce_minutes
+            name: Debounce
+          - entity: input_number.cameras_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_cameras_notification
+        Plomeria:
+          type: entities
+          title: Alert Settings
+          icon: mdi:pipe-valve
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:pipe-valve
+          - entity: input_boolean.alert_plomeria_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_plomeria_priority
+            name: Priority
+          - entity: input_number.plomeria_debounce_minutes
+            name: Debounce
+          - entity: input_number.plomeria_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_plomeria_notification
+        Moen Flo:
+          type: entities
+          title: Alert Settings
+          icon: mdi:water-pump
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:water-pump
+          - entity: input_boolean.alert_moen_flo_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_moen_flo_priority
+            name: Priority
+          - entity: input_number.moen_flo_debounce_minutes
+            name: Debounce
+          - entity: input_number.moen_flo_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_moen_flo_notification
+        Hue:
+          type: entities
+          title: Alert Settings
+          icon: mdi:lightbulb-group
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:lightbulb-group
+          - entity: input_boolean.alert_hue_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_hue_priority
+            name: Priority
+          - entity: input_number.hue_debounce_minutes
+            name: Debounce
+          - entity: input_number.hue_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_hue_notification
+        Riego:
+          type: entities
+          title: Alert Settings
+          icon: mdi:sprinkler-variant
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:sprinkler-variant
+          - entity: input_boolean.alert_riego_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_riego_priority
+            name: Priority
+          - entity: input_number.riego_debounce_minutes
+            name: Debounce
+          - entity: input_number.riego_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_riego_notification
+        Battery:
+          type: entities
+          title: Alert Settings
+          icon: mdi:battery-alert
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:battery-alert
+          - entity: input_boolean.alert_battery_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_battery_priority
+            name: Priority
+          - entity: input_number.battery_debounce_minutes
+            name: Debounce
+          - entity: input_number.battery_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_battery_notification
+        Speedtest:
+          type: entities
+          title: Alert Settings
+          icon: mdi:speedometer
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:speedometer
+          - entity: input_boolean.alert_speedtest_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_speedtest_priority
+            name: Priority
+          - entity: input_number.speedtest_threshold_mbps
+            name: Threshold
+          - entity: input_number.speedtest_debounce_minutes
+            name: Debounce
+          - entity: input_number.speedtest_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_speedtest_notification
+        Ecowitt:
+          type: entities
+          title: Alert Settings
+          icon: mdi:weather-partly-cloudy
+          entities:
+          - entity: input_select.alert_package_selector
+            name: Package
+            icon: mdi:weather-partly-cloudy
+          - entity: input_boolean.alert_ecowitt_enabled
+            name: Enable Alert
+            icon: mdi:bell-check
+          - entity: input_select.alert_ecowitt_priority
+            name: Priority
+          - entity: input_number.ecowitt_debounce_minutes
+            name: Debounce
+          - entity: input_number.ecowitt_repeat_hours
+            name: Repeat Reminder
+          - type: button
+            name: Test Notification
+            action_name: Test
+            tap_action:
+              action: perform-action
+              perform_action: script.test_ecowitt_notification
+    - type: entities
+      title: Non-Critical Window
+      entities:
+      - entity: input_datetime.alert_window_start
+        name: Start Time
+      - entity: input_datetime.alert_window_end
+        name: End Time
+      - entity: input_boolean.alert_window_enabled
+        name: Enable Window
+  cards: []
+- type: sections
+  max_columns: 4
+  title: Automations
+  path: automations
+  sections:
+  - type: grid
+    cards:
+    - type: entities
+      title: Buenas Noches
+      entities:
+      - entity: input_boolean.automation_buenas_noches_enabled
+        name: Enable Automation
+      - type: button
+        name: Run Now
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_buenas_noches
+    - type: entities
+      title: Pool Fill Sequence
+      entities:
+      - entity: input_boolean.alert_pool_fill_sequence_enabled
+        name: Enable Automation
+      - type: button
+        name: Run Now
+        tap_action:
+          action: call-service
+          service: script.pool_fill_sequence
+  - type: grid
+    cards:
+    - type: vertical-stack
+      cards:
+      - type: glance
+        title: 🔍 Automation Monitor
+        entities:
+        - entity: sensor.automation_errors_today
+          name: Errors Today
+        - entity: sensor.automation_warnings_today
+          name: Warnings Today
+        - entity: input_boolean.automation_monitor_errors
+          name: Error Alerts
+          tap_action:
+            action: toggle
+        - entity: input_boolean.automation_monitor_warnings
+          name: Warning Alerts
+          tap_action:
+            action: toggle
+      - type: horizontal-stack
+        cards:
+        - type: button
+          name: Stop All Alerts
+          icon: mdi:bell-off
+          tap_action:
+            action: call-service
+            service: input_boolean.turn_off
+            service_data:
+              entity_id:
+              - input_boolean.automation_monitor_errors
+              - input_boolean.automation_monitor_warnings
+        - type: button
+          name: Enable All Alerts
+          icon: mdi:bell-ring
+          tap_action:
+            action: call-service
+            service: input_boolean.turn_on
+            service_data:
+              entity_id:
+              - input_boolean.automation_monitor_errors
+              - input_boolean.automation_monitor_warnings
+      - type: entities
+        title: 📋 Last 10 Issues (Newest First)
+        show_header_toggle: false
+        entities:
+        - entity: input_text.automation_error_log_1
+          name: 1 - Most Recent
+          icon: mdi:numeric-1-circle
+        - entity: input_text.automation_error_log_2
+          name: '2'
+          icon: mdi:numeric-2-circle
+        - entity: input_text.automation_error_log_3
+          name: '3'
+          icon: mdi:numeric-3-circle
+        - entity: input_text.automation_error_log_4
+          name: '4'
+          icon: mdi:numeric-4-circle
+        - entity: input_text.automation_error_log_5
+          name: '5'
+          icon: mdi:numeric-5-circle
+        - entity: input_text.automation_error_log_6
+          name: '6'
+          icon: mdi:numeric-6-circle
+        - entity: input_text.automation_error_log_7
+          name: '7'
+          icon: mdi:numeric-7-circle
+        - entity: input_text.automation_error_log_8
+          name: '8'
+          icon: mdi:numeric-8-circle
+        - entity: input_text.automation_error_log_9
+          name: '9'
+          icon: mdi:numeric-9-circle
+        - entity: input_text.automation_error_log_10
+          name: 10 - Oldest
+          icon: mdi:numeric-10-circle
+      - type: markdown
+        content: '## 🚨 Most Recent Error
+
+
+          {% if states(''input_text.last_automation_error'') != ''unknown'' and states(''input_text.last_automation_error'')
+          != '''' %}
+
+          ```
+
+          {{ states(''input_text.last_automation_error'') }}
+
+          ```
+
+          {% else %}
+
+          ✅ No errors recorded today
+
+          {% endif %}
+
+          '
+      - type: markdown
+        content: '## ⚠️ Most Recent Warning
+
+
+          {% if states(''input_text.last_automation_warning'') != ''unknown'' and states(''input_text.last_automation_warning'')
+          != '''' %}
+
+          ```
+
+          {{ states(''input_text.last_automation_warning'') }}
+
+          ```
+
+          {% else %}
+
+          ✅ No warnings recorded today
+
+          {% endif %}
+
+          '
+      - type: markdown
+        content: '## 📱 WhatsApp Notification Status
+
+
+          {% if is_state(''input_boolean.automation_monitor_errors'', ''on'') and is_state(''input_boolean.automation_monitor_warnings'',
+          ''on'') %}
+
+          ✅ **All alerts ENABLED** - You''ll receive WhatsApp notifications for all issues
+
+          {% elif is_state(''input_boolean.automation_monitor_errors'', ''on'') and is_state(''input_boolean.automation_monitor_warnings'',
+          ''off'') %}
+
+          ⚠️ **Only ERROR alerts enabled** - You''ll only receive critical error notifications
+
+          {% elif is_state(''input_boolean.automation_monitor_errors'', ''off'') and is_state(''input_boolean.automation_monitor_warnings'',
+          ''on'') %}
+
+          ⚠️ **Only WARNING alerts enabled** - You''ll only receive warning notifications
+
+          {% else %}
+
+          🔕 **All alerts DISABLED** - No WhatsApp notifications will be sent
+
+          {% endif %}
+
+
+          ---
+
+          **Today''s Stats:** {{ states(''counter.automation_errors_today'') }} errors, {{ states(''counter.automation_warnings_today'')
+          }} warnings
+
+          '
+  icon: mdi:robot
+  cards: []
+- type: sections
+  max_columns: 4
+  title: Presense
+  path: presense
+  icon: mdi:account
+  sections:
+  - type: grid
+    cards:
+    - type: vertical-stack
+      title: Presence Control
+      cards:
+      - type: custom:mushroom-chips-card
+        alignment: center
+        chips:
+        - type: template
+          entity: binary_sensor.cuarto_master_occupied
+          icon: mdi:home-account
+          icon_color: "{% if is_state('binary_sensor.cuarto_master_occupied', 'on') %}\n  green\n{% else %}\n  grey\n{% endif\
+            \ %}\n"
+          content: "{% if is_state('binary_sensor.cuarto_master_occupied', 'on') %}\n  Occupied\n{% else %}\n  Empty\n{% endif\
+            \ %}\n"
+          tap_action:
+            action: more-info
+            entity: binary_sensor.cuarto_master_presence_probability
+        - type: template
+          icon: mdi:brightness-6
+          icon_color: amber
+          content: '{{ states(''sensor.cuarto_master_average_lux'') | float(0) | round(0) }} lx'
+        - type: template
+          icon: mdi:thermometer
+          icon_color: red
+          content: '{{ states(''sensor.cuarto_master_current_temperature'') | float(0) | round(1) }}°C'
+        - type: template
+          icon: "{% if is_state('input_boolean.cuarto_master_light_program_cancelled', 'on') %}\n  mdi:cancel\n{% elif is_state('binary_sensor.cuarto_master_light_program_active',\
+            \ 'on') %}\n  mdi:lightbulb-auto\n{% else %}\n  mdi:lightbulb-auto-outline\n{% endif %}\n"
+          icon_color: "{% if is_state('input_boolean.cuarto_master_light_program_cancelled', 'on') %}\n  red\n{% elif is_state('binary_sensor.cuarto_master_light_program_active',\
+            \ 'on') %}\n  green\n{% else %}\n  grey\n{% endif %}\n"
+          content: "{% if is_state('input_boolean.cuarto_master_light_program_cancelled', 'on') %}\n  Cancelled\n{% elif is_state('binary_sensor.cuarto_master_light_program_active',\
+            \ 'on') %}\n  Program Active\n{% else %}\n  Program Inactive\n{% endif %}\n"
+          tap_action:
+            action: call-service
+            service: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.cuarto_master_light_program_cancelled
+            confirmation:
+              text: Reset cancelled status?
+        - type: template
+          icon: mdi:brightness-auto
+          icon_color: "{% if is_state('binary_sensor.cuarto_master_lux_below_threshold', 'on') %}\n  amber\n{% else %}\n \
+            \ grey\n{% endif %}\n"
+          content: "{% if is_state('binary_sensor.cuarto_master_lux_below_threshold', 'on') %}\n  Dark Enough\n{% else %}\n\
+            \  Too Bright\n{% endif %}\n"
+      - type: horizontal-stack
+        cards:
+        - type: custom:button-card
+          entity: input_select.presence_room_selector
+          show_name: false
+          show_state: false
+          show_icon: false
+          styles:
+            card:
+            - width: 75px
+            - height: 75px
+            - min-width: 75px
+            - border-radius: 50%
+            - padding: 0
+            - overflow: hidden
+            - box-shadow: none
+            - background: none
+            - margin-top: 4px
+            - margin-right: -50px
+          custom_fields:
+            pic: "[[[\n  const selected = entity.state.toLowerCase().replace(/ /g, '_');\n  const areaMap = {\n    'cuarto_master':\
+              \ 'cuarto_master',\n    'baño_master': 'bano_master',\n    'cuarto_andres': 'cuarto_andres',\n    'cuarto_maria':\
+              \ 'cuarto_maria',\n    'cine': 'cine',\n    'cocina': 'cocina',\n    'música': 'musica',\n    'area_social':\
+              \ 'area_social',\n    'garage': 'garage',\n    'solario': 'solario',\n    'jardines': 'iluminacion_exterior'\n\
+              \  };\n  const areaId = areaMap[selected] || selected;\n  const areas = hass.areas || {};\n  const area = areas[areaId];\n\
+              \  const pic = area?.picture || '';\n  return `<img src=\"${pic}\" style=\"width:75px;height:75px;object-fit:cover;border-radius:50%;\"\
+              >`;\n]]]\n"
+          tap_action:
+            action: none
+        - type: entities
+          show_header_toggle: false
+          card_mod:
+            style: "ha-card {\n  border: none;\n  box-shadow: none;\n  background: none;\n}\n"
+          entities:
+          - entity: input_select.presence_room_selector
+            name: Room
+            icon: none
+      - type: horizontal-stack
+        cards:
+        - type: custom:mushroom-entity-card
+          entity: input_boolean.cuarto_master_light_automation_enabled
+          name: Auto Off
+          layout: vertical
+          tap_action:
+            action: toggle
+          icon_color: "{% if is_state(entity, 'on') %}\n  amber\n{% else %}\n  grey\n{% endif %}\n"
+        - type: custom:mushroom-entity-card
+          entity: input_boolean.cuarto_master_ac_automation_enabled
+          name: Auto Off
+          icon: mdi:snowflake
+          layout: vertical
+          tap_action:
+            action: toggle
+          icon_color: "{% if is_state(entity, 'on') %}\n  cyan\n{% else %}\n  grey\n{% endif %}\n"
+        - type: custom:mushroom-entity-card
+          entity: input_boolean.cuarto_master_ac_regulation_enabled
+          name: Adjust
+          icon: mdi:thermometer-lines
+          layout: vertical
+          tap_action:
+            action: toggle
+          icon_color: "{% if is_state(entity, 'on') %}\n  blue\n{% else %}\n  grey\n{% endif %}\n"
+        - type: custom:mushroom-entity-card
+          entity: input_boolean.cuarto_master_tv_automation_enabled
+          name: Auto Off
+          icon: mdi:television
+          layout: vertical
+          tap_action:
+            action: toggle
+          icon_color: "{% if is_state(entity, 'on') %}\n  purple\n{% else %}\n  grey\n{% endif %}\n"
+      - type: custom:mushroom-title-card
+        title: TV Settings
+        subtitle: ''
+      - type: entities
+        entities:
+        - entity: input_number.cuarto_master_tv_off_delay
+          name: Turn Off Delay (min)
+      - type: custom:mushroom-title-card
+        title: Light Settings
+        subtitle: light.spots_master
+      - type: entities
+        entities:
+        - entity: input_number.cuarto_master_lux_threshold
+          name: Lux Threshold
+          secondary_info: last-changed
+        - entity: input_number.cuarto_master_light_off_delay
+          name: Turn Off Delay (min)
+        - entity: input_datetime.cuarto_master_light_start_time
+          name: Program Start
+        - entity: input_datetime.cuarto_master_light_end_time
+          name: Program End
+      - type: custom:mushroom-title-card
+        title: AC Settings
+        subtitle: ''
+      - type: entities
+        entities:
+        - entity: sensor.cuarto_master_current_temperature
+          name: Current Temperature
+          icon: mdi:thermometer
+        - entity: input_number.cuarto_master_ac_target_temp
+          name: Target Temperature
+        - entity: input_number.cuarto_master_temp_calibration_offset
+          name: Calibration Factor
+        - entity: input_number.cuarto_master_ac_regulation_interval
+          name: AC Reset Interval
+        - type: divider
+          label: Outside Temperature Correction
+        - entity: sensor.hp2564bu_pro_v1_9_9_feels_like_temperature
+          name: Outside Temperature
+          icon: mdi:thermometer-lines
+        - entity: input_number.cuarto_master_ac_external_temp_reference
+          name: Outside Neutral Temp
+        - entity: input_number.cuarto_master_ac_external_correction_factor
+          name: Correction Aggressiveness
+        - type: divider
+          label: Auto-Off Settings
+        - entity: input_datetime.cuarto_master_ac_autooff_start
+          name: Auto-Off Window Start
+        - entity: input_datetime.cuarto_master_ac_autooff_end
+          name: Auto-Off Window End
+        - type: divider
+          label: Auto-Resume Settings
+        - entity: input_datetime.cuarto_master_ac_resume_start
+          name: Auto-Resume Window Start
+        - entity: input_datetime.cuarto_master_ac_resume_end
+          name: Auto-Resume Window End
+        - type: divider
+          label: Actividad AC
+        - type: custom:hui-element
+          card_type: markdown
+          card_mod:
+            style: "ha-card {\n  background: none;\n  box-shadow: none;\n  border: none;\n  padding: 0;\n}\n"
+          content: '{{ state_attr(''sensor.ac_activity_list'', ''markdown_filtered'') | default(''*Sin actividad*'') }}
+
+            '
+      - type: custom:mushroom-title-card
+        title: Presence Detection
+        subtitle: ''
+      - type: entities
+        entities:
+        - entity: binary_sensor.cuarto_master_presence_probability
+          name: Presence Sensor
+          secondary_info: last-changed
+        - entity: input_number.cuarto_master_presence_threshold
+          name: Presence Threshold
+        - type: attribute
+          entity: binary_sensor.cuarto_master_presence_probability
+          attribute: probability
+          name: Current Probability
+          icon: mdi:percent
+        - type: divider
+          label: Current Detection States
+        - entity: sensor.iphone_manuel_ble_area
+          name: Manuel iPhone Location
+        - entity: sensor.iphone_evelyn_area
+          name: Evelyn iPhone Location
+        - entity: sensor.iphone_andres_ble_area
+          name: Andrés iPhone Location
+  - type: grid
+    cards:
+    - type: heading
+      heading: New section
+    - type: markdown
+      title: Presencia BLE — Estado
+      content: "{% set devices = [\n  ('iPhone Manuel',  'sensor.iphone_manuel_ble_area',  'sensor.iphone_manuel_ble_distance',\
+        \  'sensor.iphone_manuel_ble_nearest_rssi'),\n  ('iPad Manuel',    'sensor.ipad_manuel_area',        'sensor.ipad_manuel_distance',\
+        \        'sensor.private_ble_device_c5cb93_signal_strength'),\n  ('iPhone Evelyn',  'sensor.iphone_evelyn_area', \
+        \     'sensor.iphone_evelyn_distance',      'sensor.private_ble_device_31e769_signal_strength'),\n  ('iPad Evelyn',\
+        \    'sensor.ipad_evelyn_area',        'sensor.ipad_evelyn_distance',        'sensor.private_ble_device_debf1e_signal_strength'),\n\
+        \  ('iPhone Andrés',  'sensor.iphone_andres_ble_area',  'sensor.iphone_andres_ble_distance',  'sensor.private_ble_device_7f2c53_signal_strength')\n\
+        ] %}\n**Dispositivos**\n{% for label, area_e, dist_e, rssi_e in devices %}\n**{{ label }}**\nÁrea: {{ states(area_e)\
+        \ | default('—') }}\nDist: {{ states(dist_e) | default('—') }}\nRSSI: {{ states(rssi_e) | default('—') }}\n\n{% endfor\
+        \ %}"
+    - type: entities
+      entities:
+      - entity: input_boolean.alert_presence_enabled
+        name: Enable Alert
+      - entity: input_number.presence_arrival_delay
+        name: Arrival Delay
+      - entity: input_number.presence_departure_delay
+        name: Departure Delay
+      - type: button
+        name: Test WhatsApp Info
+        action_name: Test
+        tap_action:
+          action: call-service
+          service: script.test_presence_notification
+      title: Home Presence
+  - type: grid
+    cards: []
+  cards: []
+- type: sections
+  max_columns: 4
+  title: Interface Config
+  path: interface-config
+  icon: mdi:cog
+  sections:
+  - type: grid
+    cards:
+    - type: entities
+      entities:
+      - entity: input_boolean.auto_return_enabled
+        name: Auto-return enabled
+    - type: entities
+      entities:
+      - entity: input_boolean.dashboard_edit_mode
+        name: Dashboard edit mode
+        initial: 'on'
+    - type: entities
+      entities:
+      - entity: input_boolean.kiosk_mode_override
+        name: Kiosk Mode
+    - type: custom:state-switch
+      entity: user
+      default: hide
+      states:
+        Manuel Zuniga:
+          type: entities
+          entities:
+          - entity: input_select.ble_device_manuel
+            name: Dispositivo para ubicación
+          show_header_toggle: false
+        Evelyn Cordero:
+          type: entities
+          entities:
+          - entity: input_select.ble_device_evelyn
+            name: Dispositivo para ubicación
+          show_header_toggle: false
+        Andres Zuniga:
+          type: entities
+          entities:
+          - entity: input_select.ble_device_andres
+            name: Dispositivo para ubicación
+          show_header_toggle: false
+        hide:
+          type: custom:button-card
+          show_icon: false
+          show_name: false
+          styles:
+            card:
+            - display: none
+    - type: entities
+      title: Weather Overlay Controls
+      entities:
+      - entity: input_boolean.weather_overlay
+        name: Enable Overlay
+      - entity: input_select.weather_overlay_test
+        name: Test Effect
+  - type: grid
+    cards:
+    - type: vertical-stack
+      cards:
+      - type: markdown
+        content: '## 🔄 GitHub Backup
+
+          '
+      - type: entities
+        entities:
+        - entity: sensor.git_last_backup
+          name: Last Backup
+          icon: mdi:clock-check
+      - type: conditional
+        conditions:
+        - entity: script.git_backup
+          state: 'on'
+        card:
+          type: entities
+          entities:
+          - entity: script.git_backup
+            name: ⚡ Backup in Progress
+            secondary_info: Syncing to GitHub...
+            icon: mdi:sync
+          card_mod:
+            style: "ha-card {\n  background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);\n  border-left: 4px solid #2196F3;\n\
+              }\nha-icon {\n  animation: spin 1.2s linear infinite;\n}\n@keyframes spin {\n  from { transform: rotate(0deg);\
+              \ }\n  to { transform: rotate(360deg); }\n}\n"
+      - type: custom:scheduler-card
+        discover_existing: false
+        include:
+        - script.git_backup
+        title: Backup Schedule
+      - type: horizontal-stack
+        cards:
+        - type: button
+          entity: script.git_backup
+          name: Backup Now
+          icon: mdi:cloud-upload
+          tap_action:
+            action: call-service
+            service: script.git_backup
+          show_name: true
+          show_icon: true
+          icon_height: 24px
+          card_mod:
+            style: "ha-card {\n  transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;\n}\n:host([data-state=\"\
+              on\"]) ha-card {\n  box-shadow: 0 0 12px 3px var(--accent-color);\n  transform: translateY(-2px);\n  animation:\
+              \ pulse 0.8s ease-in-out infinite alternate;\n}\n@keyframes pulse {\n  from { box-shadow: 0 0 4px 1px var(--accent-color);\
+              \ }\n  to   { box-shadow: 0 0 16px 4px var(--accent-color); }\n}\n"
+        - type: button
+          name: View Repo
+          icon: mdi:github
+          tap_action:
+            action: url
+            url_path: https://github.com/mzuniga51/homeassistant-config
+          show_name: true
+          show_icon: true
+          icon_height: 24px
+      - type: markdown
+        card_mod:
+          style: "ha-card {\n  padding: 12px 14px 6px;\n  border-radius: 16px;\n  box-shadow: var(--ha-card-box-shadow);\n\
+            }\nh3 {\n  margin-top: 0;\n  margin-bottom: 8px;\n}\n.backup-entry {\n  margin: 4px 0 6px;\n  padding: 6px 8px;\n\
+            \  border-radius: 12px;\n  background: rgba(var(--rgb-card-background-color), 0.9);\n  display: flex;\n  align-items:\
+            \ center;\n  gap: 8px;\n}\n.backup-icon {\n  font-size: 1.1em;\n}\n.backup-main {\n  font-weight: 600;\n}\n.backup-sub\
+            \ {\n  font-size: 0.85em;\n  opacity: 0.8;\n}\n"
+        content: "{% set raw = states('sensor.git_backup_history') %} {% if raw not in ['unknown','unavailable',''] %}\n \
+          \ {% set lines = raw.split('\\n') | reject('eq','') | list %}\n  {% set last = lines[-10:] %}\n\n  ### \U0001F552\
+          \ Backup History\n\n  {% for line in last | reverse %}\n    {% set parts = line.split(' | ') %}\n    {% set ts =\
+          \ parts[0] %}\n    {% set status = parts[1] %}\n    {% set hash = parts[2] if parts|length > 2 else '' %}\n\n  \
+          \  {% set ts_fmt = as_timestamp(ts) | timestamp_custom('%b %d, %H:%M', true) %}\n\n    {# Choose an icon and label\
+          \ based on status #}\n    {% if 'commit_error' in status or 'push_error' in status %}\n      {% set icon = '\U0001F534\
+          ' %}\n      {% set status_label = 'Error' %}\n    {% elif 'no_changes' in status %}\n      {% set icon = '\U0001F7E1\
+          ' %}\n      {% set status_label = 'No changes' %}\n    {% else %}\n      {% set icon = '\U0001F7E2' %}\n      {%\
+          \ set status_label = 'Backup saved' %}\n    {% endif %}\n\n    <div class=\"backup-entry\">\n      <div class=\"\
+          backup-icon\">{{ icon }}</div>\n      <div>\n        <div class=\"backup-main\">{{ ts_fmt }} — {{ status_label }}</div>\n\
+          \        <div class=\"backup-sub\">\n          {{ status }}\n          {% if hash %} • commit {{ hash }}{% endif\
+          \ %}\n        </div>\n      </div>\n    </div>\n  {% endfor %}\n{% else %}\n  _No backups yet._\n{% endif %}\n"

@@ -1,15 +1,11 @@
 ################################################################################
 # Git Backup Automation Package
-# Runs git backup, exports dashboards, pushes to GitHub
+# - Runs git_backup.py (exports dashboards + git commit/push)
+# - Exposes "last backup" and "history" sensors for UI
 ################################################################################
 
 shell_command:
-  git_backup: >
-    cd /config &&
-    python3 /config/git_backup.py &&
-    git add . &&
-    git commit -m "Backup $(date '+%Y-%m-%d %H:%M')" || true &&
-    git push origin main
+  git_backup: "python3 /config/git_backup.py"
 
 script:
   git_backup:
@@ -19,15 +15,28 @@ script:
     sequence:
       - service: shell_command.git_backup
 
+sensor:
+  # Single timestamp of last backup
+  - platform: file
+    name: "Git Last Backup File"
+    file_path: /config/.git_last_backup
+    scan_interval: 60
+
+  # History log (one line per backup)
+  - platform: file
+    name: "Git Backup History"
+    file_path: /config/.git_backup_history
+    scan_interval: 60
+
 template:
   - sensor:
       - name: "Git Last Backup"
         unique_id: git_last_backup
         icon: mdi:clock-check
         state: >
-          {% set t = state_attr('script.git_backup', 'last_triggered') %}
-          {% if t %}
-            {{ as_timestamp(t) | timestamp_custom('%b %d, %H:%M', true) }}
+          {% set raw = states('sensor.git_last_backup_file') %}
+          {% if raw not in ['unknown', 'unavailable', ''] %}
+            {{ as_timestamp(raw) | timestamp_custom('%b %d, %H:%M', true) }}
           {% else %}
             Never
           {% endif %}
