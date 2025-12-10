@@ -1,0 +1,33 @@
+################################################################################
+# Git Backup Automation Package
+# Runs git backup, exports dashboards, pushes to GitHub
+################################################################################
+
+shell_command:
+  git_backup: >
+    cd /config &&
+    python3 /config/git_backup.py &&
+    git add . &&
+    git commit -m "Backup $(date '+%Y-%m-%d %H:%M')" || true &&
+    git push origin main
+
+script:
+  git_backup:
+    alias: "GitHub Backup"
+    icon: mdi:github
+    mode: single
+    sequence:
+      - service: shell_command.git_backup
+
+template:
+  - sensor:
+      - name: "Git Last Backup"
+        unique_id: git_last_backup
+        icon: mdi:clock-check
+        state: >
+          {% set t = state_attr('script.git_backup', 'last_triggered') %}
+          {% if t %}
+            {{ as_timestamp(t) | timestamp_custom('%b %d, %H:%M', true) }}
+          {% else %}
+            Never
+          {% endif %}
